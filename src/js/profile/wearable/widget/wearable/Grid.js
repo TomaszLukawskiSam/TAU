@@ -741,11 +741,11 @@
 				return element;
 			};
 
-			prototype._setScrollbar = function (element, value) {
+			prototype._setScrollbar = function (element, color) {
 				var container = this._ui.container;
 
-				if (value) {
-					container.setAttribute("tizen-circular-scrollbar", "");
+				if (color) {
+					container.setAttribute("tizen-circular-scrollbar", color);
 				} else {
 					container.removeAttribute("tizen-circular-scrollbar");
 				}

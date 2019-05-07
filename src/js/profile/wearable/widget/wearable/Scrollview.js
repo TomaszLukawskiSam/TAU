@@ -108,7 +108,8 @@
 				EffectBouncing = ns.widget.core.scroller.effect.Bouncing,
 				Scrollview = function () {
 					this.options = {
-						bouncingEffect: true
+						bouncingEffect: true,
+						scrollBarColor: "#ffffff"
 					};
 				},
 				/**
@@ -154,11 +155,11 @@
 
 				if (ns.support.shape.circle) {
 					if (scroller) {
-						scroller.setAttribute(scrollBarType.CIRCLE, "");
+						scroller.setAttribute(scrollBarType.CIRCLE, this.options.scrollBarColor);
 					}
 					content = element.querySelector("." + classes.uiContent);
 					if (content) {
-						content.setAttribute(scrollBarType.CIRCLE, "");
+						content.setAttribute(scrollBarType.CIRCLE, this.options.scrollBarColor);
 					}
 				}
 
