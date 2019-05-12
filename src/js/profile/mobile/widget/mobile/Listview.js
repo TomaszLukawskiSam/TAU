@@ -153,7 +153,11 @@
 						 * @property {boolean} options.coloredBackground=true enables/disables colored background
 						 */
 						options = {
-							coloredBackground: true
+							coloredBackground: true,
+							colorRestOfScreen: true,
+							firstColorStep: 0,
+							lastColorStep: 0,
+							disableColorChange: false
 						};
 
 					CoreListview.call(self);
@@ -188,12 +192,15 @@
 					// starting default color for gradient background
 					self._colorBase = [250, 250, 250, 1];
 					// color modifier for each background gradient step
-					self._colorStep = [0, 0, 0, -0.04];
+					self._colorStep = [0, 0, 0, -0.04] ;
 					// _lastChange
 					self._lastChange = 0;
+					// array of neighbor colored listview related to parent
+					self._siblingLists = [];
 
 					initializeGlobalsForDrag(self);
 				},
+				WIDGET_SELECTOR = "[data-role='listview'], .ui-listview",
 				/**
 				 * @property {Object} classes
 				 * @property {string} classes.BACKGROUND_LAYER
@@ -327,6 +334,14 @@
 			Listview.classes = objectUtils.fastMerge(classes, CoreListview.classes);
 			Listview.events = events;
 
+			prototype._setFirstColorStep = function (element, value) {
+				value = parseInt(value, 10);
+				this.options.firstColorStep = value;
+
+				// refresh list;
+				return true;
+			}
+
 			/**
 			 * Enables / disables colored background
 			 * @method _setColoredBackground
@@ -378,11 +393,21 @@
 			prototype._prepareColors = function () {
 				var self = this,
 					canvas = self._context.canvas,
-					computedAfter = window.getComputedStyle(canvas, ":before"),
-					colorCSSDefinition = computedAfter.getPropertyValue("content"),
+					computedAfter,
+					colorCSSDefinition,
 					baseColor,
 					modifierColor,
 					colors;
+
+				// If reference to canvas has been changed.
+				// Developer can remove canvas from list, eg. by element.innerHTML = "<li>item</li>"
+				if (!canvas.parentElement) {
+					canvas = self.element.querySelector("." + classes.BACKGROUND_LAYER);
+					self._context = canvas.getContext("2d");
+				}
+
+				computedAfter = window.getComputedStyle(canvas, ":before");
+				colorCSSDefinition = computedAfter.getPropertyValue("content");
 
 				if (colorCSSDefinition.length > 0) {
 					colorCSSDefinition = colorCSSDefinition.replace(colorDefinitionRegex, "");
@@ -411,12 +436,24 @@
 			prototype._refreshBackgroundCanvas = function (container, element) {
 				var self = this,
 					canvas = self._context.canvas,
-					canvasStyle = canvas.style,
-					rect = element.getBoundingClientRect(),
+					canvasStyle,
+					rect,
 					// canvasHeight of canvas element
-					canvasHeight = 0,
+					canvasHeight,
 					// canvasWidth of canvas element
-					canvasWidth = rect.width;
+					canvasWidth;
+
+				// If reference to canvas has been changed.
+				// Developer can remove canvas from list, eg. by element.innerHTML = "<li>item</li>"
+				if (!canvas.parentElement) {
+					canvas = element.querySelector("." + classes.BACKGROUND_LAYER);
+					self._context = canvas.getContext("2d");
+				}
+
+				canvasStyle = canvas.style;
+				rect = element.getBoundingClientRect();
+				canvasHeight = 0;
+				canvasWidth = rect.width;
 
 				// calculate canvasHeight of canvas
 				if (container) {
@@ -509,6 +546,7 @@
 			 * @protected
 			 */
 			prototype._refresh = function () {
+				console.log("_refresh");
 				var self = this,
 					element = self.element,
 					popupContainer = selectorUtils.getClosestByClass(element, Popup.classes.popup);
@@ -534,7 +572,11 @@
 			prototype._init = function (element) {
 				var self = this,
 					context = self._context,
-					canvas;
+					canvas,
+					foundSelf = false,
+					siblingListview;
+
+				self.options.firstColorStep = parseInt(self.options.firstColorStep, 10);
 
 				if (!self._isChildListview) {
 					if (!context) {
@@ -552,6 +594,26 @@
 
 						self.refresh();
 					}
+				}
+
+				// check other sibling colored lists
+				self._siblingLists = [].slice.call(self.element.parentElement.querySelectorAll(WIDGET_SELECTOR));
+				// remove itself listview from list and above listview elements
+				self._siblingLists = self._siblingLists.filter(function (listviewElement) {
+					if (foundSelf) {
+						return true;
+					}
+					foundSelf = listviewElement === self.element;
+					return false;
+				});
+				if (self._siblingLists.length > 0) {
+					// disable coloring the test of space below current listview
+					self.options.colorRestOfScreen = false;
+					// set attribute on listview element instead of option because we don't know
+					// if widget has been already built
+					// self._siblingLists.forEach(function (listviewElement) {
+					// 	listviewElement.setAttribute("data-disable-color-change", true);
+					// });
 				}
 			};
 
@@ -687,17 +749,24 @@
 					liOffsetTop,
 					height;
 
+				if ((scrollTop - scrollableContainer.getBoundingClientRect().top) < top) {
+					//self.options.disableColorChange = true;
+				}
+
 				while (currentVisibleLiElement) {
 					// store size of current element
 					rectangle = getElementRectangle(currentVisibleLiElement);
+					// if (element.id === "file-list") {
+					// 	console.log("List (" + element.id + ") rectangle.top", rectangle.top, scrollTop, currentVisibleLiElement);
+					// }
 					liOffsetTop = rectangle.top - top;
 					// get next element to calculate difference
 					nextVisibleLiElement = getNextVisible(liElements);
 					height = calculateElementHeight(nextVisibleLiElement, rectangle);
 					if (liOffsetTop + height >= scrollTop) {
-						if (currentVisibleLiElement !== previousVisibleElement) {
+						if (currentVisibleLiElement !== previousVisibleElement && self._context) {
 							self._previousVisibleElement = currentVisibleLiElement;
-							self._canvasStyle.transform = "translateY(" + (liOffsetTop - topOffset) + "px)";
+							self._context.canvas.style.transform = "translateY(" + (liOffsetTop - topOffset) + "px)";
 							self._redraw = true;
 						}
 						currentVisibleLiElement = null;
@@ -710,7 +779,7 @@
 				if (self._redraw && self._context) {
 					self._handleDraw();
 				}
-				if (self._running && self._context) {
+				if (!self.options.disableColorChange && self._running && self._context) {
 					self._async(self._frameCallback);
 				}
 				if (now() - self._lastChange >= MAX_IDLE_TIME) {
@@ -771,10 +840,18 @@
 			 * @protected
 			 */
 			prototype._prepareCanvas = function () {
-				var self = this;
+				var self = this,
+					i;
 
 				// prepare first color
 				copyColor(self._colorBase, colorTmp);
+
+				// modify first color refer to option "firstColorStep"
+				for (i = 0; i < self.options.firstColorStep; i++) {
+					modifyColor(colorTmp, self._colorStep);
+				}
+				self.options.lastColorStep = self.options.firstColorStep;
+
 				// clear canvas
 				self._context.clearRect(0, 0, self._canvasWidth, self._canvasHeight);
 			};
@@ -814,6 +891,17 @@
 					topOffset = self._topOffset,
 					changeColor;
 
+				// clear space above list;
+				if (visibleLiElement) {
+					rectangle = getElementRectangle(visibleLiElement);
+					rectangle.height = 0;
+					rectangle.height = calculateElementHeight(visibleLiElement, rectangle);
+					rectangle = adjustRectangle(rectangle, topOffset, listLeft, previousTop);
+					topOffset = 0;
+					self._context.clearRect(rectangle.left, rectangle.top, rectangle.width, rectangle.height);
+					previousTop += rectangle.height;
+				}
+
 				while (visibleLiElement) {
 					// if li element is group index, the color of next element wont change
 					changeColor = (!visibleLiElement.classList.contains(classes.GROUP_INDEX) &&
@@ -836,9 +924,12 @@
 						topOffset = 0;
 						drawRectangle(context, rectangle);
 						previousTop += rectangle.height;
-						// check if we want to change the bg color of next li element, stop when all done
-						if (changeColor && !modifyColor(colorTmp, step)) {
-							visibleLiElement = null;
+						if (changeColor) {
+							// check if we want to change the bg color of next li element, stop when all done
+							if (!modifyColor(colorTmp, step)) {
+								visibleLiElement = null;
+							}
+							self.options.lastColorStep++;
 						}
 					}
 				}
@@ -875,11 +966,24 @@
 			prototype._handleDraw = function () {
 				var self = this,
 					// store dimensions of li
-					rectangle;
+					rectangle,
+					nextListview;
 
 				self._prepareCanvas();
 				rectangle = self._drawLiElements();
-				self._drawEndOfList(rectangle, self._context);
+				if (self.options.colorRestOfScreen) {
+					self._drawEndOfList(rectangle, self._context);
+				}
+				// change first color of next listviews
+				if (!self.options.disableColorChange) {
+					self._siblingLists.forEach(function (listviewElement) {
+						nextListview = ns.engine.getBinding(listviewElement);
+						if (nextListview) {
+							nextListview.option("firstColorStep", self.options.lastColorStep);
+						}
+					});
+				}
+
 				self._redraw = false;
 			};
 
@@ -1516,7 +1620,7 @@
 			ns.widget.mobile.Listview = Listview;
 			engine.defineWidget(
 				"Listview",
-				"[data-role='listview'], .ui-listview",
+				WIDGET_SELECTOR,
 				[],
 				Listview,
 				"mobile",
