@@ -751,6 +751,7 @@
 				var selectWrapperElement = document.createElement("div");
 
 				selectWrapperElement.className = classes.selectWrapper;
+				selectWrapperElement.classList.add(BaseWidget.classes.wrapper);
 				selectWrapperElement.id = element.id + "-dropdownmenu";
 				selectWrapperElement.setAttribute("tabindex", "0");
 
@@ -889,7 +890,10 @@
 			 * @member ns.widget.mobile.DropdownMenu
 			 */
 			prototype._refresh = function () {
-				this._generate(this.element, false);
+				var self = this;
+
+				self._generate(self.element, false);
+				self._updatePlaceHolderBySelectedIndex();
 			};
 
 			/**
@@ -1188,6 +1192,14 @@
 				}
 			};
 
+			prototype._updatePlaceHolderBySelectedIndex = function () {
+				var self = this,
+					ui = self._ui,
+					selectedOption = ui.elOptions[self._selectedIndex];
+
+				ui.elPlaceHolder.textContent = selectedOption.textContent;
+			}
+
 			/**
 			 * Change Value of Select tag and Placeholder
 			 * @method changeOption
@@ -1202,7 +1214,8 @@
 					getData = domUtils.getNSData;
 
 				if ((selectedOption !== previousOption) || (ui.elDefaultOption && (ui.elPlaceHolder.textContent === ui.elDefaultOption.textContent))) {
-					ui.elPlaceHolder.textContent = selectedOption.textContent;
+					self._updatePlaceHolderBySelectedIndex();
+
 					ui.elSelect.value = getData(selectedOption, "value");
 					if (ui.elSelect.value === "") {
 						ui.elSelect.value = getData(previousOption, "value");
