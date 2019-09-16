@@ -68,6 +68,7 @@
 				// cache max function
 				max = Math.max,
 				min = Math.min,
+				DEFAULT_SNAP_SIZE = 100,
 
 				// Circular scrollbar config
 				CIRCULAR_SCROLL_BAR_SIZE = 60, // degrees
@@ -90,10 +91,9 @@
 				scrollBarTimeout = null,
 				fromAPI = false,
 				virtualMode = false,
-				snapSize = null,
-				snapPoints = null,
-				currentIndex = 0,
-				previousIndex = 0,
+				snapSize = DEFAULT_SNAP_SIZE,
+				snapPoints = [],
+				currentIndex = -1,
 				containerSize = 0,
 				requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
 
@@ -229,47 +229,18 @@
 			 * @return {number}
 			 */
 			function getScrollPositionByIndex(index) {
-				if (snapPoints) {
+				if (snapPoints.length) {
 					index = max(min(snapPoints.length - 1, index), 0); // validate index value
-					return snapPoints[index].position - snapPoints[0].position;
+					return snapPoints[index].position;
 				}
 				return 0;
 			}
 
-			/**
-			 * Find index of snap point by given scroll position
-			 * @method getSnapPointIndexByScrollPosition
-			 * @param {number} position scroll position (usually negative value)
-			 * @member ns.util.scrolling
-			 * @return {number}
-			 */
-			function getSnapPointIndexByScrollPosition(position) {
-				var current = null,
-					next = null,
-					len,
-					i;
-
-				if (snapPoints) {
-					position -= containerSize / 2; // half of screen
-					position = -position;
-					if (snapPoints[0].position > position) { // before first position
-						return 0;
-					}
-					for (i = 0, len = snapPoints.length; i < len; i++) {
-						current = snapPoints[i];
-						next = snapPoints[i + 1];
-						if (!next || // this is last snap point
-							current.position < position && next.position > position) {
-							return i;
-						}
-					}
-				}
-				return -1;
-			}
-
 			function touchEndCalculateSpeed(inBounds) {
 				var diffTime = Date.now() - lastTime,
-					snapPoint = null;
+					halfOfContainer = containerSize / 2,
+					snapPoint = null,
+					scrollDirection = (abs(scrollPosition) > lastScrollPosition) ? 1 : -1;
 
 				if (inBounds && abs(lastScrollPosition / diffTime) > 1) {
 					// if it was fast move, we start animation of scrolling after touch end
@@ -277,12 +248,13 @@
 						0), -maxScrollPosition);
 
 					if (snapPoints) {
-						currentIndex = getSnapPointIndexByScrollPosition(scrollPosition + 1000 * lastScrollPosition / diffTime);
-						snapPoint = snapPoints[currentIndex];
-						if (snapPoint) {
-							moveToPosition = -getScrollPositionByIndex(currentIndex);
+						currentIndex = findSnapPointIndexByScrollPosition(-moveToPosition + halfOfContainer, scrollDirection);
+						if (currentIndex > -1) {
+							snapPoint = snapPoints[currentIndex];
+							moveToPosition = -getScrollPositionByIndex(currentIndex) + halfOfContainer;
 						}
-					} else if (snapSize) {
+					}
+					if (!snapPoint) {
 						moveToPosition = snapSize * round(moveToPosition / snapSize);
 					}
 					if (abs(lastScrollPosition / diffTime) > 1) {
@@ -296,13 +268,14 @@
 				} else {
 					// touch move was slow
 					if (snapPoints) {
-						currentIndex = getSnapPointIndexByScrollPosition(scrollPosition);
-						snapPoint = snapPoints[currentIndex];
-						if (snapPoint) {
-							moveToPosition = -getScrollPositionByIndex(currentIndex);
+						currentIndex = findSnapPointIndexByScrollPosition(-scrollPosition + halfOfContainer, scrollDirection);
+						if (currentIndex > -1) {
+							snapPoint = snapPoints[currentIndex];
+							moveToPosition = -getScrollPositionByIndex(currentIndex) + halfOfContainer;
 							requestAnimationFrame(moveTo);
 						}
-					} else if (snapSize) {
+					}
+					if (!snapPoint) {
 						moveToPosition = snapSize * round(scrollPosition / snapSize);
 						requestAnimationFrame(moveTo);
 					}
@@ -376,12 +349,61 @@
 				}
 			}
 
-			function getSnapSize(index) {
-				if (snapPoints) {
-					return Math.abs(snapPoints[previousIndex].position - snapPoints[index].position);
-				} else {
-					return snapSize;
+			function getNearestSnapPoint(position, direction, tolerance) {
+				var i,
+					itemIndex,
+					len,
+					snapPoint;
+
+				if (!snapPoints.length) {
+					return -1;
 				}
+
+				if (tolerance === undefined) {
+					tolerance = 0;
+				}
+
+				len = snapPoints.length;
+				for (i = 0; i < len; i++) {
+					itemIndex = (direction === -1) ? (len - i - 1) : i;
+
+					// omit edge items when tolerance is enabled and direction is toward outside the list
+					// this conditioning allows eg. scrolling into high header
+					if (tolerance &&
+						((itemIndex === 0 && direction === -1) ||
+						(itemIndex === (len - 1) && direction !== -1))
+						) {
+						continue;
+					}
+
+					snapPoint = snapPoints[itemIndex];
+					if ((snapPoint.position - snapPoint.length / 2 - tolerance) < position &&
+						(snapPoint.position + snapPoint.length / 2 + tolerance) > position) {
+						return itemIndex;
+					}
+				}
+				return -1;
+			}
+
+			/**
+			 * Find index of snap point by given scroll position
+			 * @method getSnapPointIndexByScrollPosition
+			 * @param {number} position scroll position (usually negative value)
+			 * @param {number} scrollDirection describe forward/backward direction [-1,1]
+			 * @member ns.util.scrolling
+			 * @return {number}
+			 */
+			function findSnapPointIndexByScrollPosition(position, scrollDirection) {
+				var index;
+
+				scrollDirection = scrollDirection || 1;
+
+				index = getNearestSnapPoint(position, scrollDirection, 0);
+				if (index > -1) {
+					return index;
+				}
+				// If snap points are near by self but space exists between them
+				return getNearestSnapPoint(position, scrollDirection, 30);
 			}
 
 			/**
@@ -389,37 +411,37 @@
 			 * @param {Event} event
 			 */
 			function rotary(event) {
-				var eventDirection = event.detail && event.detail.direction;
-
-				previousIndex = currentIndex;
+				var eventDirection = event.detail && event.detail.direction,
+					halfOfContainer = containerSize / 2,
+					scrollDirection = 1;
 
 				// update position by snapSize
 				if (eventDirection === "CW") {
-					currentIndex++;
-					if (snapPoints && currentIndex >= snapPoints.length) {
-						currentIndex = snapPoints.length - 1;
-					}
-					snapSize = -1 * getSnapSize(currentIndex);
-
+				// change scroll position
+					moveToPosition -= snapSize;
+					scrollDirection = 1;
 				} else {
-					currentIndex--;
-					if (snapPoints && currentIndex < 0) {
-						currentIndex = 0;
-					}
-					snapSize = getSnapSize(currentIndex);
+					moveToPosition += snapSize;
+					scrollDirection = -1;
 				}
 
-				moveToPosition += snapSize;
+				// verify range [-maxScrollPosition, 0]
+				moveToPosition = min(max(moveToPosition, -maxScrollPosition), 0);
 
-				if (!snapPoints && snapSize) {
+				// find snap point by scroll posistion
+				currentIndex = findSnapPointIndexByScrollPosition(-moveToPosition + halfOfContainer, scrollDirection);
+
+				if (currentIndex > -1) {
+					// drag to snap point
+					moveToPosition = halfOfContainer - snapPoints[currentIndex].position
+				}
+
+				if (currentIndex === -1 && snapSize) { // try to round to snapSize
 					moveToPosition = snapSize * round(moveToPosition / snapSize);
 				}
-				if (moveToPosition < -maxScrollPosition) {
-					moveToPosition = -maxScrollPosition;
-				}
-				if (moveToPosition > 0) {
-					moveToPosition = 0;
-				}
+
+				// verify range [-maxScrollPosition, 0]
+				moveToPosition = min(max(moveToPosition, -maxScrollPosition), 0);
 
 				requestAnimationFrame(moveTo);
 				requestAnimationFrame(render);
@@ -554,6 +576,18 @@
 				lastTime = Date.now();
 			}
 
+			function getMaxScrollByElement(element) {
+				var parentRectangle = element.getBoundingClientRect(),
+					contentRectangle = childElement.getBoundingClientRect();
+
+				// Max scroll position is determined by size of the content - clip window size
+				if (direction) {
+					return round(contentRectangle.width - parentRectangle.width);
+				} else {
+					return round(contentRectangle.height - parentRectangle.height);
+				}
+			}
+
 			/**
 			 * Enable JS scrolling on element
 			 * @method enable
@@ -563,20 +597,20 @@
 			 * @member ns.util.scrolling
 			 */
 			function enable(element, setDirection, setVirtualMode) {
-				var parentRectangle,
-					contentRectangle,
-					children,
+				var children,
 					existingContainerElement;
 
 				virtualMode = setVirtualMode;
 				bounceBack = false;
-				snapSize = false;
 
 				if (scrollingElement) {
 					ns.warn("Scrolling exist on another element, first call disable method");
 				} else {
 					// detect direction
 					direction = (setDirection === "x") ? 1 : 0;
+
+					// reset previous index
+					currentIndex = -1;
 
 					existingContainerElement = element.querySelector("div." + classes.container);
 					if (existingContainerElement) {
@@ -601,16 +635,7 @@
 					// setting scrolling element
 					scrollingElement = element;
 
-					// calculate maxScroll
-					parentRectangle = element.getBoundingClientRect();
-					contentRectangle = childElement.getBoundingClientRect();
-
-					// Max scroll position is determined by size of the content - clip window size
-					if (direction) {
-						maxScrollPosition = round(contentRectangle.width - parentRectangle.width);
-					} else {
-						maxScrollPosition = round(contentRectangle.height - parentRectangle.height);
-					}
+					maxScrollPosition = getMaxScrollByElement(scrollingElement) + OVERSCROLL_SIZE;
 
 					// cache style element
 					elementStyle = childElement.style;
@@ -791,7 +816,11 @@
 
 				if (snapPoints) {
 					moveToPosition = snapPoints[index].position;
-					snapSize = Math.abs(snapPoints[previousIndex].position - snapPoints[index].position);
+					if (previousIndex > -1) {
+						snapSize = Math.abs(snapPoints[previousIndex].position - moveToPosition);
+					} else {
+						snapSize = Math.abs(moveToPosition);
+					}
 				} else {
 					moveToPosition = snapSize * index;
 				}
@@ -843,19 +872,16 @@
 			 * @member ns.util.scrolling
 			 */
 			function setSnapPoints(_snapPoints) {
-				var numberOfSnapPoints = _snapPoints.length;
+				containerSize = (direction) ? scrollingElement.getBoundingClientRect().height :
+					scrollingElement.getBoundingClientRect().width;
 
 				snapPoints = _snapPoints;
-				snapSize = null;
-				if (numberOfSnapPoints) {
-					maxScrollPosition = snapPoints[numberOfSnapPoints - 1].position	- snapPoints[0].position +
-						OVERSCROLL_SIZE;
-				}
+				maxScrollPosition = getMaxScrollByElement(scrollingElement) + OVERSCROLL_SIZE;
 			}
 
 			/**
 			 * Method sets snap size for scroll or array of snap points
-			 * @param {number|Array} _snapSize
+			 * @param {number} _snapSize
 			 * @method setSnapSize
 			 * @member ns.util.scrolling
 			 */
@@ -863,15 +889,8 @@
 				containerSize = (direction) ? scrollingElement.getBoundingClientRect().height :
 					scrollingElement.getBoundingClientRect().width;
 
-				if (Array.isArray(_snapSize)) {
-					setSnapPoints(_snapSize);
-				} else {
-					snapPoints = null;
-					snapSize = _snapSize;
-					if (snapSize) {
-						maxScrollPosition = snapSize * round(maxScrollPosition / snapSize);
-					}
-				}
+				snapSize = _snapSize;
+				maxScrollPosition = getMaxScrollByElement(scrollingElement) + OVERSCROLL_SIZE;
 			}
 
 			/**
@@ -895,6 +914,7 @@
 				setMaxScroll: setMaxScroll,
 				getMaxScroll: getMaxScroll,
 				setSnapSize: setSnapSize,
+				setSnapPoints: setSnapPoints,
 				scrollToIndex: scrollToIndex,
 				isElement: isElement,
 				setBounceBack: function (setBounceBack) {
