@@ -480,7 +480,11 @@
 					listItems = [],
 					scroller = ui.scrollableParent.element,
 					visibleOffset,
-					contentElement;
+					contentElement,
+					snapPoints,
+					firstItem,
+					firstItemRect,
+					diff;
 
 				if (!scroller) {
 					scroller = self._initSnapListview(listview);
@@ -490,6 +494,20 @@
 				contentElement = scroller.querySelector(".ui-content");
 				if (contentElement) {
 					self._marginTop = parseInt(window.getComputedStyle(contentElement).marginTop, 10);
+				}
+
+				// Check position of first item and add margin if the first item is too high
+				// and cannot be cetenered at screen
+				firstItem = listview.querySelector(options.selector);
+				firstItemRect = firstItem.getBoundingClientRect();
+
+				diff = visibleOffset / 2 - firstItemRect.top - firstItemRect.height / 2;
+				self._marginTop += diff;
+				contentElement.style.marginTop = self._marginTop + "px";
+				//contentElement.style.marginTop = diff + "px";
+
+				if (contentElement) {
+					//self._marginTop = parseInt(window.getComputedStyle(contentElement).marginTop, 10);
 				}
 
 				// init information about widget
@@ -504,12 +522,18 @@
 						self._currentIndex = index;
 					}
 				});
-				scrolling.setSnapSize(listItems.map(function (item) {
+
+				// preapre snap points for listview
+				snapPoints = listItems.map(function (item) {
 					return {
 						position: item.coord.top,
 						length: item.coord.height
 					};
-				}));
+				});
+
+				// set snap points for listview
+				scrolling.setSnapSize(snapPoints);
+
 
 				self._listItems = listItems;
 				self._listItemAnimate();
