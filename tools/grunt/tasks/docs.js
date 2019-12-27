@@ -697,8 +697,10 @@ module.exports = function (grunt) {
 			var docs,
 				doxFile = file.replace("dist", "tmp/dox"),
 				structureFile = "docs/js/" + profile + "/tau.js",
+				structureAPIFile = "docs/js/" + profile + "/tau.api.js",
 				newFile = "docs/" + templateDir + "/" + profile + "/",
 				modules = [],
+				modulesAPI = [],
 				i,
 				next,
 				jsContent,
@@ -1325,6 +1327,8 @@ module.exports = function (grunt) {
 				}
 			}
 
+			modulesAPI = filterPublic(modules);
+
 			series.push(createBlockIndex.bind(null, newFile, docsStructure, "widget", rowsWidgets));
 			if (template !== "components") {
 				series.push(createBlockIndex.bind(null, newFile, docsStructure, "event", rowsEvents));
@@ -1335,6 +1339,7 @@ module.exports = function (grunt) {
 				}
 
 				grunt.file.write(structureFile, "window.tauDocumentation = " + JSON.stringify(modules) + ";");
+				grunt.file.write(structureAPIFile, "window.tauAPI = " + JSON.stringify(modulesAPI) + ";");
 			}
 			async.series(series, done);
 		}
@@ -1350,6 +1355,35 @@ module.exports = function (grunt) {
 			parseDox(next);
 		}
 	});
+
+	function filterPublic(modules) {
+		var data = [];
+
+		modules.forEach(function (tauModule) {
+			var ns = {};
+
+			ns.name = tauModule.name;
+			ns.events = tauModule.events.map(function (event) {
+				return event.name;
+			});
+			ns.options = tauModule.options.map(function (option) {
+				return option.name;
+			});
+
+			ns.methods = tauModule.methods.filter(function (method) {
+				return method.isPublic && !method.inherited;
+			}).map(function (method) {
+				return method.name + "(" + method.params.map(function (param) {
+					return param.name;
+				}).join(", ") + ")";
+			});
+
+			if (ns.events.length > 0 || ns.options.length > 0 || ns.methods.length > 0) {
+				data.push(ns);
+			}
+		});
+		return data;
+	}
 
 	function prepareFilesList(done, output) {
 		var result = rjsBuildAnalysis.parse(output),

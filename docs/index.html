@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport" />
+	<title>
+		JS Documentation
+	</title>
+	<script src="js/wearable/tau.js"></script>
+    <script src="js/wearable/tau.api.js"></script>
+</head>
+
+<body>
+        <script>
+            function drawTree(items, name) {
+                var li = document.createElement("li"),
+                    tree = document.createElement("ul");
+
+                li.appendChild(document.createTextNode(name));
+
+                items.forEach(item => {
+                    var li = document.createElement("li");
+                    li.appendChild(document.createTextNode(item));
+                    tree.appendChild(li);
+                });
+                li.appendChild(tree);
+
+                return li;
+            }
+            function APITree () {
+                var tree = document.createDocumentFragment(),
+                    ul = document.createElement("ul");
+        
+                tree.appendChild(ul);
+                tauAPI.forEach(item => {
+                    var li = document.createElement("li");
+                        ul2 = document.createElement("ul");
+
+                    li.appendChild(document.createTextNode(item.name));
+
+                    if (item.options.length) {
+                        ul2.appendChild(drawTree(item.options, "Options:"));
+                    }
+                    if (item.methods.length) {
+                        ul2.appendChild(drawTree(item.methods, "Methods:"));
+                    }
+                    if (item.events.length) {
+                        ul2.appendChild(drawTree(item.events, "Events:"));
+                    }
+                    li.appendChild(ul2);
+        
+                    ul.appendChild(li);
+                });
+        
+                document.body.appendChild(ul);
+            }
+
+            function createMarkdownAPI() {
+                var header = '|| Namespace || API || Type || Unit Test || UI Test ||\n',
+                    text = '';
+                
+                tauAPI.forEach(item => {
+                    if (item.options.length) {
+                        item.options.forEach(function (option, key) {
+                            text += '|' + (key===0 ? item.name : ' ') + '|' + option + '| option | | |' + "\n";
+                        });
+                    }
+                    if (item.methods.length) {
+                        item.methods.forEach(function (method, key) {
+                            text += '|' + (key===0 ? item.name : ' ') + '|' + method + '| method | | |' + "\n";
+                        });
+                    }
+                    if (item.events.length) {
+                        item.events.forEach(function (event, key) {
+                            text += '|' + (key===0 ? item.name : ' ') + '|' + event + '| event | | |' + "\n";
+                        });
+                    }
+                    
+                });
+                return header + text;
+            }
+
+            window.addEventListener("DOMContentLoaded", function () {
+                document.getElementById("content").value = createMarkdownAPI();
+            });
+        </script>
+        <textarea id="content" style="width: 100%; height: 300px;"></textarea>
+</body>
