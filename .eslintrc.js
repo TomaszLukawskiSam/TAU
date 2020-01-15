@@ -336,6 +336,8 @@ module.exports = {
 		"jsdoc"
 	],
 	"globals": {
-		"tizen": true
+		"tizen": true,
+		"equal": false,
+		"test": false
 	}
 };
