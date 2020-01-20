@@ -485,6 +485,7 @@
 				if (!scroller) {
 					scroller = self._initSnapListview(listview);
 				}
+
 				visibleOffset = ui.scrollableParent.height || ui.page.offsetHeight;
 
 				contentElement = scroller.querySelector(".ui-content");
@@ -510,6 +511,10 @@
 
 				if (listItems.length == 0) {
 					return;
+				}
+
+				if (!scrolling.isElement(scroller)) {
+					scrolling.enable(scroller, "y");
 				}
 
 				scrolling.setSnapSize(listItems.map(function (item) {
