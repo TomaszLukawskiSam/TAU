@@ -1,3 +1,4 @@
+
 (function (ns) {
 	"use strict";
 	module("core/widget/core/Marquee/api/marquee");
@@ -26,7 +27,7 @@
 		equal(typeof widget.options, "object", "Property marquee.options exists");
 		equal(typeof widget.options.marqueeStyle, "string", "Property marquee.options.marqueeStyle exists");
 		equal(typeof widget.options.speed, "number", "Property marquee.options.speed exists");
-		equal(typeof widget.options.iteration, "string", "Property marquee.options.iteration exists");
+		equal(typeof widget.options.iteration, "number", "Property marquee.options.iteration exists");
 		equal(typeof widget.options.delay, "number", "Property marquee.options.delay exists");
 		equal(typeof widget.options.timingFunction, "string", "Property marquee.options.timingFunction exists");
 		equal(typeof widget.options.runOnlyOnEllipsisText, "boolean", "Property marquee.options.runOnlyEllipsisText exists");

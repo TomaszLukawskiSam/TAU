@@ -356,7 +356,11 @@
 
 						if (prefixedValue !== null) {
 							if (typeof options[option] === "number") {
-								prefixedValue = parseFloat(prefixedValue);
+								if (prefixedValue === "infinite") {
+									prefixedValue = Infinity;
+								} else {
+									prefixedValue = parseFloat(prefixedValue);
+								}
 							} else if (typeof options[option] === "object" &&
 										typeof prefixedValue === "string" &&
 										Array.isArray(options[option])) {

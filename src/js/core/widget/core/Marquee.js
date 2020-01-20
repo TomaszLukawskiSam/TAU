@@ -195,7 +195,7 @@
 				defaults = {
 					marqueeStyle: style.SLIDE,
 					speed: 60,
-					iteration: "1",
+					iteration: 1,
 					currentIteration: 1,
 					delay: 0,
 					timingFunction: "linear",
@@ -468,6 +468,7 @@
 					animationConfig = state.animationConfig;
 
 				if (value === "infinite") {
+					value = Infinity;
 					animationConfig.loop = true;
 					animationConfig.callback = function () {
 						self.options.animation = states.STOPPED;
@@ -479,9 +480,18 @@
 					animationConfig.loop = false;
 					animationConfig.callback = animationIterationCallback.bind(null, self);
 				}
+				self.options.iteration = value;
 				self._animation.set(state.animation, animationConfig);
-				self.options.loop = value;
 				return false;
+			};
+
+			prototype._getIteration = function () {
+				var options = this.options;
+
+				if (options.iteration === Infinity) {
+					return "infinite";
+				}
+				return options.iteration;
 			};
 
 			prototype._setDelay = function (element, value) {
