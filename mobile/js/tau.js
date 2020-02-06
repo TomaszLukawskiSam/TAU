@@ -20,7 +20,7 @@ var ns = window.tau = window.tau || {},
 nsConfig = window.tauConfig = window.tauConfig || {};
 nsConfig.rootNamespace = 'tau';
 nsConfig.fileName = 'tau';
-ns.version = '1.0.24';
+ns.version = '1.0.25-test';
 /*
  * Copyright (c) 2015 Samsung Electronics Co., Ltd
  *
@@ -588,7 +588,6 @@ ns.version = '1.0.24';
 					return false;
 				}
 
-				elementStyle.pointerEvents = "auto";
 				elementStyle.pointerEvents = "x";
 				documentElement.appendChild(element);
 				supports = getComputedStyle && getComputedStyle(element, "").pointerEvents === "auto";
@@ -2562,7 +2561,7 @@ ns.version = '1.0.24';
 						if (prototype.hasOwnProperty(property)) {
 							value = prototype[property];
 							if (typeof value === "function") {
-								basePrototype[property] = (function createFunctionWithSuper(Base, property, value) {
+								basePrototype[property] = (function (Base, property, value) {
 									var _super = function () {
 										var superFunction = Base.prototype[property];
 
@@ -2956,7 +2955,7 @@ ns.version = '1.0.24';
 						return getInstanceByElement(binding, element, type);
 					} else {
 						// Check if widget has wrapper and find base element
-						if (element && typeof element.hasAttribute === TYPE_FUNCTION &&
+						if (typeof element.hasAttribute === TYPE_FUNCTION &&
 								element.hasAttribute(DATA_WIDGET_WRAPPER)) {
 							baseElement = slice.call(element.children).filter(filterBuiltWidget)[0];
 							if (baseElement) {
@@ -3488,6 +3487,16 @@ ns.version = '1.0.24';
 				// HTMLElement doesn't have .element property
 				// widgetDefinitions will return undefined when called widgetDefinitions[undefined]
 				processHollowWidget(queueItem.element || queueItem, widgetDefinitions[queueItem.widgetName]);
+			}
+
+			function boundPerfListener() {
+				document.removeEventListener(eventType.BOUND, boundPerfListener);
+				window.tauPerf.get("engine/createWidgets", "event: " + eventType.BOUND);
+			}
+
+			function builtPerfListener() {
+				document.removeEventListener("built", builtPerfListener);
+				window.tauPerf.get("engine/createWidgets", "event: built");
 			}
 
 			/**
@@ -5062,11 +5071,11 @@ ns.version = '1.0.24';
  */
 (function (window, ns) {
 	"use strict";
-				var Set = function () {
+				var set = function () {
 				this._data = [];
 			};
 
-			Set.prototype = {
+			set.prototype = {
 				/**
 				 * Add one or many arguments to set
 				 * @method add
@@ -5124,8 +5133,8 @@ ns.version = '1.0.24';
 			};
 
 			// for tests
-			ns.util._Set = Set;
-			ns.util.Set = window.Set || Set;
+			ns.util._Set = set;
+			ns.util.Set = window.Set || set;
 
 			}(window, ns));
 
@@ -5389,7 +5398,7 @@ ns.version = '1.0.24';
 				 * @static
 				 */
 				objectUtils = util.object,
-				Set = util.Set,
+				setUtils = util.Set,
 				BaseWidget = function () {
 					this.flowState = "created";
 					return this;
@@ -6214,6 +6223,7 @@ ns.version = '1.0.24';
 				if (this.element) {
 					return eventUtils.trigger(this.element, eventName, data, bubbles, cancelable);
 				}
+				return false;
 			};
 
 			/**
@@ -6249,7 +6259,7 @@ ns.version = '1.0.24';
 					func();
 				}
 				if (func !== undefined) {
-					util.requestAnimationFrame(function frameFlowCallback() {
+					util.requestAnimationFrame(function () {
 						self._framesFlow.apply(self, args);
 					});
 				}
@@ -6295,14 +6305,16 @@ ns.version = '1.0.24';
 				var classList = stateObject.classList;
 
 				if (classList !== undefined) {
-					if (classList instanceof Set) {
+					if (classList instanceof setUtils) {
 						classList.clear();
 					} else {
-						classList = new Set();
+						classList = new setUtils();
 						stateObject.classList = classList;
 					}
 					if (element.classList.length) {
-						classList.add.apply(classList, slice.call(element.classList));
+						slice.call(element.classList).forEach(function (className) {
+							classList.add(className);
+						});
 					}
 				}
 			}
@@ -6326,13 +6338,13 @@ ns.version = '1.0.24';
 				var recalculate = false;
 
 				if (stateObject.classList !== undefined) {
-					slice.call(element.classList).forEach(function renderRemoveClassList(className) {
+					slice.call(element.classList).forEach(function (className) {
 						if (!stateObject.classList.has(className)) {
 							element.classList.remove(className);
 							recalculate = true;
 						}
 					});
-					stateObject.classList.forEach(function renderAddClassList(className) {
+					stateObject.classList.forEach(function (className) {
 						if (!element.classList.contains(className)) {
 							element.classList.add(className);
 							recalculate = true;
@@ -6340,12 +6352,12 @@ ns.version = '1.0.24';
 					});
 				}
 				if (stateObject.style !== undefined) {
-					Object.keys(stateObject.style).forEach(function renderUpdateStyle(styleName) {
+					Object.keys(stateObject.style).forEach(function (styleName) {
 						element.style[styleName] = stateObject.style[styleName];
 					});
 				}
 				if (stateObject.children !== undefined) {
-					stateObject.children.forEach(function renderChildren(child, index) {
+					stateObject.children.forEach(function (child, index) {
 						render(child, element.children[index], true);
 					});
 				}
@@ -8087,9 +8099,9 @@ ns.version = '1.0.24';
 
 				if (embed) {
 					// Load and replace old styles or append new styles
-					cssSync(path, function onSuccess(styleElement) {
+					cssSync(path, function (styleElement) {
 						addNodeAsTheme(styleElement, themeName, previousElement);
-					}, function onFailure(xhrObj, xhrStatus) {
+					}, function (xhrObj, xhrStatus) {
 						ns.warn("There was a problem when loading '" + themeName + "', status: " + xhrStatus);
 					});
 				} else {
@@ -9122,6 +9134,7 @@ ns.version = '1.0.24';
 				if (!x && !y) {
 					return preparePositionForEvent(event);
 				}
+				return null;
 			}
 
 			/**
@@ -11442,7 +11455,7 @@ function pathToRegexp (path, keys, options) {
 						if (href && !options.href) {
 							options.href = href;
 						}
-						if (rel === "popup" && link && !options.link) {
+						if (rel === "popup" && !options.link) {
 							options.link = link;
 						}
 						history.disableVolatileMode();
@@ -13291,6 +13304,7 @@ function pathToRegexp (path, keys, options) {
 			 */
 			function render(path, data, callback, engineName) {
 				var templateFunction = templateFunctions[engineName || get("default") || ""],
+					targetPath,
 					targetCallback = function (status, element) {
 						// add current patch
 						status.absUrl = targetPath;
@@ -13305,8 +13319,7 @@ function pathToRegexp (path, keys, options) {
 							targetPath = getAbsUrl(path, false);
 							templateFunction(globalOptions, targetPath, data || {}, targetCallback);
 						}
-					},
-					targetPath;
+					};
 
 				// if template engine name and default name is not given then we
 				// take first registered engine
@@ -15698,11 +15711,9 @@ function pathToRegexp (path, keys, options) {
 			anchorHighlight._clearActiveClass = clearActiveClass;
 			anchorHighlight._detectHighlightTarget = detectHighlightTarget;
 			anchorHighlight._detectBtnElement = detectBtnElement;
-			anchorHighlight._clearBtnActiveClass = clearBtnActiveClass;
 			anchorHighlight._removeActiveClassLoop = removeActiveClassLoop;
 			anchorHighlight._addButtonInactiveClass = addButtonInactiveClass;
 			anchorHighlight._addButtonActiveClass = addButtonActiveClass;
-			anchorHighlight._hideClear = hideClear;
 			anchorHighlight._addActiveClass = addActiveClass;
 			anchorHighlight._detectLiElement = detectLiElement;
 			anchorHighlight._touchmoveHandler = touchmoveHandler;
@@ -16199,6 +16210,9 @@ function pathToRegexp (path, keys, options) {
 				var i = 0,
 					resolveValues = [].slice.call(arguments),
 					length = resolveValues.length,
+					progressValues,
+					progressContexts,
+					resolveContexts,
 
 					/**
 					 * The count of uncompleted subordinates
@@ -16239,11 +16253,7 @@ function pathToRegexp (path, keys, options) {
 								deferred.resolveWith(contexts, values);
 							}
 						};
-					},
-
-					progressValues,
-					progressContexts,
-					resolveContexts;
+					};
 
 				// add listeners to Deferred subordinates; treat others as resolved
 				if (length > 1) {
@@ -17846,7 +17856,7 @@ function pathToRegexp (path, keys, options) {
  * Contains helper function to gesture support.
  * @class ns.event.gesture.utils
  */
-(function (ns, Math) {
+(function (ns, math) {
 	"use strict";
 	
 		/**
@@ -17880,8 +17890,8 @@ function pathToRegexp (path, keys, options) {
 					});
 
 					return {
-						clientX: (Math.min.apply(Math, valuesX) + Math.max.apply(Math, valuesX)) / 2,
-						clientY: (Math.min.apply(Math, valuesY) + Math.max.apply(Math, valuesY)) / 2
+						clientX: (math.min.apply(math, valuesX) + math.max.apply(math, valuesX)) / 2,
+						clientY: (math.min.apply(math, valuesY) + math.max.apply(math, valuesY)) / 2
 					};
 				},
 
@@ -17898,8 +17908,8 @@ function pathToRegexp (path, keys, options) {
 				 */
 				getVelocity: function (deltaTime, deltaX, deltaY) {
 					return {
-						x: Math.abs(deltaX / deltaTime) || 0,
-						y: Math.abs(deltaY / deltaTime) || 0
+						x: math.abs(deltaX / deltaTime) || 0,
+						y: math.abs(deltaY / deltaTime) || 0
 					};
 				},
 
@@ -17915,7 +17925,7 @@ function pathToRegexp (path, keys, options) {
 					var y = touch2.clientY - touch1.clientY,
 						x = touch2.clientX - touch1.clientX;
 
-					return Math.atan2(y, x) * 180 / Math.PI;
+					return math.atan2(y, x) * 180 / math.PI;
 				},
 
 			/**
@@ -17927,8 +17937,8 @@ function pathToRegexp (path, keys, options) {
 				 * @member ns.event.gesture.utils
 				 */
 				getDirection: function (touch1, touch2) {
-					var x = Math.abs(touch1.clientX - touch2.clientX),
-						y = Math.abs(touch1.clientY - touch2.clientY);
+					var x = math.abs(touch1.clientX - touch2.clientX),
+						y = math.abs(touch1.clientY - touch2.clientY);
 
 					if (x >= y) {
 						return touch1.clientX - touch2.clientX > 0 ? gesture.Direction.LEFT : gesture.Direction.RIGHT;
@@ -17948,7 +17958,7 @@ function pathToRegexp (path, keys, options) {
 					var x = touch2.clientX - touch1.clientX,
 						y = touch2.clientY - touch1.clientY;
 
-					return Math.sqrt((x * x) + (y * y));
+					return math.sqrt((x * x) + (y * y));
 				},
 
 			/**
@@ -19997,9 +20007,6 @@ function pathToRegexp (path, keys, options) {
 				var elementStyle = this.element.style,
 					scrollerStyle = this.scrollerStyle;
 
-				elementStyle.overflow = "";
-				elementStyle.position = "";
-
 				elementStyle.overflow = "hidden";
 				elementStyle.position = "relative";
 
@@ -21851,6 +21858,8 @@ function pathToRegexp (path, keys, options) {
 						if (id && ["input", "textarea", "button"].indexOf(tagName) > -1) {
 							return input.parentNode.querySelector("label[for=" + id + "]");
 						}
+
+						return null;
 					},
 					_true = true;
 
@@ -22793,6 +22802,9 @@ function pathToRegexp (path, keys, options) {
 					utilsEvents.on(self.scroller,
 						"swipe transitionEnd webkitTransitionEnd mozTransitionEnd msTransitionEnd oTransitionEnd", self);
 
+					// disable tau rotaryScroller, this widget has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.lock();
+
 					document.addEventListener("rotarydetent", self, true);
 				},
 
@@ -22808,6 +22820,9 @@ function pathToRegexp (path, keys, options) {
 					}
 
 					document.removeEventListener("rotarydetent", self, true);
+
+					// disable tau rotaryScroller, this widget has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.unlock();
 				},
 
 				/**
@@ -24053,7 +24068,7 @@ function pathToRegexp (path, keys, options) {
 				var self = this,
 					items = element.children,
 					numberOfDots = items.length,
-					intervalAngle = self.options.intervalAngle - "0",
+					intervalAngle = parseFloat(self.options.intervalAngle),
 					translatePixel,
 					style,
 					i;
@@ -25715,27 +25730,28 @@ function pathToRegexp (path, keys, options) {
 
 			prototype._animate = function (duration, progressCallback, finishCallback) {
 				var self = this,
-					startTime = null;
+					startTime = null,
+					step = function (timeStamp) {
+						var currentTimeGap = 0;
+
+						if (startTime === null) {
+							startTime = timeStamp;
+						}
+						currentTimeGap = timeStamp - startTime;
+
+						progressCallback(currentTimeGap);
+
+						if (self._isAnimating && duration > currentTimeGap) {
+							util.requestAnimationFrame(step);
+						} else {
+							self._isAnimating = false;
+							finishCallback();
+						}
+					};
 
 				self._isAnimating = true;
 
-				util.requestAnimationFrame(function step(timeStamp) {
-					var currentTimeGap = 0;
-
-					if (startTime === null) {
-						startTime = timeStamp;
-					}
-					currentTimeGap = timeStamp - startTime;
-
-					progressCallback(currentTimeGap);
-
-					if (self._isAnimating && duration > currentTimeGap) {
-						util.requestAnimationFrame(step);
-					} else {
-						self._isAnimating = false;
-						finishCallback();
-					}
-				});
+				util.requestAnimationFrame(step);
 			};
 
 			/**
@@ -25892,32 +25908,6 @@ function pathToRegexp (path, keys, options) {
 
 				POPUP_SELECTOR = "[data-role='popup'], .ui-popup",
 
-				Popup = function () {
-					var self = this,
-						ui = {};
-
-					self.selectors = selectors;
-					self.options = objectUtils.merge({}, Popup.defaults);
-					self.storedOptions = null;
-					/**
-					 * Popup state flag
-					 * @property {0|1|2|3} [state=null]
-					 * @member ns.widget.core.Popup
-					 * @private
-					 */
-					self.state = states.CLOSED;
-
-					ui.overlay = null;
-					ui.header = null;
-					ui.footer = null;
-					ui.content = null;
-					ui.container = null;
-					ui.wrapper = null;
-					self._ui = ui;
-
-					// event callbacks
-					self._callbacks = {};
-				},
 				/**
 				 * Object with default options
 				 * @property {Object} defaults
@@ -26084,6 +26074,33 @@ function pathToRegexp (path, keys, options) {
 					 */
 					before_hide: EVENTS_PREFIX + "beforehide"
 					/* eslint-enable camelcase */
+				},
+
+				Popup = function () {
+					var self = this,
+						ui = {};
+
+					self.selectors = selectors;
+					self.options = objectUtils.merge({}, Popup.defaults);
+					self.storedOptions = null;
+					/**
+					 * Popup state flag
+					 * @property {0|1|2|3} [state=null]
+					 * @member ns.widget.core.Popup
+					 * @private
+					 */
+					self.state = states.CLOSED;
+
+					ui.overlay = null;
+					ui.header = null;
+					ui.footer = null;
+					ui.content = null;
+					ui.container = null;
+					ui.wrapper = null;
+					self._ui = ui;
+
+					// event callbacks
+					self._callbacks = {};
 				},
 
 				prototype = new BaseWidget();
@@ -33767,7 +33784,7 @@ function pathToRegexp (path, keys, options) {
 
 				ellipsisEffect = {
 					GRADIENT: "gradient",
-					ELLIPSIS: "ellipsis",
+					ELLIPSIS: "ellipsis", // deprecated effect
 					NONE: "none"
 				},
 
@@ -33786,7 +33803,7 @@ function pathToRegexp (path, keys, options) {
 				 * @property {number} [options.delay=2000] Sets the delay(ms) for marquee
 				 * @property {"linear"|"ease"|"ease-in"|"ease-out"|"cubic-bezier(n,n,n,n)"}
 				 * [options.timingFunction="linear"] Sets the timing function for marquee
-				 * @property {"gradient"|"ellipsis"|"none"} [options.ellipsisEffect="gradient"] Sets the
+				 * @property {"gradient"|"none"} [options.ellipsisEffect="gradient"] Sets the
 				 * end-effect(gradient) of marquee
 				 * @property {boolean} [options.autoRun=true] Sets the status of autoRun
 				 * @member ns.widget.core.Marquee
@@ -33795,7 +33812,7 @@ function pathToRegexp (path, keys, options) {
 				defaults = {
 					marqueeStyle: style.SLIDE,
 					speed: 60,
-					iteration: 1,
+					iteration: "1",
 					currentIteration: 1,
 					delay: 0,
 					timingFunction: "linear",
@@ -33898,7 +33915,7 @@ function pathToRegexp (path, keys, options) {
 				return returnValue;
 			};
 
-			prototype._calculateStandardGradient = function (state, diff, from, current) {
+			prototype._calculateStandardGradient = function (state) {
 				var returnValue;
 
 				if (isNaN(state)) {
@@ -33929,6 +33946,13 @@ function pathToRegexp (path, keys, options) {
 				var marqueeInnerElement = element.querySelector("." + classes.MARQUEE_CONTENT);
 
 				element.classList.add(CLASSES_PREFIX);
+
+				// check deprecated class
+				if (element.classList.contains(classes.MARQUEE_ELLIPSIS)) {
+					ns.warn("Class '" + classes.MARQUEE_ELLIPSIS +
+						"' for option 'ellipsisEffect' in Marquee widget has been deprecated. " +
+						"Allowed values: none, '" + classes.MARQUEE_GRADIENT + "' (default)");
+				}
 
 				if (!marqueeInnerElement) {
 					marqueeInnerElement = document.createElement("div");
@@ -34018,6 +34042,9 @@ function pathToRegexp (path, keys, options) {
 			};
 
 			prototype._setEllipsisEffect = function (element, value) {
+				if (value === "ellipsis") {
+					ns.warn("Marquee: option value 'ellipsis' for 'ellipsisEffect' is deprecated. Allowed values: 'none', 'gradient' (default)");
+				}
 				return this._togglePrefixedClass(this._stateDOM, CLASSES_PREFIX + "-", value);
 			};
 
@@ -34048,7 +34075,7 @@ function pathToRegexp (path, keys, options) {
 				var animation = self._animation,
 					state = self.state;
 
-				if (self.options.currentIteration++ < self.options.iteration) {
+				if (self.options.currentIteration++ < self.options.iteration || self.options.iteration === "infinite") {
 					animation.set(state.animation, state.animationConfig);
 					animation.stop();
 					animation.start();
@@ -34080,7 +34107,7 @@ function pathToRegexp (path, keys, options) {
 					animationConfig.callback = animationIterationCallback.bind(null, self);
 				}
 				self._animation.set(state.animation, animationConfig);
-				self.options.loop = value;
+				self.options.iteration = value;
 				return false;
 			};
 
@@ -34171,9 +34198,11 @@ function pathToRegexp (path, keys, options) {
 					marqueeInnerElement;
 
 				self.state = null;
-				self._animation.stop();
-				self._animation.destroy();
-				self._animation = null;
+				if (self._animation) {
+					self._animation.stop();
+					self._animation.destroy();
+					self._animation = null;
+				}
 				self.element.style.webkitMaskImage = "";
 
 				marqueeInnerElement = self.element.querySelector("." + classes.MARQUEE_CONTENT);
@@ -40583,6 +40612,9 @@ function pathToRegexp (path, keys, options) {
 					utilScrolling.enable(scrollview, options.orientation);
 					utilScrolling.enableScrollBar();
 				}
+
+				// disable tau rotaryScroller the widget has own support for rotary event
+				ns.util.rotaryScrolling && ns.util.rotaryScrolling.lock();
 			};
 
 			/**
