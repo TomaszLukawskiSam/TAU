@@ -1738,6 +1738,7 @@ a.ui-color-blue.ui-state-disabled,
 ***************************************************************************/
 .ui-circularindexscrollbar .ui-circularindexscrollbar-indicator {
   background-color: B0731;
+  z-index: 1000;
 }
 .ui-circularindexscrollbar .ui-circularindexscrollbar-indicator-text {
   color: T0312P;
@@ -2505,6 +2506,7 @@ a.ui-hyperlink:hover {
   overflow: hidden;
   top: 0;
   left: 0;
+  min-height: 15.625rem;
 }
 .ui-arc-listview-carousel {
   position: absolute;
@@ -2610,6 +2612,9 @@ a.ui-hyperlink:hover {
 }
 .ui-force-relative-li-children li {
   position: relative !important;
+}
+.ui-arc-listview-dummy-element {
+  display: none;
 }
 /* Keyboard is visible, screen height is lower then half of screen */
 @media (max-height: 180px) {

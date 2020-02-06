@@ -20,7 +20,7 @@ var ns = window.tau = window.tau || {},
 nsConfig = window.tauConfig = window.tauConfig || {};
 nsConfig.rootNamespace = 'tau';
 nsConfig.fileName = 'tau';
-ns.version = '1.0.24';
+ns.version = '1.0.25-test';
 /*
  * Copyright (c) 2015 Samsung Electronics Co., Ltd
  *
@@ -2295,7 +2295,7 @@ ns.version = '1.0.24';
 						if (prototype.hasOwnProperty(property)) {
 							value = prototype[property];
 							if (typeof value === "function") {
-								basePrototype[property] = (function createFunctionWithSuper(Base, property, value) {
+								basePrototype[property] = (function (Base, property, value) {
 									var _super = function () {
 										var superFunction = Base.prototype[property];
 
@@ -2689,7 +2689,7 @@ ns.version = '1.0.24';
 						return getInstanceByElement(binding, element, type);
 					} else {
 						// Check if widget has wrapper and find base element
-						if (element && typeof element.hasAttribute === TYPE_FUNCTION &&
+						if (typeof element.hasAttribute === TYPE_FUNCTION &&
 								element.hasAttribute(DATA_WIDGET_WRAPPER)) {
 							baseElement = slice.call(element.children).filter(filterBuiltWidget)[0];
 							if (baseElement) {
@@ -3221,6 +3221,16 @@ ns.version = '1.0.24';
 				// HTMLElement doesn't have .element property
 				// widgetDefinitions will return undefined when called widgetDefinitions[undefined]
 				processHollowWidget(queueItem.element || queueItem, widgetDefinitions[queueItem.widgetName]);
+			}
+
+			function boundPerfListener() {
+				document.removeEventListener(eventType.BOUND, boundPerfListener);
+				window.tauPerf.get("engine/createWidgets", "event: " + eventType.BOUND);
+			}
+
+			function builtPerfListener() {
+				document.removeEventListener("built", builtPerfListener);
+				window.tauPerf.get("engine/createWidgets", "event: built");
 			}
 
 			/**
@@ -5745,6 +5755,7 @@ function pathToRegexp (path, keys, options) {
 				if (!x && !y) {
 					return preparePositionForEvent(event);
 				}
+				return null;
 			}
 
 			/**
@@ -6193,7 +6204,7 @@ function pathToRegexp (path, keys, options) {
 						if (href && !options.href) {
 							options.href = href;
 						}
-						if (rel === "popup" && link && !options.link) {
+						if (rel === "popup" && !options.link) {
 							options.link = link;
 						}
 						history.disableVolatileMode();
@@ -6999,11 +7010,11 @@ function pathToRegexp (path, keys, options) {
  */
 (function (window, ns) {
 	"use strict";
-				var Set = function () {
+				var set = function () {
 				this._data = [];
 			};
 
-			Set.prototype = {
+			set.prototype = {
 				/**
 				 * Add one or many arguments to set
 				 * @method add
@@ -7061,8 +7072,8 @@ function pathToRegexp (path, keys, options) {
 			};
 
 			// for tests
-			ns.util._Set = Set;
-			ns.util.Set = window.Set || Set;
+			ns.util._Set = set;
+			ns.util.Set = window.Set || set;
 
 			}(window, ns));
 
@@ -7326,7 +7337,7 @@ function pathToRegexp (path, keys, options) {
 				 * @static
 				 */
 				objectUtils = util.object,
-				Set = util.Set,
+				setUtils = util.Set,
 				BaseWidget = function () {
 					this.flowState = "created";
 					return this;
@@ -8151,6 +8162,7 @@ function pathToRegexp (path, keys, options) {
 				if (this.element) {
 					return eventUtils.trigger(this.element, eventName, data, bubbles, cancelable);
 				}
+				return false;
 			};
 
 			/**
@@ -8186,7 +8198,7 @@ function pathToRegexp (path, keys, options) {
 					func();
 				}
 				if (func !== undefined) {
-					util.requestAnimationFrame(function frameFlowCallback() {
+					util.requestAnimationFrame(function () {
 						self._framesFlow.apply(self, args);
 					});
 				}
@@ -8232,14 +8244,16 @@ function pathToRegexp (path, keys, options) {
 				var classList = stateObject.classList;
 
 				if (classList !== undefined) {
-					if (classList instanceof Set) {
+					if (classList instanceof setUtils) {
 						classList.clear();
 					} else {
-						classList = new Set();
+						classList = new setUtils();
 						stateObject.classList = classList;
 					}
 					if (element.classList.length) {
-						classList.add.apply(classList, slice.call(element.classList));
+						slice.call(element.classList).forEach(function (className) {
+							classList.add(className);
+						});
 					}
 				}
 			}
@@ -8263,13 +8277,13 @@ function pathToRegexp (path, keys, options) {
 				var recalculate = false;
 
 				if (stateObject.classList !== undefined) {
-					slice.call(element.classList).forEach(function renderRemoveClassList(className) {
+					slice.call(element.classList).forEach(function (className) {
 						if (!stateObject.classList.has(className)) {
 							element.classList.remove(className);
 							recalculate = true;
 						}
 					});
-					stateObject.classList.forEach(function renderAddClassList(className) {
+					stateObject.classList.forEach(function (className) {
 						if (!element.classList.contains(className)) {
 							element.classList.add(className);
 							recalculate = true;
@@ -8277,12 +8291,12 @@ function pathToRegexp (path, keys, options) {
 					});
 				}
 				if (stateObject.style !== undefined) {
-					Object.keys(stateObject.style).forEach(function renderUpdateStyle(styleName) {
+					Object.keys(stateObject.style).forEach(function (styleName) {
 						element.style[styleName] = stateObject.style[styleName];
 					});
 				}
 				if (stateObject.children !== undefined) {
-					stateObject.children.forEach(function renderChildren(child, index) {
+					stateObject.children.forEach(function (child, index) {
 						render(child, element.children[index], true);
 					});
 				}
@@ -10009,6 +10023,7 @@ function pathToRegexp (path, keys, options) {
 			 */
 			function render(path, data, callback, engineName) {
 				var templateFunction = templateFunctions[engineName || get("default") || ""],
+					targetPath,
 					targetCallback = function (status, element) {
 						// add current patch
 						status.absUrl = targetPath;
@@ -10023,8 +10038,7 @@ function pathToRegexp (path, keys, options) {
 							targetPath = getAbsUrl(path, false);
 							templateFunction(globalOptions, targetPath, data || {}, targetCallback);
 						}
-					},
-					targetPath;
+					};
 
 				// if template engine name and default name is not given then we
 				// take first registered engine
@@ -12321,32 +12335,6 @@ function pathToRegexp (path, keys, options) {
 
 				POPUP_SELECTOR = "[data-role='popup'], .ui-popup",
 
-				Popup = function () {
-					var self = this,
-						ui = {};
-
-					self.selectors = selectors;
-					self.options = objectUtils.merge({}, Popup.defaults);
-					self.storedOptions = null;
-					/**
-					 * Popup state flag
-					 * @property {0|1|2|3} [state=null]
-					 * @member ns.widget.core.Popup
-					 * @private
-					 */
-					self.state = states.CLOSED;
-
-					ui.overlay = null;
-					ui.header = null;
-					ui.footer = null;
-					ui.content = null;
-					ui.container = null;
-					ui.wrapper = null;
-					self._ui = ui;
-
-					// event callbacks
-					self._callbacks = {};
-				},
 				/**
 				 * Object with default options
 				 * @property {Object} defaults
@@ -12513,6 +12501,33 @@ function pathToRegexp (path, keys, options) {
 					 */
 					before_hide: EVENTS_PREFIX + "beforehide"
 					/* eslint-enable camelcase */
+				},
+
+				Popup = function () {
+					var self = this,
+						ui = {};
+
+					self.selectors = selectors;
+					self.options = objectUtils.merge({}, Popup.defaults);
+					self.storedOptions = null;
+					/**
+					 * Popup state flag
+					 * @property {0|1|2|3} [state=null]
+					 * @member ns.widget.core.Popup
+					 * @private
+					 */
+					self.state = states.CLOSED;
+
+					ui.overlay = null;
+					ui.header = null;
+					ui.footer = null;
+					ui.content = null;
+					ui.container = null;
+					ui.wrapper = null;
+					self._ui = ui;
+
+					// event callbacks
+					self._callbacks = {};
 				},
 
 				prototype = new BaseWidget();
@@ -15462,11 +15477,9 @@ function pathToRegexp (path, keys, options) {
 			anchorHighlight._clearActiveClass = clearActiveClass;
 			anchorHighlight._detectHighlightTarget = detectHighlightTarget;
 			anchorHighlight._detectBtnElement = detectBtnElement;
-			anchorHighlight._clearBtnActiveClass = clearBtnActiveClass;
 			anchorHighlight._removeActiveClassLoop = removeActiveClassLoop;
 			anchorHighlight._addButtonInactiveClass = addButtonInactiveClass;
 			anchorHighlight._addButtonActiveClass = addButtonActiveClass;
-			anchorHighlight._hideClear = hideClear;
 			anchorHighlight._addActiveClass = addActiveClass;
 			anchorHighlight._detectLiElement = detectLiElement;
 			anchorHighlight._touchmoveHandler = touchmoveHandler;
@@ -16838,10 +16851,12 @@ function pathToRegexp (path, keys, options) {
 			 * @param {Event} event Event object
 			 */
 			function rotaryDetentHandler(event) {
-				if (event.detail.direction === "CW") {
-					element.scrollTop += scrollStep;
-				} else {
-					element.scrollTop -= scrollStep;
+				if (element.getAttribute("data-lock-rotary-scroll") !== "true") {
+					if (event.detail.direction === "CW") {
+						element.scrollTop += scrollStep;
+					} else {
+						element.scrollTop -= scrollStep;
+					}
 				}
 			}
 
@@ -16868,6 +16883,25 @@ function pathToRegexp (path, keys, options) {
 			function disable() {
 				scrollStep = 40;
 				document.removeEventListener("rotarydetent", rotaryDetentHandler);
+				element = null;
+			}
+
+			/**
+			 * Lock rotary scrolling for current scrolling container
+			 * @method lock
+			 * @memberof ns.util.rotaryScrolling
+			 */
+			function lock() {
+				element && element.setAttribute("data-lock-rotary-scroll", true);
+			}
+
+			/**
+			 * Unlock rotary scrolling for current scrolling container
+			 * @method unlock
+			 * @memberof ns.util.rotaryScrolling
+			 */
+			function unlock() {
+				element && element.removeAttribute("data-lock-rotary-scroll");
 			}
 
 			/**
@@ -16892,6 +16926,8 @@ function pathToRegexp (path, keys, options) {
 
 			rotaryScrolling.enable = enable;
 			rotaryScrolling.disable = disable;
+			rotaryScrolling.lock = lock;
+			rotaryScrolling.unlock = unlock;
 			rotaryScrolling.setScrollStep = setScrollStep;
 			rotaryScrolling.getScrollStep = getScrollStep;
 
@@ -19320,7 +19356,7 @@ function pathToRegexp (path, keys, options) {
 
 				ellipsisEffect = {
 					GRADIENT: "gradient",
-					ELLIPSIS: "ellipsis",
+					ELLIPSIS: "ellipsis", // deprecated effect
 					NONE: "none"
 				},
 
@@ -19339,7 +19375,7 @@ function pathToRegexp (path, keys, options) {
 				 * @property {number} [options.delay=2000] Sets the delay(ms) for marquee
 				 * @property {"linear"|"ease"|"ease-in"|"ease-out"|"cubic-bezier(n,n,n,n)"}
 				 * [options.timingFunction="linear"] Sets the timing function for marquee
-				 * @property {"gradient"|"ellipsis"|"none"} [options.ellipsisEffect="gradient"] Sets the
+				 * @property {"gradient"|"none"} [options.ellipsisEffect="gradient"] Sets the
 				 * end-effect(gradient) of marquee
 				 * @property {boolean} [options.autoRun=true] Sets the status of autoRun
 				 * @member ns.widget.core.Marquee
@@ -19348,7 +19384,7 @@ function pathToRegexp (path, keys, options) {
 				defaults = {
 					marqueeStyle: style.SLIDE,
 					speed: 60,
-					iteration: 1,
+					iteration: "1",
 					currentIteration: 1,
 					delay: 0,
 					timingFunction: "linear",
@@ -19451,7 +19487,7 @@ function pathToRegexp (path, keys, options) {
 				return returnValue;
 			};
 
-			prototype._calculateStandardGradient = function (state, diff, from, current) {
+			prototype._calculateStandardGradient = function (state) {
 				var returnValue;
 
 				if (isNaN(state)) {
@@ -19482,6 +19518,13 @@ function pathToRegexp (path, keys, options) {
 				var marqueeInnerElement = element.querySelector("." + classes.MARQUEE_CONTENT);
 
 				element.classList.add(CLASSES_PREFIX);
+
+				// check deprecated class
+				if (element.classList.contains(classes.MARQUEE_ELLIPSIS)) {
+					ns.warn("Class '" + classes.MARQUEE_ELLIPSIS +
+						"' for option 'ellipsisEffect' in Marquee widget has been deprecated. " +
+						"Allowed values: none, '" + classes.MARQUEE_GRADIENT + "' (default)");
+				}
 
 				if (!marqueeInnerElement) {
 					marqueeInnerElement = document.createElement("div");
@@ -19571,6 +19614,9 @@ function pathToRegexp (path, keys, options) {
 			};
 
 			prototype._setEllipsisEffect = function (element, value) {
+				if (value === "ellipsis") {
+					ns.warn("Marquee: option value 'ellipsis' for 'ellipsisEffect' is deprecated. Allowed values: 'none', 'gradient' (default)");
+				}
 				return this._togglePrefixedClass(this._stateDOM, CLASSES_PREFIX + "-", value);
 			};
 
@@ -19601,7 +19647,7 @@ function pathToRegexp (path, keys, options) {
 				var animation = self._animation,
 					state = self.state;
 
-				if (self.options.currentIteration++ < self.options.iteration) {
+				if (self.options.currentIteration++ < self.options.iteration || self.options.iteration === "infinite") {
 					animation.set(state.animation, state.animationConfig);
 					animation.stop();
 					animation.start();
@@ -19633,7 +19679,7 @@ function pathToRegexp (path, keys, options) {
 					animationConfig.callback = animationIterationCallback.bind(null, self);
 				}
 				self._animation.set(state.animation, animationConfig);
-				self.options.loop = value;
+				self.options.iteration = value;
 				return false;
 			};
 
@@ -19724,9 +19770,11 @@ function pathToRegexp (path, keys, options) {
 					marqueeInnerElement;
 
 				self.state = null;
-				self._animation.stop();
-				self._animation.destroy();
-				self._animation = null;
+				if (self._animation) {
+					self._animation.stop();
+					self._animation.destroy();
+					self._animation = null;
+				}
 				self.element.style.webkitMaskImage = "";
 
 				marqueeInnerElement = self.element.querySelector("." + classes.MARQUEE_CONTENT);
@@ -20807,7 +20855,7 @@ function pathToRegexp (path, keys, options) {
 				var self = this,
 					items = element.children,
 					numberOfDots = items.length,
-					intervalAngle = self.options.intervalAngle - "0",
+					intervalAngle = parseFloat(self.options.intervalAngle),
 					translatePixel,
 					style,
 					i;
@@ -20963,7 +21011,7 @@ function pathToRegexp (path, keys, options) {
  * Contains helper function to gesture support.
  * @class ns.event.gesture.utils
  */
-(function (ns, Math) {
+(function (ns, math) {
 	"use strict";
 	
 		/**
@@ -20997,8 +21045,8 @@ function pathToRegexp (path, keys, options) {
 					});
 
 					return {
-						clientX: (Math.min.apply(Math, valuesX) + Math.max.apply(Math, valuesX)) / 2,
-						clientY: (Math.min.apply(Math, valuesY) + Math.max.apply(Math, valuesY)) / 2
+						clientX: (math.min.apply(math, valuesX) + math.max.apply(math, valuesX)) / 2,
+						clientY: (math.min.apply(math, valuesY) + math.max.apply(math, valuesY)) / 2
 					};
 				},
 
@@ -21015,8 +21063,8 @@ function pathToRegexp (path, keys, options) {
 				 */
 				getVelocity: function (deltaTime, deltaX, deltaY) {
 					return {
-						x: Math.abs(deltaX / deltaTime) || 0,
-						y: Math.abs(deltaY / deltaTime) || 0
+						x: math.abs(deltaX / deltaTime) || 0,
+						y: math.abs(deltaY / deltaTime) || 0
 					};
 				},
 
@@ -21032,7 +21080,7 @@ function pathToRegexp (path, keys, options) {
 					var y = touch2.clientY - touch1.clientY,
 						x = touch2.clientX - touch1.clientX;
 
-					return Math.atan2(y, x) * 180 / Math.PI;
+					return math.atan2(y, x) * 180 / math.PI;
 				},
 
 			/**
@@ -21044,8 +21092,8 @@ function pathToRegexp (path, keys, options) {
 				 * @member ns.event.gesture.utils
 				 */
 				getDirection: function (touch1, touch2) {
-					var x = Math.abs(touch1.clientX - touch2.clientX),
-						y = Math.abs(touch1.clientY - touch2.clientY);
+					var x = math.abs(touch1.clientX - touch2.clientX),
+						y = math.abs(touch1.clientY - touch2.clientY);
 
 					if (x >= y) {
 						return touch1.clientX - touch2.clientX > 0 ? gesture.Direction.LEFT : gesture.Direction.RIGHT;
@@ -21065,7 +21113,7 @@ function pathToRegexp (path, keys, options) {
 					var x = touch2.clientX - touch1.clientX,
 						y = touch2.clientY - touch1.clientY;
 
-					return Math.sqrt((x * x) + (y * y));
+					return math.sqrt((x * x) + (y * y));
 				},
 
 			/**
@@ -22037,9 +22085,6 @@ function pathToRegexp (path, keys, options) {
 			prototype._resetLayout = function () {
 				var elementStyle = this.element.style,
 					scrollerStyle = this.scrollerStyle;
-
-				elementStyle.overflow = "";
-				elementStyle.position = "";
 
 				elementStyle.overflow = "hidden";
 				elementStyle.position = "relative";
@@ -24191,6 +24236,8 @@ function pathToRegexp (path, keys, options) {
 						if (id && ["input", "textarea", "button"].indexOf(tagName) > -1) {
 							return input.parentNode.querySelector("label[for=" + id + "]");
 						}
+
+						return null;
 					},
 					_true = true;
 
@@ -25133,6 +25180,9 @@ function pathToRegexp (path, keys, options) {
 					utilsEvents.on(self.scroller,
 						"swipe transitionEnd webkitTransitionEnd mozTransitionEnd msTransitionEnd oTransitionEnd", self);
 
+					// disable tau rotaryScroller, this widget has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.lock();
+
 					document.addEventListener("rotarydetent", self, true);
 				},
 
@@ -25148,6 +25198,9 @@ function pathToRegexp (path, keys, options) {
 					}
 
 					document.removeEventListener("rotarydetent", self, true);
+
+					// disable tau rotaryScroller, this widget has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.unlock();
 				},
 
 				/**
@@ -30638,6 +30691,8 @@ function pathToRegexp (path, keys, options) {
 
 				if (options.type === "circle") {
 					events.on(document, "rotarydetent touchstart touchmove touchend click mousedown mousemove mouseup", self, false);
+					// disable tau rotaryScroller the widget has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.lock();
 				} else {
 					CoreSliderPrototype._bindEvents.call(self);
 				}
@@ -30910,6 +30965,8 @@ function pathToRegexp (path, keys, options) {
 					self._ui = null;
 					self.options = null;
 
+					// enable tau rotaryScroller the widget has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.unlock();
 				} else {
 					CoreSliderPrototype._destroy.call(self);
 				}
@@ -31428,7 +31485,12 @@ function pathToRegexp (path, keys, options) {
 					 */
 					self._ui = {
 						selection: null,
-						scroller: null
+						scroller: null,
+						arcListviewCarousel: null,
+						arcListviewSelection: null,
+						// ensures correct behaviour of radio buttons once
+						// item goes out of the screen (is removed from carousel)
+						dummyElement: null
 					};
 				},
 
@@ -31449,7 +31511,8 @@ function pathToRegexp (path, keys, options) {
 					FORCE_RELATIVE: "ui-force-relative-li-children",
 					LISTVIEW: "ui-listview",
 					SELECTED: "ui-arc-listview-selected",
-					HIDDEN_CAROUSEL_ITEM: WIDGET_CLASS + "-carousel-item-hidden"
+					HIDDEN_CAROUSEL_ITEM: WIDGET_CLASS + "-carousel-item-hidden",
+					DUMMY_ELEMENT: WIDGET_CLASS + "-dummy-element"
 				},
 				events = {
 					CHANGE: "change"
@@ -31459,7 +31522,6 @@ function pathToRegexp (path, keys, options) {
 					POPUP: ".ui-popup",
 					SCROLLER: ".ui-scroller",
 					ITEMS: "." + WIDGET_CLASS + " > li",
-					SELECTION: "." + WIDGET_CLASS + "-selection",
 					TEXT_INPUT: "input[type='text']" +
 								", input[type='number']" +
 								", input[type='password']" +
@@ -31701,6 +31763,8 @@ function pathToRegexp (path, keys, options) {
 						return null;
 					}
 				}
+
+				return null;
 			}
 
 			/**
@@ -31732,10 +31796,14 @@ function pathToRegexp (path, keys, options) {
 						1
 					);
 					if (self._scrollAnimationEnd) {
-						self.trigger(events.CHANGE, {
-							"selected": state.currentIndex
-						});
-						eventUtils.trigger(state.items[state.currentIndex].element, "selected");
+						// _scrollAnimationEnd can be set by TouchStart event to stop scroll.
+						// Show selection if scroll finishes.
+						if (deltaTime >= state.duration) {
+							self.trigger(events.CHANGE, {
+								"selected": state.currentIndex
+							});
+							eventUtils.trigger(state.items[state.currentIndex].element, "selected");
+						}
 						state.toIndex = state.currentIndex;
 
 						// set last scroll position when current page is hidden
@@ -31832,7 +31900,7 @@ function pathToRegexp (path, keys, options) {
 						item.repaint = false;
 					} else {
 						if (itemElement.parentNode !== null && item.current.scale < 0.01) {
-							itemElement.parentNode.removeChild(itemElement);
+							self._ui.dummyElement.appendChild(itemElement);
 						}
 					}
 				}
@@ -31942,6 +32010,20 @@ function pathToRegexp (path, keys, options) {
 					self._rendering = false;
 				}
 			};
+
+			/**
+			 * Methods return index of item after divider
+			 * @method findItemIndexByDivider
+			 * @param {HTMLElement} dividerElement
+			 * @memberof ns.widget.wearable.ArcListview
+			 */
+			prototype.findItemIndexByDivider = function (dividerElement) {
+				var result = this._state.separators.filter(function (item) {
+					return item.itemElement.element === dividerElement;
+				});
+
+				return result.length ? result[0].insertBefore : -1;
+			}
 
 			prototype._requestRender = function () {
 				var self = this;
@@ -32096,7 +32178,7 @@ function pathToRegexp (path, keys, options) {
 					scroll = state.scroll;
 
 				if (state.items.length === 0) {
-					return false;
+					return;
 				}
 
 				// increase scroll duration according to length of items
@@ -32331,7 +32413,7 @@ function pathToRegexp (path, keys, options) {
 					bouncingEffect = self._bouncingEffect;
 
 				if (self._items.length === 0) {
-					return false;
+					return;
 				}
 
 				// time
@@ -32413,6 +32495,8 @@ function pathToRegexp (path, keys, options) {
 					if (bouncingEffect) {
 						bouncingEffect.dragEnd();
 					}
+				} else {
+					self._roll();
 				}
 			};
 
@@ -32466,21 +32550,24 @@ function pathToRegexp (path, keys, options) {
 				var ui = this._ui,
 					state = this._state,
 					selectedElement = state.items[selectedIndex].element,
-					marqueeDiv,
-					widget;
+					marqueeDiv = selectedElement.querySelector(".ui-arc-listview-text-content"),
+					marqueeWidget = null;
 
-				marqueeDiv = selectedElement.querySelector(".ui-arc-listview-text-content");
+				// Start marquee.
 				if (marqueeDiv) {
 					marqueeDiv.style.width = "100%";
 					marqueeDiv.classList.add("ui-marquee");
+					marqueeWidget = ns.engine.getBinding(marqueeDiv);
+					if (!marqueeWidget) {
+						marqueeWidget = ns.widget.Marquee(marqueeDiv, {
+							marqueeStyle: "endToEnd",
+							iteration: 1,
+							delay: "300"
+						});
+					} else {
+						marqueeWidget.start();
+					}
 				}
-				widget = ns.widget.Marquee(marqueeDiv, {
-					marqueeStyle: "endToEnd",
-					iteration: 1,
-					delay: "300"
-				});
-				widget.start();
-
 
 				if (selectedElement.classList.contains(classes.SELECTED)) {
 					showHighlight(ui.arcListviewSelection, selectedElement);
@@ -32502,9 +32589,9 @@ function pathToRegexp (path, keys, options) {
 				var selectedIndex = event.detail.selected,
 					unselectedIndex = event.detail.unselected,
 					classList = this._ui.arcListviewSelection.classList,
-					selectedElement,
-					marqueeDiv,
-					widget;
+					selectedElement = null,
+					marqueeDiv = null,
+					marqueeWidget = null;
 
 				if (!event.defaultPrevented && this._state.items.length > 0) {
 					if (selectedIndex !== undefined) {
@@ -32515,13 +32602,14 @@ function pathToRegexp (path, keys, options) {
 						selectedElement.removeEventListener("transitionend", this, true);
 						selectedElement.removeEventListener("webkitTransitionEnd", this, true);
 						selectedElement.classList.remove(classes.SELECTED);
-						// stop marque;
+
+						// Stop marquee.
 						marqueeDiv = selectedElement.querySelector(".ui-arc-listview-text-content");
 						if (marqueeDiv) {
-							widget = ns.widget.Marquee(marqueeDiv);
-							if (widget) {
-								widget.reset();
-								widget.destroy();
+							marqueeWidget = ns.engine.getBinding(marqueeDiv);
+							if (marqueeWidget) {
+								marqueeWidget.stop();
+								marqueeWidget.reset();
 							}
 						}
 					}
@@ -32568,9 +32656,10 @@ function pathToRegexp (path, keys, options) {
 					if (toIndex < state.items.length) {
 						state.toIndex = toIndex;
 					}
-
-					self._roll();
 				}
+				// Do scroll regardless of 'toIndex' value. This will center content relative
+				// to clicked position.
+				self._roll();
 			};
 
 			prototype._onPageInit = function () {
@@ -32609,16 +32698,20 @@ function pathToRegexp (path, keys, options) {
 				}
 			}
 
-			prototype._buildArcListviewSelection = function (page) {
-				// find or add selection for current list element
-				var arcListviewSelection = page.querySelector(selectors.SELECTION);
+			prototype._buildArcListviewElement = function (parentElement, cssClass, options) {
+				// find or add element for current list element
+				var arcListviewElement = parentElement.querySelector(cssClass);
 
-				if (!arcListviewSelection) {
-					arcListviewSelection = document.createElement("div");
-					arcListviewSelection.classList.add(classes.SELECTION);
-					page.appendChild(arcListviewSelection);
+				if (!arcListviewElement) {
+					arcListviewElement = document.createElement("div");
+					arcListviewElement.classList.add(cssClass);
+					if (options && options.insertBefore) {
+						parentElement.insertBefore(arcListviewElement, parentElement.firstElementChild);
+					} else {
+						parentElement.appendChild(arcListviewElement);
+					}
 				}
-				return arcListviewSelection;
+				return arcListviewElement;
 			};
 
 			function buildArcListviewCarousel(carousel, count) {
@@ -32714,7 +32807,6 @@ function pathToRegexp (path, keys, options) {
 				var self = this,
 					element = self.element,
 					options = self.options,
-					arcListviewCarousel,
 					page,
 					scroller,
 					ui = self._ui,
@@ -32727,19 +32819,26 @@ function pathToRegexp (path, keys, options) {
 
 				scroller = selectorsUtil.getClosestBySelector(element, selectors.SCROLLER);
 
+
 				if (scroller) {
+					// disable tau rotaryScroller the widget has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.lock();
+
 					element.classList.add(WIDGET_CLASS, classes.PREFIX + visibleItemsCount);
 
 					self._getItemsFromElement();
 					self._createTextInputs();
 
-					ui.arcListviewSelection = self._buildArcListviewSelection(page);
-					arcListviewCarousel = buildArcListviewCarousel(carousel, visibleItemsCount);
-					ui.arcListviewCarousel = arcListviewCarousel;
+					ui.arcListviewSelection = self._buildArcListviewElement(
+						scroller, classes.SELECTION, {
+							insertBefore: true
+						});
+					ui.arcListviewCarousel = buildArcListviewCarousel(carousel, visibleItemsCount);
+					ui.dummyElement = self._buildArcListviewElement(page, classes.DUMMY_ELEMENT);
 
 					// append carousel outside scroller element
-					scroller.parentElement.appendChild(arcListviewCarousel);
-					self._ui.arcListviewCarousel.addEventListener("vclick", self, true);
+					scroller.parentElement.appendChild(ui.arcListviewCarousel);
+					ui.arcListviewCarousel.addEventListener("vclick", self, true);
 
 					// cache HTML elements
 					ui.scroller = scroller;
@@ -32960,7 +33059,10 @@ function pathToRegexp (path, keys, options) {
 				var self = this,
 					ui = self._ui,
 					arcListviewSelection = ui.arcListviewSelection,
-					arcListviewCarousel = ui.arcListviewCarousel;
+					arcListviewCarousel = ui.arcListviewCarousel,
+					dummyElement = ui.dummyElement,
+					marqueeDiv = null,
+					marqueeWidget = null;
 
 				self._unbindEvents();
 
@@ -32970,12 +33072,27 @@ function pathToRegexp (path, keys, options) {
 				});
 				self._items = [];
 
+				// Destroy marquee.
+				self._state.items.forEach(function (item) {
+					marqueeDiv = item.element.querySelector(".ui-arc-listview-text-content");
+					if (marqueeDiv) {
+						marqueeWidget = ns.engine.getBinding(marqueeDiv);
+						if (marqueeWidget) {
+							marqueeWidget.destroy();
+						}
+					}
+				});
+				self._state.items = [];
+
 				// remove added elements
 				if (arcListviewSelection && arcListviewSelection.parentElement) {
 					arcListviewSelection.parentElement.removeChild(arcListviewSelection);
 				}
 				if (arcListviewCarousel && arcListviewCarousel.parentElement) {
 					arcListviewCarousel.parentElement.removeChild(arcListviewCarousel);
+				}
+				if (dummyElement && dummyElement.parentElement) {
+					dummyElement.parentElement.removeChild(dummyElement);
 				}
 			};
 
@@ -34977,7 +35094,16 @@ function pathToRegexp (path, keys, options) {
 				engine = ns.engine,
 				utilsEvents = ns.event,
 				eventTrigger = utilsEvents.trigger,
+				gesture = ns.event.gesture,
 				prototype = new BaseWidget(),
+				DRAG_STEP_TO_VALUE = 60,
+				VIBRATION_DURATION = 10,
+				lastDragValueChange = 0,
+				dragGestureInstance = null,
+				swipeGestureInstance = null,
+				swipeNumber = 0,
+				SECOND_SWIPE_TIMEOUT = 500, //ms
+				swipeTimeout = null,
 
 				CircularIndexScrollbar = function () {
 					this._phase = null;
@@ -35005,7 +35131,19 @@ function pathToRegexp (path, keys, options) {
 					 * @event select
 					 * @member ns.widget.wearable.CircularIndexScrollbar
 					 */
-					SELECT: "select"
+					SELECT: "select",
+					/**
+					 * Event triggered before show popup with letter
+					 * @event show
+					 * @member ns.widget.wearable.CircularIndexScrollbar
+					 */
+					SHOW: "show",
+					/**
+					 * Event triggered before hide popup with letter
+					 * @event show
+					 * @member ns.widget.wearable.CircularIndexScrollbar
+					 */
+					HIDE: "hide"
 				},
 
 				classes = {
@@ -35297,6 +35435,97 @@ function pathToRegexp (path, keys, options) {
 				}
 			};
 
+			function hideWithTimeout(self) {
+				// disable previous timeout
+				clearTimeout(self._tid.phaseThree);
+
+				self._tid.phaseThree = setTimeout(function () {
+					self._hidePopup();
+					self._disableDrag();
+					// enable swipe event listener previously disabled on show indicator
+					utilsEvents.on(document, "swipe", self);
+				}, 1000);
+			}
+
+			prototype._onDrag = function (ev) {
+				var self = this,
+					dragValue;
+
+				hideWithTimeout(self);
+
+				if (self._phase === 3) {
+					dragValue = ev.detail.deltaY - lastDragValueChange;
+
+					if (Math.abs(dragValue) > DRAG_STEP_TO_VALUE) {
+						lastDragValueChange = ev.detail.deltaY;
+						// direction described in guideline doesn't make sense,
+						// the direction was changed to the opposite
+						if (ev.detail.deltaY < 0) {
+							self._nextIndex();
+						} else {
+							self._prevIndex();
+						}
+						window.navigator.vibrate(VIBRATION_DURATION);
+					}
+				}
+			}
+
+			prototype._onDragEnd = function () {
+				lastDragValueChange = 0;
+			};
+
+			function resetSwipeWithTimeout() {
+				swipeNumber = 0;
+				swipeTimeout = null;
+			}
+
+			prototype._onSwipe = function () {
+				var self = this;
+
+				window.clearTimeout(swipeTimeout);
+				if (swipeNumber === 1) {
+					utilsEvents.off(document, "swipe", self);
+					self._phase = 3;
+					swipeNumber = 0;
+					self._showPopup();
+					self._enableDrag();
+
+					hideWithTimeout(self);
+				} else {
+					swipeNumber = 1;
+					swipeTimeout = window.setTimeout(resetSwipeWithTimeout, SECOND_SWIPE_TIMEOUT);
+				}
+			};
+
+			prototype._enableDrag = function () {
+				var self = this;
+
+				self.element.style.pointerEvents = "all";
+				utilsEvents.on(document, "drag dragend", self);
+			};
+
+			prototype._disableDrag = function () {
+				var self = this;
+
+				self.element.style.pointerEvents = "none";
+				utilsEvents.off(document, "drag dragend", self);
+			};
+
+			prototype._showPopup = function () {
+				var self = this;
+
+				eventTrigger(self.element, EventType.SHOW);
+				self.element.classList.add(classes.SHOW);
+			};
+
+			prototype._hidePopup = function () {
+				var self = this;
+
+				eventTrigger(self.element, EventType.HIDE);
+				self.element.classList.remove(classes.SHOW);
+				self._phase = 1;
+			};
+
 			/**
 			 * This method is for phase 3 operation.
 			 * @method _rotaryPhaseThree
@@ -35307,14 +35536,12 @@ function pathToRegexp (path, keys, options) {
 			prototype._rotaryPhaseThree = function (direction) {
 				var self = this;
 
-				clearTimeout(self._tid.phaseThree);
-				self._tid.phaseThree = setTimeout(function () {
-					self.element.classList.remove(classes.SHOW);
-					self._phase = 1;
-				}, 1000);
+				hideWithTimeout(self);
 
 				if (self._phase === 3) {
-					self.element.classList.add(classes.SHOW);
+					self._showPopup();
+					self._enableDrag();
+
 					if (direction === rotaryDirection.CW) {
 						self._nextIndex();
 					} else {
@@ -35337,6 +35564,15 @@ function pathToRegexp (path, keys, options) {
 					case "rotarydetent":
 						self._rotary(event);
 						break;
+					case "drag":
+						self._onDrag(event);
+						break;
+					case "dragend":
+						self._onDragEnd(event);
+						break;
+					case "swipe":
+						self._onSwipe(event);
+						break;
 				}
 			};
 
@@ -35349,7 +35585,23 @@ function pathToRegexp (path, keys, options) {
 			prototype._bindEvents = function () {
 				var self = this;
 
+				// enabled drag gesture for document
+				if (dragGestureInstance === null) {
+					dragGestureInstance = new gesture.Drag({
+						blockHorizontal: true
+					});
+					utilsEvents.enableGesture(document, dragGestureInstance);
+				}
+				// enabled drag gesture for document
+				if (swipeGestureInstance === null) {
+					swipeGestureInstance = new gesture.Swipe({
+						orientation: gesture.Orientation.VERTICAL
+					});
+					utilsEvents.enableGesture(document, swipeGestureInstance);
+				}
+
 				utilsEvents.on(document, "rotarydetent", self);
+				utilsEvents.on(document, "swipe", self);
 			};
 
 			/**
@@ -35361,7 +35613,10 @@ function pathToRegexp (path, keys, options) {
 			prototype._unbindEvents = function () {
 				var self = this;
 
+				utilsEvents.disableGesture(document, dragGestureInstance);
+				utilsEvents.disableGesture(document, swipeGestureInstance);
 				utilsEvents.off(document, "rotarydetent", self);
+				utilsEvents.off(document, "swipe", self);
 			};
 
 			/**
@@ -36779,6 +37034,9 @@ function pathToRegexp (path, keys, options) {
 					utilScrolling.enable(scrollview, options.orientation);
 					utilScrolling.enableScrollBar();
 				}
+
+				// disable tau rotaryScroller the widget has own support for rotary event
+				ns.util.rotaryScrolling && ns.util.rotaryScrolling.lock();
 			};
 
 			/**
@@ -37907,13 +38165,28 @@ function pathToRegexp (path, keys, options) {
 				// finding page  and scroller
 				ui.page = utilSelector.getClosestByClass(listview, "ui-page") || document.body;
 
-				scroller = getScrollableParent(listview);
+				scroller = getScrollableParent(listview) ||
+					ui.page.querySelector(".ui-scroller") ||
+					ui.page;
 				if (scroller) {
+					// disable tau rotaryScroller the snaplistview has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.lock();
+
+					scroller.classList.add(classes.SNAP_CONTAINER);
+					ui.scrollableParent.element = scroller;
+
+					visibleOffset = scroller.clientHeight;
+					ui.scrollableParent.height = visibleOffset;
+
+					listItem = listview.querySelector(self.options.selector);
+					if (!listItem) {
+						return scroller;
+					}
+
 					if (!scrolling.isElement(scroller)) {
 						scrolling.enable(scroller, "y");
 					}
 
-					listItem = listview.querySelector(self.options.selector);
 					elementHeight = (listItem) ? listItem.getBoundingClientRect().height : 0;
 
 					scrollMargin = listview.getBoundingClientRect().top -
@@ -37927,12 +38200,6 @@ function pathToRegexp (path, keys, options) {
 							length: item.coord.height
 						};
 					}));
-
-					scroller.classList.add(classes.SNAP_CONTAINER);
-					ui.scrollableParent.element = scroller;
-
-					visibleOffset = scroller.clientHeight;
-					ui.scrollableParent.height = visibleOffset;
 				}
 				return scroller;
 			};
@@ -37972,6 +38239,11 @@ function pathToRegexp (path, keys, options) {
 						self._currentIndex = index;
 					}
 				});
+
+				if (listItems.length == 0) {
+					return;
+				}
+
 				scrolling.setSnapSize(listItems.map(function (item) {
 					return {
 						position: item.coord.top,
@@ -41198,7 +41470,7 @@ function pathToRegexp (path, keys, options) {
 				 * @param {Function} onEnd
 				 * @return {Object}
 				 */
-				anim = function anim(items, duration, timingFn, drawFn, onEnd) {
+				anim = function (items, duration, timingFn, drawFn, onEnd) {
 					// item (or items) should has properties: from, to
 
 					var state = {
@@ -41914,6 +42186,9 @@ function pathToRegexp (path, keys, options) {
 
 				// set proper grid look
 				self.mode(options.mode);
+
+				// disable tau rotaryScroller the widget has own support for rotary event
+				ns.util.rotaryScrolling && ns.util.rotaryScrolling.lock();
 			};
 
 			function findChildIndex(self, target) {
@@ -42384,7 +42659,7 @@ function pathToRegexp (path, keys, options) {
 				updateItemsFrom(items);
 				self._assembleItemsTo3x3(items);
 
-				anim(items, TRANSFORM_DURATION, changeItems, transformItem, function onTransitionEnd() {
+				anim(items, TRANSFORM_DURATION, changeItems, transformItem, function () {
 					element.style[self._scrollSize] = getGridSize(self, "3x3") + "px";
 					self._updateSnapPointPositions();
 				});
@@ -43113,6 +43388,9 @@ function pathToRegexp (path, keys, options) {
 					}, ENABLING_DURATION);
 					element.classList.add(classes.ENABLED);
 					utilsEvents.on(document, "drag dragend", self);
+
+					// disable tau rotaryScroller the widget has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.lock();
 				} else {
 					element.classList.add(classes.ENABLING);
 					window.setTimeout(function () {
@@ -43123,6 +43401,8 @@ function pathToRegexp (path, keys, options) {
 					utilsEvents.off(document, "drag dragend", self);
 					// disable animation
 					self._animation.stop();
+					// enable tau rotaryScroller the widget has own support for rotary event
+					ns.util.rotaryScrolling && ns.util.rotaryScrolling.unlock();
 				}
 				// reset previous value;
 				this._prevValue = null;
@@ -45564,14 +45844,13 @@ function pathToRegexp (path, keys, options) {
 			}
 
 			/**
-			 * Initialize widget state, set current date and init month indicator
+			 * Initialize widget state, set current date
 			 * @method _init
 			 * @memberof ns.widget.wearable.DatePicker
 			 * @protected
 			 */
 			prototype._init = function () {
 				this._setValue(new Date());
-				this._setActiveSelector("month");
 			};
 
 			/**
@@ -46966,28 +47245,28 @@ function pathToRegexp (path, keys, options) {
 
 			function scrollAnimation(element, from, to, duration) {
 				var easeOut = cubicBezier(0.25, 0.46, 0.45, 1),
-					startTime = 0,
 					currentTime = 0,
 					progress = 0,
 					easeProgress = 0,
 					distance = to - from,
-					scrollTop = from;
+					scrollTop = from,
+					startTime = window.performance.now(),
+					animation = function () {
+						var gap;
 
-				startTime = window.performance.now();
-				animationTimer = window.requestAnimationFrame(function animation() {
-					var gap;
+						currentTime = window.performance.now();
+						progress = (currentTime - startTime) / duration;
+						easeProgress = easeOut(progress);
+						gap = distance * easeProgress;
+						element.scrollTop = scrollTop + gap;
+						if (progress < 1 && progress >= 0) {
+							animationTimer = window.requestAnimationFrame(animation);
+						} else {
+							animationTimer = null;
+						}
+					};
 
-					currentTime = window.performance.now();
-					progress = (currentTime - startTime) / duration;
-					easeProgress = easeOut(progress);
-					gap = distance * easeProgress;
-					element.scrollTop = scrollTop + gap;
-					if (progress < 1 && progress >= 0) {
-						animationTimer = window.requestAnimationFrame(animation);
-					} else {
-						animationTimer = null;
-					}
-				});
+				animationTimer = window.requestAnimationFrame(animation);
 			}
 
 			function showEdgeEffect(direction) {
@@ -47065,6 +47344,7 @@ function pathToRegexp (path, keys, options) {
 				objectUtils.merge(self.options, options);
 
 				self.bindEvents();
+				return undefined;
 			};
 
 			prototype.bindEvents = function () {

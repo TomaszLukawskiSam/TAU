@@ -4,7 +4,7 @@ var ns = window.tau = window.tau || {},
 nsConfig = window.tauConfig = window.tauConfig || {};
 nsConfig.rootNamespace = 'tau';
 nsConfig.fileName = 'tau';
-ns.version = '1.0.24';
+ns.version = '1.0.25-test';
 /*global window, ns, define */
 /*
  * Copyright (c) 2015 Samsung Electronics Co., Ltd
@@ -5055,7 +5055,7 @@ ns.version = '1.0.24';
 				 * @static
 				 * @private
 				 */
-				beforeRefreshListItems = function beforeRefreshListItems(listview, element) {
+				beforeRefreshListItems = function (listview, element) {
 					if (listview.options.autodividers) {
 						listview._addAutodividers(element);
 					}
@@ -5090,7 +5090,7 @@ ns.version = '1.0.24';
 				 * @static
 				 * @private
 				 */
-				removeDividers = function removeDividers(list) {
+				removeDividers = function (list) {
 					var liCollection = selectors.getChildrenBySelector(list, "li[data-role='list-divider']"),
 						i,
 						len = liCollection.length;
@@ -5109,7 +5109,7 @@ ns.version = '1.0.24';
 				 * @static
 				 * @private
 				 */
-				insertAutodividers = function insertAutodividers(self, list) {
+				insertAutodividers = function (self, list) {
 					/*
 					 * @property {NodeList} liCollection collection of HTMLLIElements
 					 */
@@ -5164,7 +5164,7 @@ ns.version = '1.0.24';
 				 * @static
 				 * @private
 				 */
-				replaceDividers = function replaceDividers(self, list) {
+				replaceDividers = function (self, list) {
 					// remove dividers if exists;
 					removeDividers(list);
 					// insert new dividers;
@@ -5342,7 +5342,7 @@ ns.version = '1.0.24';
 			 * @instance
 			 * @protected
 			 */
-			Listview.prototype._destroy = function _destroy() {
+			Listview.prototype._destroy = function () {
 				var element = this.element;
 
 				element.removeEventListener("beforerefreshitems",
@@ -12890,8 +12890,7 @@ ns.version = '1.0.24';
 			 */
 			prototype._createDividerMap = function (element) {
 				var self = this,
-					primaryCharacterSet = null,
-					secondCharacterSet = null,
+					primaryCharacterSet = "",
 					numberSet = "0123456789",
 					dividers,
 					map = {},
@@ -12914,11 +12913,8 @@ ns.version = '1.0.24';
 					}
 				}
 
-				if (primaryCharacterSet === null) {
-					primaryCharacterSet = "";
-					for (i = 0; i < dividersLength; i++) {
-						primaryCharacterSet = makeCharacterSet(dividers[i], primaryCharacterSet);
-					}
+				for (i = 0; i < dividersLength; i++) {
+					primaryCharacterSet = makeCharacterSet(dividers[i], primaryCharacterSet);
 				}
 
 				for (i = 0, length = primaryCharacterSet.length; i < length; i++) {
@@ -12928,17 +12924,8 @@ ns.version = '1.0.24';
 					}
 				}
 
-				if (secondCharacterSet !== null) {
-					for (i = 0, length = secondCharacterSet.length; i < length; i++) {
-						indexChar = secondCharacterSet.charAt(i);
-						for (j = 0; j < dividersLength; j++) {
-							matchToDivider(dividers[j], indexChar, map);
-						}
-					}
-				}
-
 				self._dividerMap = map;
-				self._charSet = primaryCharacterSet + secondCharacterSet;
+				self._charSet = primaryCharacterSet;
 			};
 
 			prototype._build = function (element) {
@@ -14176,6 +14163,8 @@ ns.version = '1.0.24';
 							case 4:
 								values = getCalendar().months.names.slice();
 								break;
+							default:
+								values = [];
 						}
 						if (values.length === 13) { // @TODO Lunar calendar support
 							if (values[12] === "") { // to remove lunar calendar reserved space
