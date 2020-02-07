@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48px" height="48px" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.1 (72631) - https://sketchapp.com -->
+    <title>03_HERO CARD/Aircon_mode/icon</title>
+    <desc>Created with Sketch.</desc>
+    <g id="03_HERO-CARD/Aircon_mode/icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="mode/icon/cool" fill="#ABD7EB">
+            <g id="Icon">
+                <circle id="Oval-Copy-3" cx="23.625" cy="23.625" r="23.625"></circle>
+            </g>
+        </g>
+        <g id="ICON/03_HERO-CARD/Aircon_cool" transform="translate(6.000000, 6.000000)" stroke="#FFFFFF" stroke-linejoin="round">
+            <g id="cool" transform="translate(5.000000, 3.500000)">
+                <path d="M12.6040495,0.0001372 L12.5978755,28.8121372" id="Stroke-1" stroke-width="2.715"></path>
+                <path d="M0.0845495,7.209517 L25.1235495,21.609343" id="Stroke-3" stroke-width="2.715"></path>
+                <path d="M25.1195364,7.209517 L0.0846524,21.609343" id="Stroke-5" stroke-width="2.715"></path>
+            </g>
+        </g>
+    </g>
+</svg>

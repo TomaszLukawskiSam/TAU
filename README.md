@@ -1,6 +1,9 @@
 # TAU
 
 The TAU library contains components which allows you to create Web Application UI. Each components represents UI element, such as a button or slider, which gives you interaction and manipulation features.
+This is a repository for internal development.
+
+The offical release of TAU is going on in the https://github.com/Samsung/TAU.
 
 
 ## Getting Started
@@ -76,9 +79,50 @@ Contribution can be verified using command:
 
 `npx grunt eslint`
 
-## Usage
+## TAU UI Components Usage
 
 Refer to [samsung.github.io/TAU](https://samsung.github.io/TAU/) for library usage instructions
+
+## Develop by Handwriting
+
+### Including TAU in your source code
+
+```html
+<script src="../lib/tau/mobile/js/tau.js"></script>
+```
+
+### Simple usage example
+
+```html
+<div class="ui-page ui-page-active">
+  <div class="ui-header">MyApplication</div>
+  <div class="ui-content">Hello world</div>
+  <div class="ui-footer">
+    <button id="closeBtn" class="ui-btn">Close</button>
+  </div>
+</div>
+<script>
+    var page = document.querySelector(".ui-page");
+    page.addEventListener("pageshow", function () {
+      document.getElementById("closeBtn").addEventListener("click", function () {
+        window.close();
+      });
+    });
+</script>
+```
+
+## Develop by Visual Tools
+
+### Using VSCode
+
+You can use VSCode with set of extensions supporting web apps and TAU development [here](https://developer.tizen.org/development/visual-studio-code-extension-tizen/tizen-web).
+
+### Using TAU Design Editor with VSCode
+
+You can use TAU Design Editor with VSCode supporting WYSIWYG development. [Link](https://github.sec.samsung.net/HighPerformanceWeb/VSC-Design-Editor)
+
+![](https://github.sec.samsung.net/HighPerformanceWeb/Demo/raw/master/TAU/WasherVideo_1106.gif)
+
 
 ## Contributing
 

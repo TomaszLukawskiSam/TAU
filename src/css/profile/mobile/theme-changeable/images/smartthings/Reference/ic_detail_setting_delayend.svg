@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="41px" height="41px" viewBox="0 0 41 41" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.1 (72631) - https://sketchapp.com -->
+    <title>ICON/03_DETAIL_SETTING/delayend</title>
+    <desc>Created with Sketch.</desc>
+    <g id="ICON/03_DETAIL_SETTING/delayend" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="ic_delayend" transform="translate(5.000000, 5.000000)" stroke="#3A6088">
+            <path d="M30.275665,15.225 C30.275665,23.5375 23.538165,30.275 15.225665,30.275 C6.912465,30.275 0.174965,23.5375 0.174965,15.225 C0.174965,6.9118 6.912465,0.175 15.225665,0.175" id="Stroke-1" stroke-width="2" stroke-linejoin="round"></path>
+            <polyline id="Stroke-3" stroke-width="2" stroke-linejoin="round" points="25.025665 15.225 15.225665 15.225 15.225665 3.675"></polyline>
+            <path d="M15.225665,0.175 C15.757315,0.175 16.282315,0.20265 16.799265,0.2562" id="Stroke-5" stroke-width="1.75"></path>
+            <path d="M19.66426,0.839965 C24.87016,2.444015 28.87066,6.796265 29.97246,12.203415" id="Stroke-7" stroke-width="1.75" stroke-dasharray="2.926350021362305,2.926350021362305"></path>
+            <path d="M30.194325,13.651365 C30.247875,14.168665 30.275525,14.693665 30.275525,15.224965" id="Stroke-9" stroke-width="1.75"></path>
+        </g>
+    </g>
+</svg>

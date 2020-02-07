@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="43px" height="43px" viewBox="0 0 43 43" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.1 (72631) - https://sketchapp.com -->
+    <title>ICON/04_GLOBAL_CONTROL/Aircon/wind_strength_auto</title>
+    <desc>Created with Sketch.</desc>
+    <g id="ICON/04_GLOBAL_CONTROL/Aircon/wind_strength_auto" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M21.296018,16.08916 C18.312258,16.08916 15.892798,13.60738 15.892798,10.54496 C15.892798,7.48292 18.312258,5 21.296018,5 L21.296018,16.08916 Z" id="Stroke-53" stroke="#284B71" stroke-width="2" stroke-linejoin="round"></path>
+        <path d="M21.296018,16.08916 C21.296018,19.07292 18.813478,21.49162 15.751058,21.49162 C12.688258,21.49162 10.205338,19.07292 10.205338,16.08916 L21.296018,16.08916 Z" id="Stroke-55" stroke="#284B71" stroke-width="2" stroke-linejoin="round"></path>
+        <path d="M21.296018,16.08916 C23.696858,16.08916 25.732138,17.69732 26.435518,19.92184 C26.605758,20.46068 26.697718,21.03676 26.697718,21.63336 C26.697718,24.6954 24.279778,27.17832 21.296018,27.17832 L21.296018,20.13996 L21.296018,16.08916 Z" id="Stroke-57" stroke="#284B71" stroke-width="2" stroke-linejoin="round"></path>
+        <path d="M21.296018,16.08916 C21.296018,13.1054 23.777798,10.68746 26.840218,10.68746 C29.901498,10.68746 32.384418,13.1054 32.384418,16.08916 L21.296018,16.08916 Z" id="Stroke-59" stroke="#284B71" stroke-width="2" stroke-linejoin="round"></path>
+        <text id="AU" font-family="SamsungOneUILatin-800C, SamsungOneUILatin" font-size="11.16" font-style="condensed" font-weight="600" letter-spacing="-0.00523125005" fill="#284B71">
+            <tspan x="8" y="39">AU</tspan>
+        </text>
+        <text id="T" font-family="SamsungOneUILatin-800C, SamsungOneUILatin" font-size="11.16" font-style="condensed" font-weight="600" fill="#284B71">
+            <tspan x="22" y="39">T</tspan>
+        </text>
+        <text id="O" font-family="SamsungOneUILatin-800C, SamsungOneUILatin" font-size="11.16" font-style="condensed" font-weight="600" fill="#284B71">
+            <tspan x="27.60576" y="39">O</tspan>
+        </text>
+    </g>
+</svg>

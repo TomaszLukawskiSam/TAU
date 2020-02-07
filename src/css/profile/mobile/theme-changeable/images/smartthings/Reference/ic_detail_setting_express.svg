@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="41px" height="41px" viewBox="0 0 41 41" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.1 (72631) - https://sketchapp.com -->
+    <title>ICON/03_DETAIL_SETTING/express</title>
+    <desc>Created with Sketch.</desc>
+    <g id="ICON/03_DETAIL_SETTING/express" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linejoin="round">
+        <g id="ic_express" transform="translate(5.425000, 4.775000)" stroke="#3A6088" stroke-width="2">
+            <path d="M14.434105,30.255155 C6.488755,29.843555 0.175105,23.273005 0.175105,15.225105 C0.175105,6.911905 6.911905,0.175105 15.225105,0.175105" id="Stroke-1"></path>
+            <path d="M29.504265,19.85837 C29.905365,18.50212 30.274965,16.71117 30.274965,15.22507 C30.274965,6.91187 23.538165,0.17507 15.224965,0.17507" id="Stroke-3"></path>
+            <polyline id="Stroke-5" points="25.025 15.225 15.225 15.225 15.225 3.675"></polyline>
+            <path d="M18.529525,30.12254 C18.306575,30.29334 18.124225,30.20304 18.124225,29.92234 L18.124225,20.82759 C18.124225,20.54759 18.306575,20.45729 18.529525,20.62809 L24.320275,25.06469 C24.543225,25.23549 24.543225,25.51514 24.320275,25.68594 L18.529525,30.12254 Z" id="Stroke-7"></path>
+            <path d="M25.12755,30.118445 C24.90635,30.291345 24.72575,30.203145 24.72575,29.922095 L24.72575,20.827695 C24.72575,20.547345 24.90635,20.459145 25.12755,20.632045 L30.7755,25.060595 C30.9967,25.233495 30.9967,25.517345 30.7755,25.690245 L25.12755,30.118445 Z" id="Stroke-9"></path>
+        </g>
+    </g>
+</svg>
