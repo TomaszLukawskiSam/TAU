@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta content="width=device-width, user-scalable=no" name="viewport" />
+	<link href="../../lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+	<link href="../../css/style.css" rel="stylesheet" />
+	<script data-build-remove="false" src="../../lib/tau/mobile/js/tau.js">
+	</script>
+</head>
+
+<body>
+	<div class="ui-page" id="textinput-demo">
+		<header>
+			<h1>
+				Text fields
+			</h1>
+		</header>
+		<!-- /header -->
+		<div class="ui-content">
+			<ul class="ui-listview ui-colored-list">
+				<li class="ui-li-static">
+					<input placeholder="Hint text Inactive" type="text"/>
+				</li>
+				<li class="ui-li-static">
+					<input placeholder="Hint text Inactive (in container)" type="text" data-outside-div="true"/>
+				</li>
+				<li class="ui-li-static">
+					<input placeholder="Disabled hint text" type="text" disabled="disabled"/>
+				</li>
+				<li class="ui-li-static">
+					<input disabled="disabled" value="Disabled text" type="text"/>
+				</li>
+				<li class="ui-li-static">
+					<input placeholder="Input letters only" pattern="[A-Za-z]+" data-error-message-string="Error message" type="text"/>
+				</li>
+				<li class="ui-li-static">
+					<input placeholder="Input email here" type="email"/>
+				</li>
+			</ul>
+		</div>
+		<!-- /content -->
+	</div>
+	<!-- /page -->
+</body>
+
+</html>
