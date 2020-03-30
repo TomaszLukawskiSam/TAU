@@ -16,7 +16,7 @@
 /*global window, define, ns */
 /**
  *
- * @since 6.0
+ * @since 1.2
  * @class ns.widget.core.Appbar
  * @extends ns.widget.core.BaseWidget
  * @author Pawel Kaczmarczyk <p.kaczmarczy@samsung.com>
@@ -37,7 +37,7 @@
 			//>>excludeEnd("tauBuildExclude");
 			var utilsObject = ns.util.object,
 				utilsEvents = ns.event,
-				selectors = ns.util.selectors,
+				utilSelectors = ns.util.selectors,
 				Page = ns.widget.core.Page,
 				min = Math.min,
 				max = Math.max,
@@ -48,7 +48,10 @@
 					self._ui = {
 						titleContainer: null,
 						leftIconsContainer: null,
-						actionButtonsContainer: null
+						actionButtonsContainer: null,
+						page: null,
+						selectAll: null,
+						bottomBar: null
 					},
 					self._appbarState = states.COLLAPSED;
 					self._dragStartingHeight = 0;
@@ -59,6 +62,7 @@
 				prototype = new BaseWidget(),
 				classPrefix = "ui-appbar",
 				classes = {
+					title: classPrefix + "-title",
 					leftIconsContainer: classPrefix + "-left-icons-container",
 					actionButtonsContainer: classPrefix + "-action-buttons-container",
 					titleContainer: classPrefix + "-title-container",
@@ -67,7 +71,10 @@
 					expanded: classPrefix + "-expanded",
 					dragging: classPrefix + "-dragging",
 					controlsContainer: classPrefix + "-controls-container",
-					expandedTitleContainer: classPrefix + "-expanded-title-container"
+					expandedTitleContainer: classPrefix + "-expanded-title-container",
+					selectAll: "ui-label-select-all",
+					bottomBar: "ui-bottom-bar",
+					hidden: "ui-hidden"
 				},
 				states = {
 					EXPANDED: "EXPANDED",
@@ -95,6 +102,10 @@
 						position: 2
 					}
 				},
+				selectors = {
+					IS_CHECKED: ".ui-listview li > input[type='checkbox']:checked",
+					IS_NOT_CHECKED: ".ui-listview li > input[type='checkbox']:not(:checked)"
+				},
 				defaults = {
 					titleType: "singleLine" // "multiline", "subtitle"
 				};
@@ -107,9 +118,10 @@
 				var self = this;
 
 				self._appbarState = states.COLLAPSED;
-				self._pageContainer = selectors.getClosestBySelector(element, Page.selector);
-			}
-
+				self._ui.page = utilSelectors.getClosestBySelector(element, Page.selector);
+				self._ui.selectAll = element.querySelector("." + classes.selectAll + " input[type='checkbox']");
+				self._ui.bottomBar = self._ui.page.querySelector("." + classes.bottomBar);
+			};
 
 			/**
 			 * Build the widget
@@ -124,7 +136,7 @@
 				self._readTitleType(element);
 				self._setTitleType(element, self.options.titleType);
 				return element;
-			}
+			};
 
 			/**
 			 * Refresh the widget
@@ -136,7 +148,7 @@
 				var self = this;
 
 				self._setLineType(element);
-			}
+			};
 
 			/**
 			 * Method that creates containers (or finds ones if already exists)
@@ -180,7 +192,7 @@
 				[].slice.call(ui.titleContainer.children).forEach(function (node) {
 					ui.expandedTitleContainer.appendChild(node.cloneNode(true));
 				});
-			}
+			};
 
 			/**
 			 * Binds event listeners
@@ -191,11 +203,11 @@
 			prototype._bindEvents = function () {
 				var self = this;
 
-				ns.event.enableGesture(self._pageContainer,
+				ns.event.enableGesture(self._ui.page,
 					new ns.event.gesture.Drag());
 
-				utilsEvents.on(self._pageContainer, "scrollboundary drag dragstart dragend scrollstart", self);
-			}
+				utilsEvents.on(self._ui.page, "scrollboundary drag dragstart dragend scrollstart change pagebeforeshow", self);
+			};
 
 			/**
 			 * Handle event
@@ -223,8 +235,33 @@
 					case "scrollstart":
 						self._onScrollStart(event);
 						break;
+					case "change":
+						self._onChange(event);
+						break;
+					case "pagebeforeshow":
+						self._onPageBeforeShow();
+						break;
 				}
-			}
+			};
+
+			/**
+			 * PageBeforeShow event handler
+			 * @method _onPageBeforeShow
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype._onPageBeforeShow = function () {
+				var self = this,
+					ui = self._ui;
+
+				if (ui.selectAll) {
+					self._triggerSelectAll();
+					if (ui.bottomBar) {
+						self._toggleBottomBar(!!ui.page.querySelector(selectors.IS_CHECKED));
+					}
+					self._updateTitle();
+				}
+			};
 
 			/**
 			 * Scrollstart event handler
@@ -247,8 +284,8 @@
 					direction = event && event.detail && event.detail.direction;
 
 				self._scrolledToTop = (direction === "top");
-				utilsEvents.one(self._pageContainer, "scrollstart", self._onScrollStart.bind(self));
-			}
+				utilsEvents.one(self._ui.page, "scrollstart", self._onScrollStart.bind(self));
+			};
 
 			/**
 			 * Dragstart event handler
@@ -271,7 +308,7 @@
 						self._expandedTitleHeight += item.offsetHeight;
 					});
 				}
-			}
+			};
 
 			prototype._setTitlesOpacity = function (expandLevel) {
 				var self = this,
@@ -281,7 +318,7 @@
 
 				mainTitle.style.opacity = 1 - expandLevel;
 				expandedTitle.style.opacity = expandLevel;
-			}
+			};
 
 			/**
 			 * Dragend event handler
@@ -311,7 +348,7 @@
 
 				// trigger appbarDragStart Event - page should enable scrolling back again
 				// appbar resized event should be triggered (in order to inform Page about content height change)
-			}
+			};
 
 			/**
 			 * Drag event handler
@@ -340,7 +377,106 @@
 						self._setTitlesOpacity(0);
 					}
 				}
-			}
+			};
+
+			/**
+			 * Method triggers "select-all" event
+			 * @method _triggerSelectAll
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype._triggerSelectAll = function () {
+				var self = this;
+
+				utilsEvents.trigger(self.element, "select-all", {checked: self._ui.selectAll.checked});
+			};
+
+			/**
+			 * Toggle state of checkbox "All"
+			 * @method _toggleSelectAll
+			 * @param {boolean} checked
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype._toggleSelectAll = function (checked) {
+				var selectAll = this._ui.selectAll;
+
+				if (selectAll) {
+					selectAll.checked = checked;
+					if (checked) {
+						selectAll.setAttribute("checked", "checked");
+					} else {
+						selectAll.removeAttribute("checked");
+					}
+				}
+			};
+
+			/**
+			 * Toggle visibility of BottomBar
+			 * @method _toggleBottomBar
+			 * @param {boolean} visible
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype._toggleBottomBar = function (visible) {
+				this._ui.bottomBar.classList.toggle(classes.hidden, !visible);
+			};
+
+			/**
+			 * Method returns number of checkboxes in state checked
+			 * @method _getNumberOfChecked
+			 * @member ns.widget.core.Appbar
+			 * @return {number}
+			 * @protected
+			 */
+			prototype._getNumberOfChecked = function () {
+				return this._ui.page.querySelectorAll(selectors.IS_CHECKED).length;
+			};
+
+			/**
+			 * Handler for "change" event
+			 * @method _onChange
+			 * @param {Event} event
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype._onChange = function (event) {
+				var target = event.target,
+					self = this,
+					page = self._ui.page;
+
+				if (target.tagName === "INPUT") {
+					if (target === self._ui.selectAll) {
+						self._triggerSelectAll();
+					} else {
+						self._toggleSelectAll(!page.querySelector(selectors.IS_NOT_CHECKED));
+					}
+
+					if (self._ui.bottomBar) {
+						self._toggleBottomBar(!!page.querySelector(selectors.IS_CHECKED));
+					}
+					if (self._ui.selectAll) {
+						self._updateTitle();
+					}
+				}
+			};
+
+			/**
+			 * Update AppBar title according to number of selected items
+			 * @method _updateTitle
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype._updateTitle = function () {
+				var titles = [].slice.call(this.element.querySelectorAll("." + classes.title)),
+					numberOfSelectedItems = this._getNumberOfChecked();
+
+				titles.forEach(function (title) {
+					title.textContent = numberOfSelectedItems === 0 ?
+						"Select items" :
+						numberOfSelectedItems + " selected";
+				});
+			};
 
 			/**
 			 * Unbinds event listeners
@@ -351,8 +487,8 @@
 			prototype._unbindEvents = function () {
 				var self = this;
 
-				utilsEvents.off(self._pageContainer, "scrollboundary drag dragstart dragend scrollstart", self);
-			}
+				utilsEvents.off(self._ui.page, "scrollboundary drag dragstart dragend scrollstart change", self);
+			};
 
 			/**
 			 * Destroys the widget
@@ -365,7 +501,7 @@
 
 				self._unbindEvents();
 				// restore title elements if they're moved during build
-			}
+			};
 
 			/**
 			 * Method that detects title style
@@ -383,7 +519,7 @@
 				if (titleContainer.classList.contains(classes.hasSubtitle)) {
 					self.options.titleType = "subtitle";
 				}
-			}
+			};
 
 			/**
 			 * Method that sets styling for title
@@ -409,7 +545,7 @@
 					case "singleLine":
 						break;
 				}
-			}
+			};
 
 			ns.widget.core.Appbar = Appbar;
 			ns.engine.defineWidget(

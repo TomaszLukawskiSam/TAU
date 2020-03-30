@@ -176,7 +176,7 @@ tau-expandable {
 				width: calc(~"100%" - 40 * @px_base);
 				left: 20 * @px_base;
 				bottom: 0;
-				height: 1 * @px_base;
+				height: 0.75 * @px_base;
 				background-color: var(--divider-color);
 				opacity: var(--divider-opacity);
 			}
@@ -238,6 +238,9 @@ tau-expandable {
 			&[type="checkbox"].ui-checkbox, &[type="radio"].ui-radio {
 				align-self: center;
 			}
+		}
+		&.ui-li-selected {
+			background-color: var(--list-item-selected-color);
 		}
 	}
 

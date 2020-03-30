@@ -160,7 +160,8 @@
 							colorRestOfTheScreenBellow: true,
 							colorRestOfTheScreenAbove: true,
 							firstColorStep: 0,
-							lastColorStep: 0
+							lastColorStep: 0,
+							multipleSelection: false
 						};
 
 					CoreListview.call(self);
@@ -263,6 +264,12 @@
 					 * @member ns.widget.mobile.Listview
 					 */
 					"ITEM_ACTIVE": "ui-listview-item-active",
+					/**
+					 * Set list item selected
+					 * @style ui-li-selected
+					 * @member ns.widget.mobile.Listview
+					 */
+					"ITEM_SELECTED": "ui-li-selected",
 					/**
 					 * Set helper for listview widget
 					 * @style ui-listview-helper
@@ -393,6 +400,43 @@
 
 			Listview.classes = objectUtils.fastMerge(classes, CoreListview.classes);
 			Listview.events = events;
+
+			function changeLiSelection(checkbox) {
+				var liElement = selectorUtils.getClosestByTag(checkbox, "li");
+
+				if (liElement) {
+					if (checkbox.checked) {
+						liElement.classList.add(classes.ITEM_SELECTED);
+					} else {
+						liElement.classList.remove(classes.ITEM_SELECTED);
+					}
+				}
+			}
+
+			function onChangeSelection(event) {
+				var target = event.target;
+
+				if (target.tagName === "INPUT" && target.type === "checkbox") {
+					changeLiSelection(target);
+				}
+			}
+
+			/**
+			 * Enables / disables multiple selection on listview
+			 * @method _setMultipleSelection
+			 * @param {HTMLElement} element Main element of widget
+			 * @param {boolean} enabled option value
+			 * @member ns.widget.mobile.Listview
+			 * @protected
+			 */
+			prototype._setMultipleSelection = function (element, enabled) {
+				if (enabled) {
+					element.addEventListener("change", onChangeSelection, true);
+				} else {
+					element.removeEventListener("change", onChangeSelection, true);
+				}
+				this.options.multipleSelection = enabled;
+			};
 
 			prototype._setFirstColorStep = function (element, value) {
 				value = parseInt(value, 10);
@@ -713,6 +757,7 @@
 					self.options.colorRestOfTheScreenAbove = false;
 				}
 
+				self._setMultipleSelection(self.element, self.options.multipleSelection);
 			};
 
 			/**
@@ -810,6 +855,29 @@
 			};
 
 			/**
+			 * Handler for "select-all" event. This event is triggering by AppBar widget
+			 * when checkbox "All" is changing state
+			 * @method _selectAll
+			 * @protected
+			 * @member ns.widget.mobile.Listview
+			 */
+			prototype._selectAll = function (event) {
+				var checkboxes = [].slice.call(this.element.querySelectorAll("input[type='checkbox']"));
+
+				checkboxes.forEach(function (checkbox) {
+					var checked = event.detail.checked;
+
+					checkbox.checked = checked;
+					if (checked) {
+						checkbox.setAttribute("checked", "checked");
+					} else {
+						checkbox.removeAttribute("checked");
+					}
+					changeLiSelection(checkbox);
+				});
+			};
+
+			/**
 			 * Calculate element height as difference between top of current element and top of next element
 			 * @param {HTMLElement} nextVisibleLiElement
 			 * @param {Object} rectangle
@@ -854,7 +922,7 @@
 					scrollableContainerTop = scrollableContainerRect.top;
 				}
 
-					// Reset first color step if listview is above top edge of scroll container
+				// Reset first color step if listview is above top edge of scroll container
 				if (scrollableContainerRect && top < scrollableContainerTop) {
 					if (self.options.firstColorStep !== 0) {
 						self.options.firstColorStep = 0;
@@ -1172,12 +1240,14 @@
 					}
 
 					self._backgroundRenderCallback = self._backgroundRender.bind(self);
+					self._selectAllCallback = self._selectAll.bind(self);
 					self.on("expand collapse", self._backgroundRenderCallback, false);
 					// support rotation
 					eventUtils.on(window, "resize", self._backgroundRenderCallback, false);
 
 					if (pageContainer) {
 						eventUtils.on(pageContainer, Page.events.BEFORE_SHOW, self._backgroundRenderCallback);
+						eventUtils.on(pageContainer, "select-all", self._selectAllCallback, true);
 					}
 					if (popupContainer) {
 						eventUtils.on(popupContainer, Popup.events.transition_start, self._backgroundRenderCallback);
@@ -1233,6 +1303,7 @@
 					}
 					if (self._pageContainer) {
 						eventUtils.off(self._pageContainer, Page.events.BEFORE_SHOW, self._backgroundRenderCallback);
+						eventUtils.off(self._pageContainer, "select-all", self._selectAllCallback, true);
 						self._pageContainer = null;
 					}
 					if (self._popupContainer) {
