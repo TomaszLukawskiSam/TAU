@@ -75,12 +75,6 @@ tr {
 			color: var(--calendar-weekend-day-color);
 		}
 	}
-	td.selection {
-		>div {
-			background-color: var(--primary-color);
-			color: var(--calendar-select-text-color);
-		}
-	}
 }
 .topSpace {
 	height: 10 * @px_base;
@@ -111,6 +105,10 @@ tr {
 		mask-position: center;
 		mask-size: 100%;
 		background-color: var(--calendar-arrow-color);
+
+		&.ui-nonSelectionArrow {
+			opacity: 40%;
+		}
 	}
 	div.calendarArrowRight {
 		float: right;
