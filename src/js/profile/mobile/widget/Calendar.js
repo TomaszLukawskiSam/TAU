@@ -44,36 +44,45 @@
 				events = ns.event,
 				days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"],
 				fullNameMonth = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-				dateData = new Date(),
-				todayYear = dateData.getFullYear(),
-				todayMonth = dateData.getMonth() + 1,
-				defaultToday = dateData.getUTCDate(),
-				loadTodayFlag = true,
-				activeMonth,
-				fixMonth,
-				selectDay,
+
 				classes = {
-					PREV_DISABLE_DAY: "prevDisableDay",
-					NON_SELECTION_DAY: "nonSelectionDay",
-					NEXT_DISABLE_DAY: "nextDisableDay",
-					CURRENT_ENABLE_DAY: "currentEnableDay",
-					SELECTION: "selection",
-					ARROW_RIGHT: "calendarArrowRight",
-					ARROW_LEFT: "calendarArrowLeft",
-					NON_SELECTION_ARROW: "ui-nonSelectionArrow",
-					NON_ARROW_LEFT: "calendarArrowLeft ui-nonSelectionArrow",
-					NON_SELECT_PREV_DISABLE_DAY: "prevDisableDay nonSelectionDay",
-					CONTROLLER: "controller",
-					SWITCH_VIEW: "calendarSwitch",
-					CALENDAR_VIEW: "calendarView"
+					PREV_MONTH_DAY: "ui-calendar-prev-month-day",
+					NEXT_MONTH_DAY: "ui-calendar-next-month-day",
+					CURRENT_MONTH_DAY: "ui-calendar-current-month-day",
+
+					DISABLED: "ui-calendar-disabled",
+					SELECTION: "ui-calendar-selection",
+
+					CONTROLLER: "ui-calendar-controller",
+					ARROW: "ui-calendar-arrow",
+					ARROW_RIGHT: "ui-calendar-right-arrow",
+					ARROW_LEFT: "ui-calendar-left-arrow",
+
+					ONE_WEEK: "ui-calendar-one-week",
+					TOP_SPACE: "ui-calendar-top-space",
+
+					SWITCH_VIEW: "ui-calendar-switch",
+					CALENDAR_VIEW: "ui-calendar-view"
 				},
 
 				Calendar = function () {
-					this.options = utilsObject.merge({}, defaultOptions),
-					this._ui = {
+					var self = this;
+
+					self.options = utilsObject.merge({}, defaultOptions);
+
+					self._dateData = new Date();
+					self._todayYear = self._dateData.getFullYear();
+					self._todayMonth = self._dateData.getMonth() + 1;
+					self._defaultToday = self._dateData.getUTCDate();
+					self._selectDay = null;
+					self._activeMonth = null;
+					self._fixMonth = null;
+					self._loadTodayFlag = true;
+					self._ui = {
 						switch: null,
 						leftArrow: null,
-						calendarEl: null
+						rightArrow: null,
+						calendarView: null
 					};
 				},
 
@@ -104,26 +113,41 @@
 			prototype._init = function (element) {
 				var self = this;
 
-				this._ui.calendarEl = element.querySelector("." + Calendar.classes.CALENDAR_VIEW);
-				this._ui.switch = element.querySelector("." + Calendar.classes.SWITCH_VIEW);
-				this._ui.leftArrow = element.querySelector("." + Calendar.classes.ARROW_LEFT);
+				self._ui.calendarView = element.querySelector("." + classes.CALENDAR_VIEW);
+				self._ui.switch = element.querySelector("." + classes.SWITCH_VIEW);
+				self._ui.leftArrow = element.querySelector("." + classes.ARROW_LEFT);
+				self._ui.rightArrow = element.querySelector("." + classes.ARROW_RIGHT);
 
-				if (self.options.pastSelection) {
-					this._ui.leftArrow.classList.add(Calendar.classes.NON_SELECTION_ARROW);
+				if (!self.options.pastSelection) {
+					self._ui.leftArrow.classList.add(classes.DISABLED);
 				}
 
-				if (activeMonth === undefined) {
-					fixMonth = activeMonth = todayMonth;
+				if (self._activeMonth === null) {
+					self._fixMonth = self._activeMonth = self._todayMonth;
 				}
 
-				if (selectDay === undefined) {
-					selectDay = defaultToday;
+				if (self._selectDay === null) {
+					self._selectDay = self._defaultToday;
 				}
 
-				self._buildCalendar(this._ui.calendarEl);
+				self._buildCalendar(self._ui.calendarView);
 
 				return element;
 			};
+
+			/**
+			* Create and append div element for calendar day
+			* @method createDayInRow
+			* @param {HTMLElement} row
+			* @member ns.widget.mobile.Calendar
+			* @private
+			*/
+			function createDayInRow(row) {
+				var cell = row.insertCell();
+
+				cell.insertAdjacentHTML("afterbegin", "<div></div>");
+				return cell.firstChild;
+			}
 
 			/**
 			* Draw a calendar on the table
@@ -132,78 +156,64 @@
 			* @protected
 			*/
 			prototype._buildCalendar = function (calendarElement) {
-				var firstDate = new Date(todayYear, todayMonth - 1, 0),
-					lastDate = new Date(todayYear, todayMonth, 0),
+				var self = this,
+					ui = self._ui,
+					firstDate = new Date(self._todayYear, self._todayMonth - 1, 0),
+					lastDate = new Date(self._todayYear, self._todayMonth, 0),
 					day = firstDate.getDay(),
 					prevLastDate = lastDate.getDate(),
 					week = Math.ceil(prevLastDate / 7) + 1,
 					leftDays = 7,
 					setDays = 1,
 					nextMonthDate = 1,
-					cell = null,
 					marginRow = calendarElement.insertRow(),
-					divElement = "<div></div>",
 					idx,
 					row,
-					div = null,
-					self = this;
+					div = null;
 
 				marginRow.style.height = "7px";
 
 				for (idx = 1; idx < week + 1; idx++) {
 					row = calendarElement.insertRow();
 
-					while (day != 0) { // prev disabled days.
+					while (day != 0) { // days of previous month
 						day = day - 1;
 						leftDays = leftDays - 1;
-						cell = row.insertCell();
-						cell.insertAdjacentHTML("afterbegin", divElement);
-						div = cell.firstChild;
-						div.classList.add(Calendar.classes.PREV_DISABLE_DAY);
+						div = createDayInRow(row);
+						div.classList.add(classes.PREV_MONTH_DAY);
 						div.innerHTML = prevLastDate - day;
-						if (fixMonth === todayMonth && self.options.pastSelection) {
-							div.classList.add(Calendar.classes.NON_SELECTION_DAY);
+						if (self._fixMonth === self._todayMonth && !self.options.pastSelection) {
+							div.classList.add(classes.DISABLED);
 						}
 					}
 					while (leftDays != 0) {
-						if (setDays > prevLastDate) { // next disabled days.
-							cell = row.insertCell();
-							cell.insertAdjacentHTML("afterbegin", divElement);
-							div = cell.firstChild;
-							div.classList.add(Calendar.classes.NEXT_DISABLE_DAY);
+						div = createDayInRow(row);
+						if (setDays > prevLastDate) { // days of next month.
+							div.classList.add(classes.NEXT_MONTH_DAY);
 							div.innerHTML = nextMonthDate;
 							leftDays = leftDays - 1;
 							nextMonthDate = nextMonthDate + 1;
 						} else { // current enabled days.
-							cell = row.insertCell();
-							cell.insertAdjacentHTML("afterbegin", divElement);
-							div = cell.firstChild;
-							div.classList.add(Calendar.classes.CURRENT_ENABLE_DAY);
 							div.innerHTML = setDays;
+							div.classList.add(classes.CURRENT_MONTH_DAY);
 							setDays = setDays + 1;
 							leftDays = leftDays - 1;
 
-							if (defaultToday > parseInt(div.innerHTML, 10)) {
-								if (fixMonth === todayMonth && self.options.pastSelection) {
-									div.classList.remove(Calendar.classes.CURRENT_ENABLE_DAY);
-									div.classList.add(Calendar.classes.PREV_DISABLE_DAY);
-									div.classList.add(Calendar.classes.NON_SELECTION_DAY);
-								} else {
-									div.classList.add(Calendar.classes.CURRENT_ENABLE_DAY);
+							if (self._defaultToday > parseInt(div.innerHTML, 10)) {
+								if (self._fixMonth === self._todayMonth && !self.options.pastSelection) {
+									div.classList.add(classes.DISABLED);
 								}
-							} else {
-								div.classList.add(Calendar.classes.CURRENT_ENABLE_DAY);
 							}
 
-							if (loadTodayFlag && div.innerHTML === defaultToday.toLocaleString()) { // dateData selected.
-								div.classList.add(Calendar.classes.SELECTION);
-								selectDay = div;
-								activeMonth = todayMonth;
-								loadTodayFlag = false;
+							if (self._loadTodayFlag && div.innerHTML === self._defaultToday.toLocaleString()) { // dateData selected.
+								div.classList.add(classes.SELECTION);
+								self._selectDay = div;
+								self._activeMonth = self._todayMonth;
+								self._loadTodayFlag = false;
 							} else {
-								if (activeMonth === todayMonth && div.innerHTML === selectDay.innerHTML) {
-									div.classList.add(Calendar.classes.SELECTION);
-									selectDay = div;
+								if (self._activeMonth === self._todayMonth && div.innerHTML === self._selectDay.innerHTML) {
+									div.classList.add(classes.SELECTION);
+									self._selectDay = div;
 								}
 							}
 						}
@@ -211,14 +221,10 @@
 					leftDays = 7;
 				}
 
-				if (self.options.pastSelection) {
-					if (fixMonth != todayMonth) {
-						this._ui.leftArrow.classList.remove(Calendar.classes.NON_SELECTION_ARROW);
-					} else {
-						this._ui.leftArrow.classList.add(Calendar.classes.NON_SELECTION_ARROW);
-					}
+				if (!self.options.pastSelection) {
+					ui.leftArrow.classList.toggle(classes.DISABLED, self._fixMonth == self._todayMonth);
 				}
-				this._ui.switch.innerHTML = fullNameMonth[todayMonth - 1] + " " + todayYear;
+				ui.switch.innerHTML = fullNameMonth[self._todayMonth - 1] + " " + self._todayYear;
 			};
 
 			/**
@@ -234,33 +240,44 @@
 			};
 
 			/**
-			* Click the arrow on the calendar to move to another month
+			* Click handler
 			* @method _onClick
 			* @param {Event} event
 			* @member ns.widget.mobile.Calendar
 			* @protected
 			*/
 			prototype._onClick = function (event) {
-				var calendarElement = this.element.querySelector("." + Calendar.classes.CALENDAR_VIEW),
-					self = this;
+				var self = this,
+					ui = self._ui,
+					target = event.target,
+					targetClassList = target.classList;
 
-				if (event.srcElement.className === Calendar.classes.ARROW_RIGHT) {
-					self._moveMonth("right", calendarElement);
-				} else if (event.srcElement.className === Calendar.classes.ARROW_LEFT) {
-					self._moveMonth("left", calendarElement);
-				} else if (event.srcElement.className === Calendar.classes.NON_ARROW_LEFT) {
-					return;
-				} else if (event.srcElement.className === Calendar.classes.NON_SELECT_PREV_DISABLE_DAY ||
-					event.srcElement.firstChild.className === Calendar.classes.NON_SELECT_PREV_DISABLE_DAY) {
-					return;
-				} else if (event.srcElement.className === Calendar.classes.PREV_DISABLE_DAY) {
-					self._moveMonth("left", calendarElement);
-					self._selection(event.target, event.target.innerHTML);
-				} else if (event.srcElement.className === Calendar.classes.NEXT_DISABLE_DAY) {
-					self._moveMonth("right", calendarElement);
-					self._selection(event.target, event.target.innerHTML);
-				} else {
-					self._selection(event.target);
+				if (!targetClassList.contains(classes.DISABLED)) {
+					if (target === ui.rightArrow) {
+						self._moveMonth("right");
+					} else if (target === ui.leftArrow) {
+						self._moveMonth("left");
+					} else {
+						// Calendar view
+						if (target.tagName === "TD") { // if click on TD instead of DIV
+							target = target.querySelector("div");
+							targetClassList = (target) ? target.classList : null;
+						}
+						if (targetClassList &&
+							!targetClassList.contains(classes.SELECTION) &&
+							!targetClassList.contains(classes.DISABLED)
+							) {
+							if (targetClassList.contains(classes.PREV_MONTH_DAY)) {
+								self._moveMonth("left");
+								self._selection(target.innerHTML);
+							} else if (targetClassList.contains(classes.NEXT_MONTH_DAY)) {
+								self._moveMonth("right");
+								self._selection(target.innerHTML);
+							} else if (targetClassList.contains(classes.CURRENT_MONTH_DAY)) {
+								self._selection(target.innerHTML);
+							}
+						}
+					}
 				}
 			};
 
@@ -268,29 +285,29 @@
 			* Selecting a date leaves a mark
 			* @method _moveMonth
 			* @param {string} direction
-			* @param {HTMLElement} calendarElement
 			* @member ns.widget.mobile.Calendar
 			* @protected
 			*/
-			prototype._moveMonth = function (direction, calendarElement) {
-				var self = this;
+			prototype._moveMonth = function (direction) {
+				var self = this,
+					calendarView = self._ui.calendarView;
 
 				if (direction === "left") {
-					todayMonth = todayMonth - 1;
-					if (todayMonth === 0) {
-						todayMonth = 12;
-						todayYear = todayYear - 1;
+					self._todayMonth = self._todayMonth - 1;
+					if (self._todayMonth === 0) {
+						self._todayMonth = 12;
+						self._todayYear = self._todayYear - 1;
 					}
 				} else {
-					todayMonth = todayMonth + 1;
-					if (todayMonth === 13) {
-						todayMonth = 1;
-						todayYear = todayYear + 1;
+					self._todayMonth = self._todayMonth + 1;
+					if (self._todayMonth === 13) {
+						self._todayMonth = 1;
+						self._todayYear = self._todayYear + 1;
 					}
 				}
-				self._deleteCalendar(calendarElement);
-				dateData = new Date(todayYear, todayMonth - 1);
-				self._buildCalendar(calendarElement);
+				self._deleteCalendar(calendarView);
+				self._dateData = new Date(self._todayYear, self._todayMonth - 1);
+				self._buildCalendar(calendarView);
 			};
 
 			/**
@@ -300,49 +317,34 @@
 			* @member ns.widget.mobile.Calendar
 			* @protected
 			*/
-			prototype._selection = function (element, value) {
-				var otherMonthDay;
+			prototype._selection = function (value) {
+				var otherMonthDay,
+					self = this;
 
 				if (value != undefined) {
-					otherMonthDay = this.element.querySelectorAll("." + Calendar.classes.CURRENT_ENABLE_DAY);
+					otherMonthDay = self._ui.calendarView.querySelectorAll("div." + classes.CURRENT_MONTH_DAY);
 					otherMonthDay.forEach(function (idx) {
 						if (idx.innerHTML === value) {
-							idx.classList.add(Calendar.classes.SELECTION);
-							selectDay.classList.remove(Calendar.classes.SELECTION);
-							selectDay = idx;
-							activeMonth = todayMonth;
+							idx.classList.add(classes.SELECTION);
+							self._selectDay.classList.remove(classes.SELECTION);
+							self._selectDay = idx;
+							self._activeMonth = self._todayMonth;
 						}
 					})
-				} else {
-					if (element.tagName === "TD") {
-						element = element.firstChild;
-					}
-					if (selectDay.innerHTML != element.innerHTML) {
-						element.classList.add(Calendar.classes.SELECTION);
-						selectDay.classList.remove(Calendar.classes.SELECTION);
-						selectDay = element;
-						activeMonth = todayMonth;
-					}
 				}
 			};
 
 			prototype._unBindEvents = function (element) {
-				var self = this;
-
-				events.off(element, "vclick", self, false);
+				events.off(element, "vclick", this, false);
 			};
 
 			prototype._bindEvents = function (element) {
-				var self = this;
-
-				events.on(element, "vclick", self, false);
+				events.on(element, "vclick", this, false);
 			};
 
 			prototype.handleEvent = function (event) {
-				var self = this;
-
 				if (event.type === "vclick") {
-					self._onClick(event);
+					this._onClick(event);
 				} else {
 					event.preventDefault();
 				}
@@ -359,13 +361,6 @@
 
 				self._deleteCalendar(calendarView);
 				self._buildCalendar(calendarView);
-			};
-
-			prototype._setValue = function (value) {
-				var self = this,
-					options = self.options;
-
-				options.pastSelection = value;
 			};
 
 			prototype._build = function (element) {
@@ -385,19 +380,21 @@
 					sunElement = document.createElement("td");
 
 				// Controller
-				controllerElement.classList.add(Calendar.classes.CONTROLLER);
-				leftArrowElement.classList.add(Calendar.classes.ARROW_LEFT);
-				rightArrowElement.classList.add(Calendar.classes.ARROW_RIGHT);
-				viewChangeElement.classList.add(Calendar.classes.SWITCH_VIEW);
+				controllerElement.classList.add(classes.CONTROLLER);
+				leftArrowElement.classList.add(classes.ARROW_LEFT);
+				leftArrowElement.classList.add(classes.ARROW);
+				rightArrowElement.classList.add(classes.ARROW_RIGHT);
+				rightArrowElement.classList.add(classes.ARROW);
+				viewChangeElement.classList.add(classes.SWITCH_VIEW);
 
 				controllerElement.appendChild(leftArrowElement);
 				controllerElement.appendChild(rightArrowElement);
 				controllerElement.appendChild(viewChangeElement);
 
 				// View Container
-				viewTableElement.classList.add(Calendar.classes.CALENDAR_VIEW);
-				spaceElement.classList.add("topSpace");
-				oneWeekElement.classList.add("oneWeek");
+				viewTableElement.classList.add(classes.CALENDAR_VIEW);
+				spaceElement.classList.add(classes.TOP_SPACE);
+				oneWeekElement.classList.add(classes.ONE_WEEK);
 
 				monElement.innerHTML = days[0];
 				oneWeekElement.appendChild(monElement);
@@ -412,7 +409,7 @@
 				satElement.innerHTML = days[5];
 				oneWeekElement.appendChild(satElement);
 				sunElement.innerHTML = days[6];
-				sunElement.classList.add("sunday");
+				sunElement.classList.add("ui-sunday");
 				oneWeekElement.appendChild(sunElement);
 
 				viewTableElement.appendChild(spaceElement);
