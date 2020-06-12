@@ -56,7 +56,7 @@
 					document.removeEventListener("pageshow", onMainPageShow, true);
 
 					document.getElementById("page")
-						.addEventListener("pageshow", onSecondPageShow, true);
+							.addEventListener("pageshow", onSecondPageShow, true);
 					window.setTimeout(function () {
 						tau.changePage("#page");
 					}, 100);
@@ -65,10 +65,10 @@
 					assert.ok(true, "#page event 'pageshow' has been triggered");
 
 					document.getElementById("page")
-						.removeEventListener("pageshow", onSecondPageShow, true);
+							.removeEventListener("pageshow", onSecondPageShow, true);
 
 					document.getElementById("main")
-						.addEventListener("pageshow", onBackToMainPageShow, true);
+							.addEventListener("pageshow", onBackToMainPageShow, true);
 					window.setTimeout(function () {
 						tau.history.back();
 					}, 100);
