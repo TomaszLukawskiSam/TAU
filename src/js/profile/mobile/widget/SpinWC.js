@@ -29,62 +29,18 @@
 	"use strict";
 	//>>excludeStart("tauBuildExclude", pragmas.tauBuildExclude);
 	define([
-		"../../../core/widget/core/Spin",
-		"../../../core/engine",
-		"../../../core/util/object",
-		"../widget"
+		"./Spin"
 	],
 	function () {
 		//>>excludeEnd("tauBuildExclude");
-		var CoreSpin = ns.widget.core.Spin,
-			CoreSpinPrototype = CoreSpin.prototype,
-			engine = ns.engine,
-			objectUtil = ns.util.object,
-			classes = objectUtil.copy(CoreSpin.classes),
-			Spin = function () {
-				var self = this,
-					options = {
-						scaleFactor: 0,
-						moveFactor: 0.5,
-						itemHeight: 54,
-						dragTarget: "self"
-					};
-
-				CoreSpin.call(self);
-
-				// Merge options from prototype
-				self.options = (!self.options) ?
-					options :
-					objectUtil.fastMerge(self.options, options);
-			},
-			prototype = new CoreSpin();
-
-		prototype._init = function () {
-			var self = this;
-
-			CoreSpinPrototype._init.call(self);
-
-			// Enable the spin by default
-			self.option("enabled", true);
+		class Spin extends HTMLElement {
+			connectedCallback() {
+				ns.widget.Spin(this);
+			}
 		}
 
-		Spin.prototype = prototype;
-		Spin.classes = classes;
-		Spin.timing = CoreSpin.timing;
-
-		ns.widget.mobile.Spin = Spin;
-
-		engine.defineWidget(
-			"Spin",
-			".ui-spin",
-			[],
-			Spin,
-			"mobile",
-			true
-		);
-
+		customElements.define("tau-spin", Spin);
 		//>>excludeStart("tauBuildExclude", pragmas.tauBuildExclude);
-		return ns.widget.mobile.Spin;
 	});
 	//>>excludeEnd("tauBuildExclude");
 

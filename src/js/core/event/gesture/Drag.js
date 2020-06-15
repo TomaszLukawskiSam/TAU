@@ -28,6 +28,7 @@
 		"../gesture",
 		"./utils",
 		"./Detector",
+		"./Instance",
 		"../../util/object"
 	],
 		function () {
