@@ -36,16 +36,18 @@
 		"../../../core/engine",
 		"../../../core/util/animation/animation",
 		"../../../core/event/gesture",
-		"../../../core/util/selectors",
-		"./Page",
-		"./Appbar"
+		"../../../core/event/gesture/Drag",
+		"../../../core/event/vmouse",
+		"../../../core/util/selectors"
+		//"./Page",
+		//"./Appbar"
 	],
 	function () {
 		//>>excludeEnd("tauBuildExclude");
 		var document = window.document,
 			BaseWidget = ns.widget.BaseWidget,
-			Page = ns.widget.core.Page,
-			Appbar = ns.widget.core.Appbar,
+			//Page = ns.widget.core.Page,
+			//Appbar = ns.widget.core.Appbar,
 			engine = ns.engine,
 			utilsEvents = ns.event,
 			gesture = utilsEvents.gesture,
@@ -117,9 +119,9 @@
 					enabled: false
 				};
 				self._ui = {
-					scrollableParent: null,
-					page: null,
-					appbar: null
+					scrollableParent: null
+					//page: null,
+					//appbar: null
 				};
 				self._carouselItems = [];
 				self._numberOfCarouselItems = NUMBER_OF_CAROUSEL_ITEMS;
@@ -746,6 +748,7 @@
 				self._overflowYBeforeDrag = ui.scrollableParent.style.overflowY;
 				ui.scrollableParent.style.overflowY = "hidden";
 			}
+			/*
 			ui.page = utilSelectors.getClosestBySelector(self.element, Page.selector);
 			if (ui.page) {
 				ui.appbar = ui.page.querySelector(Appbar.selector);
@@ -753,6 +756,7 @@
 					ns.widget.Appbar(ui.appbar).lockExpanding(true);
 				}
 			}
+			*/
 		};
 
 		/**
@@ -769,9 +773,11 @@
 			if (ui.scrollableParent) {
 				ui.scrollableParent.style.overflowY = self._overflowYBeforeDrag;
 			}
+			/*
 			if (ui.appbar) {
 				ns.widget.Appbar(ui.appbar).lockExpanding(false);
 			}
+			*/
 		};
 
 		prototype._itemIndexByValue = function (value) {

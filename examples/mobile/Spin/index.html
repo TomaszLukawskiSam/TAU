@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta content="width=device-width, user-scalable=no" name="viewport" />
+	<title>
+		Tizen UI Components
+	</title>
+	<link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+	<link href="css/style.css" rel="stylesheet" />
+	<script data-build-remove="false" src="lib/tau/mobile/js/tau.js">
+	</script>
+</head>
+
+<body>
+	<div class="ui-page ui-page-active" id="spin">
+		<style>
+			.default-spin {
+				height: 150px;
+				font-size: 50px;
+				width: 200px;
+			}
+			.default-spin .ui-spin-item-selected {
+				font-size: 50px;
+			}
+		</style>
+		<div class="ui-content">
+			<tau-spin class="default-spin"
+				data-min="1902"
+				data-max="2050"
+				data-value="1903"
+				data-loop="enabled"
+				data-roll-height="custom"
+				data-item-height="50"
+				data-momentum-level="1"
+				data-duration="500">
+		</tau-spin>
+		</div>
+	</div>
+</body>
+
+</html>

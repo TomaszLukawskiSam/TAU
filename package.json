@@ -70,6 +70,7 @@
     "shelljs": "latest",
     "style-loader": "^0.23.1",
     "svg-sprite": "^1.5.0",
+    "uglify-es": "^3.3.9",
     "underscore": "1.6.0",
     "webpack": "^4.29.6",
     "xml2js": "~0.4.4"
