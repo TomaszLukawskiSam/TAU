@@ -23,7 +23,6 @@
  * @since 1.2
  * @extends ns.widget.core.BaseWidget
  * @author Tomasz Lukawski <t.lukawski@samsung.com>
- * @author Hunseop Jeong <hs85.jeong@samsung.com>
  */
 (function (window, ns) {
 	"use strict";
@@ -35,7 +34,23 @@
 		//>>excludeEnd("tauBuildExclude");
 		class Spin extends HTMLElement {
 			connectedCallback() {
-				ns.widget.Spin(this);
+				this._widget = ns.widget.Spin(this);
+			}
+			attributeChangedCallback(name, oldValue, newValue) {
+				if (this._widget) {
+					if (name === "value") {
+						this._widget.value(newValue);
+					} else {
+						this._widget.option(name, newValue);
+					}
+				}
+			}
+			static get observedAttributes() {
+				return ["min", "max", "step", "scale-factor",
+					"move-factor", "labels", "loop",
+					"momentum-level", "momentum-duration",
+					"digits", "enabled",
+					"value"];
 			}
 		}
 
