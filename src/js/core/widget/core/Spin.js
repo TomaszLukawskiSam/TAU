@@ -609,6 +609,7 @@
 
 			options.max = (max !== undefined) ? parseInt(max, 10) : 0;
 			this.length = options.max - options.min + options.step;
+			return true;
 		};
 
 		prototype._setMin = function (element, min) {
@@ -616,13 +617,14 @@
 
 			options.min = (min !== undefined) ? parseInt(min, 10) : 0;
 			this.length = options.max - options.min + options.step;
+			return true;
 		};
 
 		prototype._setLabels = function (element, value) {
 			var self = this;
 
 			self.options.labels = value.split(",");
-			self._refresh();
+			return true;
 		};
 
 		prototype._setModuloValue = function (element, value) {
@@ -635,10 +637,17 @@
 
 		prototype._setLoop = function (element, value) {
 			this.options.loop = (value === "enabled") ? "enabled" : "disabled";
+			return true;
 		};
 
 		prototype._setDuration = function (element, value) {
 			this.options.duration = window.parseInt(value, 10);
+			return true;
+		};
+
+		prototype._setDigits = function (element, value) {
+			this.options.digits = window.parseInt(value, 10);
+			return true;
 		};
 
 		prototype._setEnabled = function (element, value) {

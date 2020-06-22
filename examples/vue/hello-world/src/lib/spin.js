@@ -1,10 +1,10 @@
-(function(window, document) {
+(function(window, document, undefined) {
 'use strict';
 var ns = window.tau = window.tau || {},
 nsConfig = window.tauConfig = window.tauConfig || {};
 nsConfig.rootNamespace = 'tau';
 nsConfig.fileName = 'tau';
-ns.version = '1.2.4';
+ns.version = '1.2.5';
 /*
  * Copyright (c) 2015 Samsung Electronics Co., Ltd
  *
@@ -7812,7 +7812,7 @@ ns.version = '1.2.4';
 					detectors = [];
 
 				if (!self._isReadyDetecting) {
-					self._resetDetecting();
+					self.resetDetecting();
 					self._bindEvents();
 
 					startEvent = self._createDefaultEventData(gesture.Event.START, event);
@@ -7886,7 +7886,7 @@ ns.version = '1.2.4';
 						this.unregister(_instance);
 					}, self);
 
-					self._resetDetecting();
+					self.resetDetecting();
 					self._blockMouseEvent = false;
 				}
 			},
@@ -7913,7 +7913,7 @@ ns.version = '1.2.4';
 					this.unregister(_instance);
 				}, self);
 
-				self._resetDetecting();
+				self.resetDetecting();
 				self._blockMouseEvent = false;
 			},
 
@@ -7979,11 +7979,11 @@ ns.version = '1.2.4';
 
 			/**
 			 * Reset of gesture manager detector
-			 * @method _resetDetecting
+			 * @method resetDetecting
 			 * @member ns.event.gesture.Manager
-			 * @protected
+			 * @public
 			 */
-			_resetDetecting: function () {
+			resetDetecting: function () {
 				var self = this;
 
 				self._isReadyDetecting = false;
@@ -8195,7 +8195,7 @@ ns.version = '1.2.4';
 			_destroy: function () {
 				var self = this;
 
-				self._resetDetecting();
+				self.resetDetecting();
 				self.instances.length = 0;
 				self.unregisterBlockList.length = 0;
 				self._blockMouseEvent = false;
@@ -9279,7 +9279,8 @@ ns.version = '1.2.4';
 			ROLL_DURATION = 600,
 			DELTA_Y = 100,
 			DRAG_STEP_TO_VALUE = 60,
-			NUMBER_OF_CAROUSEL_ITEMS = 11,
+			NUMBER_OF_CAROUSEL_ITEMS = 13,
+			EVENT_DRAG_END_TIMEOUT = 500,
 
 			/**
 			 * Alias for class Spin
@@ -9351,6 +9352,7 @@ ns.version = '1.2.4';
 				self._lastCurrentIndex = null;
 				self._currentCentralCarouseItem = 0;
 				self._count = 0;
+				self._dragTimeoutHandler = null;
 			},
 
 			WIDGET_CLASS = "ui-spin",
@@ -9377,6 +9379,8 @@ ns.version = '1.2.4';
 		prototype._fillCarouselByCount = function (count) {
 			var self = this,
 				itemToAppend,
+				diff,
+				restDiff,
 				i;
 
 			count = Math.round(count);
@@ -9386,8 +9390,17 @@ ns.version = '1.2.4';
 					self._carouselItems[i].element.removeChild(self._carouselItems[i].element.firstElementChild);
 				}
 			}
+
+			// for case of count of items is less then carousel items
+			diff = self._numberOfCarouselItems - self.length;
+			if (diff < 0) {
+				diff = 0;
+			}
+
 			// append new items
-			for (i = 0; i < self._numberOfCarouselItems; i++) {
+			i = Math.floor(diff / 2);
+			restDiff = diff - i;
+			for (; i < self._numberOfCarouselItems - restDiff; i++) {
 				itemToAppend = self._itemByCount(count + i - self._carouselCenterIndex);
 				if (itemToAppend) {
 					self._carouselItems[self._carouselItemByCount(count + i - self._carouselCenterIndex)]
@@ -9563,50 +9576,41 @@ ns.version = '1.2.4';
 		prototype._modifyItems = function () {
 			var self = this,
 				options = self.options,
-				element = self.element,
 				itemHeight = 0,
-				items = self._ui.items ||
-					[].slice.call(element.querySelectorAll("." + classes.ITEM)),
+				items = [],
 				len = Math.abs(options.max - options.min) / options.step + 1,
-				diff = len - items.length,
 				index = 0,
 				textValue = "",
 				centerY,
 				item = null,
 				i = 0;
 
-			// add or remove item from spin widget
-			if (diff > 0) {
-				for (; i < diff; i++) {
-					item = document.createElement("div");
-					item.classList.add(classes.ITEM);
-					items.push(item);
-				}
-			} else if (diff < 0) {
-				for (; i < -diff; i++) {
-					items.pop();
-				}
+			// remove previous
+			self._ui.items = items;
+
+			// add new items
+			for (; i < len; i++) {
+				item = document.createElement("div");
+				item.classList.add(classes.ITEM);
+				items.push(item);
 			}
 
 			// set content for new items
-			if (diff > 0) {
-				for (i = 0; i < diff; i++) {
-					index = len - diff + i;
-					item = items[index];
-					textValue = "";
+			for (index = 0; index < len; index++) {
+				item = items[index];
+				textValue = "";
 
-					if (self.options.labels.length) {
-						textValue = self.options.labels[index];
-					} else {
-						textValue += (options.min + index * options.step);
-						if (options.digits > 0) {
-							while (textValue.length < options.digits) {
-								textValue = "0" + textValue;
-							}
+				if (self.options.labels.length) {
+					textValue = self.options.labels[index];
+				} else {
+					textValue += (options.min + index * options.step);
+					if (options.digits > 0) {
+						while (textValue.length < options.digits) {
+							textValue = "0" + textValue;
 						}
 					}
-					item.innerHTML = textValue;
 				}
+				item.innerHTML = textValue;
 			}
 
 			// determine item height for scroll
@@ -9631,8 +9635,6 @@ ns.version = '1.2.4';
 				carouselItem.element.style.transform = "translateY(" + change.moveY + "px) scale(" + change.scale + ")";
 				carouselItem.element.style.opacity = change.opacity;
 			});
-
-			self._ui.items = items;
 		};
 
 		prototype._setItemHeight = function (element, value) {
@@ -9718,18 +9720,19 @@ ns.version = '1.2.4';
 
 		prototype._build = function (element) {
 			var placeholder = document.createElement("div"),
-				carousel = null;
+				carousel = null,
+				self = this;
 
 			element.classList.add(classes.SPIN);
 
 			placeholder.classList.add(classes.PLACEHOLDER);
 			element.appendChild(placeholder);
 
-			carousel = this._buildCarousel(NUMBER_OF_CAROUSEL_ITEMS);
+			carousel = self._buildCarousel(self._numberOfCarouselItems);
 			element.appendChild(carousel);
 
-			this._ui.carousel = carousel;
-			this._ui.placeholder = placeholder;
+			self._ui.carousel = carousel;
+			self._ui.placeholder = placeholder;
 
 			return element;
 		};
@@ -9826,6 +9829,7 @@ ns.version = '1.2.4';
 
 			options.max = (max !== undefined) ? parseInt(max, 10) : 0;
 			this.length = options.max - options.min + options.step;
+			return true;
 		};
 
 		prototype._setMin = function (element, min) {
@@ -9833,13 +9837,14 @@ ns.version = '1.2.4';
 
 			options.min = (min !== undefined) ? parseInt(min, 10) : 0;
 			this.length = options.max - options.min + options.step;
+			return true;
 		};
 
 		prototype._setLabels = function (element, value) {
 			var self = this;
 
 			self.options.labels = value.split(",");
-			self._refresh();
+			return true;
 		};
 
 		prototype._setModuloValue = function (element, value) {
@@ -9852,10 +9857,17 @@ ns.version = '1.2.4';
 
 		prototype._setLoop = function (element, value) {
 			this.options.loop = (value === "enabled") ? "enabled" : "disabled";
+			return true;
 		};
 
 		prototype._setDuration = function (element, value) {
 			this.options.duration = window.parseInt(value, 10);
+			return true;
+		};
+
+		prototype._setDigits = function (element, value) {
+			this.options.digits = window.parseInt(value, 10);
+			return true;
 		};
 
 		prototype._setEnabled = function (element, value) {
@@ -9899,13 +9911,26 @@ ns.version = '1.2.4';
 				utilsEvents.off(self.dragTarget, "drag dragend dragstart", self);
 			} else {
 				if (self.options.enabled) {
-					self._objectValue.value = this._startDragCount - e.detail.deltaY / DRAG_STEP_TO_VALUE;
+					self._objectValue.value = self._startDragCount - e.detail.deltaY / DRAG_STEP_TO_VALUE;
 					if (self.options.loop !== "enabled") {
 						self._objectValue.value = Math.min(Math.max(self._objectValue.value, 0), self.length - 1);
 					}
 					showAnimationTick(self);
 				}
 			}
+			// set timeout in case of drag outside screen
+			window.clearTimeout(self._dragTimeoutHandler);
+			self._dragTimeoutHandler = window.setTimeout(function () {
+				self._dragEnd({
+					detail: {
+						velocityY: e.velocityY,
+						distance: e.distance,
+						direction: e.direction
+					}
+				});
+				self._dragTimeoutHandler = null;
+				ns.event.gesture.Manager.getInstance().resetDetecting();
+			}, EVENT_DRAG_END_TIMEOUT);
 		};
 
 		prototype._dragStart = function () {
@@ -9922,6 +9947,8 @@ ns.version = '1.2.4';
 				chain = self._animation._animate.chain[0],
 				momentum = 0,
 				duration = self.options.duration;
+
+			window.clearTimeout(self._dragTimeoutHandler);
 
 			if (self.options.momentumLevel > 0 &&
 				e.detail.velocityY > 0.7 &&
@@ -10259,13 +10286,28 @@ ns.version = '1.2.4';
  * @since 1.2
  * @extends ns.widget.core.BaseWidget
  * @author Tomasz Lukawski <t.lukawski@samsung.com>
- * @author Hunseop Jeong <hs85.jeong@samsung.com>
  */
 (function (window, ns) {
 	"use strict";
 			class Spin extends HTMLElement {
 			connectedCallback() {
-				ns.widget.Spin(this);
+				this._widget = ns.widget.Spin(this);
+			}
+			attributeChangedCallback(name, oldValue, newValue) {
+				if (this._widget) {
+					if (name === "value") {
+						this._widget.value(newValue);
+					} else {
+						this._widget.option(name, newValue);
+					}
+				}
+			}
+			static get observedAttributes() {
+				return ["min", "max", "step", "scale-factor",
+					"move-factor", "labels", "loop",
+					"momentum-level", "momentum-duration",
+					"digits", "enabled",
+					"value"];
 			}
 		}
 
