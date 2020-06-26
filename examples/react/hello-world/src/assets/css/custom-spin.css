@@ -1,0 +1,9 @@
+.default-spin {
+	height: 150px;
+	font-size: 50px;
+    width: 200px;
+    --spin-item-opacity: 0.4;
+}
+.default-spin .ui-spin-item-selected {
+	font-size: 50px;
+}

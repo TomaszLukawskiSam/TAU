@@ -1,6 +1,7 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
+import Spin from './Spin';
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <p>
           Hello world in ReactJS.
         </p>
+        <Spin />
       </header>
     </div>
   );
