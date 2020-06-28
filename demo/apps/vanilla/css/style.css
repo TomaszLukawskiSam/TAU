@@ -1,0 +1,13 @@
+.logo {
+    width: 150px;
+    height: 150px;
+    background-image: url(../assets/js-logo.png);
+    display: block;
+    margin: 100px auto 20px;
+    background-size: 100%;
+}
+.title {
+    font-size: 20px;
+    text-align: center;
+    margin: 10px;
+}
