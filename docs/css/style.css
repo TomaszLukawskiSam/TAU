@@ -96,3 +96,9 @@ footer {
 nav, footer {
 	max-width: 1000px;
 }
+
+
+iframe {
+	display: block;
+	margin: auto 0;
+}
