@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta content="width=device-width, user-scalable=no" name="viewport" />
+	<title>
+		Spin example vanill JS
+	</title>
+	<link href="lib/spin.css" rel="stylesheet" />
+	<script src="lib/spin.js"></script>
+	<link href="css/style.css" rel="stylesheet" />
+	<link href="css/custom-spin.css" rel="stylesheet" />
+</head>
+
+<body>
+	<div class="content">
+		<div class="logo"></div>
+		<div class="title">Generic JS<br>
+			with Spin Web Component</div>
+		<tau-spin class="default-spin"
+			min="1900"
+			max="2200"
+			value="2000"
+			loop="enabled"
+			roll-height="custom"
+			item-height="50"
+			momentum-level="1"
+			duration="500">
+		</tau-spin>
+	</div>
+</body>
+
+</html>
