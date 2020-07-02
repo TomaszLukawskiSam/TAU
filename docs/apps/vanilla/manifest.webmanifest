@@ -1,0 +1,15 @@
+{
+  "short_name": "JS Spin Example",
+  "name": "Example how to use Spin Web Component in pure JS",
+  "icons": [
+    {
+      "src": "js-logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
