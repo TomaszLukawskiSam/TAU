@@ -102,3 +102,7 @@ iframe {
 	display: block;
 	margin: auto 0;
 }
+
+li > a {
+	display: block;
+}
