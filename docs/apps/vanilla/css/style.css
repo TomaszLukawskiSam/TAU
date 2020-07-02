@@ -11,3 +11,6 @@
     text-align: center;
     margin: 10px;
 }
+.content {
+    overscroll-behavior: none;
+}
