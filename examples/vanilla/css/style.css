@@ -11,3 +11,7 @@
     text-align: center;
     margin: 10px;
 }
+body {
+    /*disable-pull-to-refresh-effect*/
+    overscroll-behavior: contain;
+}
