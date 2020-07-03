@@ -37,7 +37,7 @@ To view in iframe:
 <a href="./react-js-example.html">React JS</a>
 <a href="./vue-example.html">Vue</a>
 <a href="./angular-example.html">Angular</a>
-<a href="./vanilla-js-example.md">Generic JS</a>
+<a href="vanilla-js-example.md">Generic JS</a>
 
 
 
