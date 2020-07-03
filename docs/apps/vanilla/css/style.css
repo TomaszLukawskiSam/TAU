@@ -11,6 +11,7 @@
     text-align: center;
     margin: 10px;
 }
-.content {
-    overscroll-behavior: none;
+body {
+    /*disable-pull-to-refresh-effect*/
+    overscroll-behavior: contain;
 }
