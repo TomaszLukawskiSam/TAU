@@ -37,8 +37,7 @@ To view in iframe:
 <a href="./react-js-example.html">React JS</a>
 <a href="./vue-example.html">Vue</a>
 <a href="./angular-example.html">Angular</a>
-<a href="vanilla-js-example.md">Generic JS</a>
-
+[Generic JS](vanilla-js-example.md)
 
 
 Licensed under [MIT License](license.html) by Samsung Electronics Co., Ltd. &copy;  2020
