@@ -41,6 +41,7 @@ To view in iframe:
 
 
 
-Licensed under [MIT License](license.html) by Samsung Electronics Co., Ltd. &copy;  2020</div>
+Licensed under [MIT License](license.html) by Samsung Electronics Co., Ltd. &copy;  2020
+
 ver 0.1
 
