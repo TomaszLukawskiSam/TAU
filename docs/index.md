@@ -27,17 +27,21 @@ When using TAU Components you will get many benefits usable in your code.
 * Optimized for wearable, mobile and TV devices
 * Supports device profiles (mobile, wearable and TV)
 
+### To see how to use this component in your web app see:
+
+[React JS](react-js-example.md)
+
+[Vue](vue-example.md)
+
+[Angular](angular-example.md)
+
+[Generic JS](vanilla-js-example.md)
+
+
 
 ### What next?
 
 Have some coding fun!
-
-To view in iframe:
-
-<a href="./react-js-example.html">React JS</a>
-<a href="./vue-example.html">Vue</a>
-<a href="./angular-example.html">Angular</a>
-[Generic JS](vanilla-js-example.md)
 
 
 Licensed under [MIT License](license.html) by Samsung Electronics Co., Ltd. &copy;  2020
