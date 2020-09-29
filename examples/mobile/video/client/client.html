@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Multi Device VoD</title>
+    <meta content="width=device-width, user-scalable=no" name="viewport" />
+    <link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/mobile/js/tau.js"></script>
+    <script src="js/d2dServiceClient.js"></script>
+    <script src="js/client.js"></script>
+</head>
+
+<body>
+    <div class="ui-page">
+        <div class="ui-header" data-position="fixed">
+         <h1>
+            Multi Device VoD Channel
+            </h1>
+        </div>
+        <div class="ui-content">
+            <div class="ui-card ui-card-service">
+                <div class="ui-content">
+                    <video src="https://ak.picdn.net/shutterstock/videos/1058954246/preview/stock-footage-children-toddlers-run-jumping-play-together-on-a-children-s-swing-in-the-park-happy-brother-and.webm"
+                        style="width: 100%" onclick="this.play()"></video>
+                    <div class="ui-title">Ch1 : Children jumping play</div>
+                    <div class="ui-description"> Children toddlers run jumping play together on a children s-swing in the park happy brother</div>
+                </div>
+                <div class="ui-footer">
+                    <button data-inline="true" onclick="playOnTV(0,0)">Play On TV</button>
+                </div>
+            </div>
+            <div class="ui-card ui-card-service">
+                <div class="ui-content">
+                    <video muted autoplay src="https://cdn.videvo.net/videvo_files/video/free/2012-07/small_watermarked/hd0936_preview.webm"
+                        style="width: 100%" onclick="this.play()"></video>
+                    <div class="ui-title">Ch2 : Aqua World</div>
+                    <div class="ui-description"> Established in the early 21st Century, 
+                                                Aqua World is a brand synonymous with aqua tourism.</div>
+                </div>
+                <div class="ui-footer">
+                    <button data-inline="true" onclick="playOnTV(1,0)">Play On TV</button>
+                </div>
+            </div>
+            <div class="ui-card ui-card-service">
+                <div class="ui-content">
+                    <video muted autoplay src="https://videos.files.wordpress.com/4CjZLK5X/sample-video-1_hd.mp4"
+                        style="width: 100%" onclick="this.play()"></video>
+                    <div class="ui-title">Ch3 : Adventure Movie</div>
+                    <div class="ui-description"> Action & Adventure. These movies all make for one amped-up viewing experience</div>
+                </div>
+                <div class="ui-footer">
+                    <button data-inline="true" onclick="playOnTV(2,0)">Play On TV</button>
+                </div>
+            </div>
+            <div class="ui-card ui-card-service">
+                <div class="ui-content">
+                    <video muted autoplay src="http://techslides.com/demos/sample-videos/small.mp4" loop
+                    id="video4" style="width: 100%" onclick="this.play()"></video>
+                    <div class="ui-title">Ch4 : Toy World</div>
+                    <div class="ui-description">Funny video for children to enjoy! Subscribe for notifications to new videos</div>
+                </div>
+                <div class="ui-footer">
+                    <button data-inline="true" onclick="playOnTV(3,0)">Play On TV</button>
+                </div>
+            </div>
+            <div class="ui-card ui-card-service">
+                <div class="ui-content">
+                    <video src="https://ak.picdn.net/shutterstock/videos/1058954246/preview/stock-footage-children-toddlers-run-jumping-play-together-on-a-children-s-swing-in-the-park-happy-brother-and.webm"
+                    id="video5" style="width: 100%" onclick="this.play()"></video>
+                    <div class="ui-title">Ch5 : The Birth of a Wonderful Earth</div>
+                    <div class="ui-description"> It's high quality videos.
+                                                What the scientists do then is slice across it and look on the inside</div>
+                </div>
+                <div class="ui-footer">
+                    <button data-inline="true" onclick="playOnTV(0,0)">Play On TV</button>
+                </div>
+            </div>
+            <div class="ui-card ui-card-service">
+                <div class="ui-content">
+                    <video muted autoplay src="https://cdn.videvo.net/videvo_files/video/free/2012-07/small_watermarked/hd0936_preview.webm"
+                        style="width: 100%" onclick="this.play()"></video>
+                    <div class="ui-title">Ch6 : Aqua World</div>
+                    <div class="ui-description"> Established in the early 21st Century, 
+                                                Aqua World is a brand synonymous with aqua tourism.</div>
+                </div>
+                <div class="ui-footer">
+                    <button data-inline="true" onclick="playOnTV(1,0)">Play On TV</button>
+                </div>
+            </div>
+            <div class="ui-card ui-card-service">
+                <div class="ui-content">
+                    <video muted autoplay src="https://videos.files.wordpress.com/4CjZLK5X/sample-video-1_hd.mp4"
+                    id="video7" style="width: 100%" onclick="this.play()"></video>
+                    <div class="ui-title">Ch7 : Adventure Movie</div>
+                    <div class="ui-description"> Action & Adventure. These movies all make for one amped-up viewing experience</div>
+                </div>
+                <div class="ui-footer">
+                    <button data-inline="true" onclick="playOnTV(2,0)">Play On TV</button>
+                </div>
+            </div>
+            <div class="ui-card ui-card-service">
+                <div class="ui-content">
+                    <video muted autoplay src="http://techslides.com/demos/sample-videos/small.mp4"
+                    id="video8" style="width: 100%" onclick="this.play()"></video>
+                    <div class="ui-title">Ch8 : Toy World</div>
+                    <div class="ui-description">Funny video for children to enjoy! Subscribe for notifications to new videos</div>
+                </div>
+                <div class="ui-footer">
+                    <button data-inline="true" onclick="playOnTV(3,0)">Play On TV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<!--<body>
+    <div style="text-align:center">
+        <video id="myVideo" muted autoplay src="http://10.113.138.88/tizenrepo/rpms/d2d/vd_demo/media/movie.mp4" loop> Your browser does not support HTML video. </video></br>
+        <video id="myVideo" muted autoplay src="http://media.myhome.com:8000/movie.mp4" loop> Your browser does not support HTML video. </video></br>
+        <button class="myButton" onclick="playOnTV()">Play On TV</button>
+        <button class="myButton" onclick="playOnMobile()">Play On Mobile</button>
+    </div>
+    <div class="videoList" id="listView"></div>
+</body>
+-->
+</html>
