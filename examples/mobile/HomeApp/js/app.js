@@ -53,6 +53,17 @@ import Storage from "./clipping-storage.js";
 					isSelected: true
 				}
 			]
+		},
+		{
+			"appID": "vUf39tzQ3s.UIComponents",
+			"isInstalled": false,
+			"isActive": false,
+			"webClipsList": [
+				{
+					url: "webclip/video-control",
+					isSelected: true
+				}
+			]
 		}],
 		getAppsList = new Promise((resolve, reject) => {
 			const requestURL = "api/register";
@@ -329,4 +340,8 @@ import Storage from "./clipping-storage.js";
 	}
 
 	document.addEventListener("pagebeforeshow", onPageBeforeShow);
+
+	// assing D2D class to global scope
+	window.D2DServiceLocal = D2DServiceLocal;
+
 }());

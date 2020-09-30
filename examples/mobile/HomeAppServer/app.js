@@ -109,7 +109,7 @@ function onWSConnection(ws) {
 }
 
 function startWS() {
-	var server = app.listen(0);
+	var server = app.listen(9000);
 
 	ws = new WebSocket.Server({server});
 	ws.on("connection", onWSConnection);
