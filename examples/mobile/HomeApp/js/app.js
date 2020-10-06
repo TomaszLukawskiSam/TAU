@@ -62,6 +62,10 @@ import Storage from "./clipping-storage.js";
 				{
 					url: "webclip/video-control",
 					isSelected: true
+				},
+				{
+					url: "webclip/video-service",
+					isSelected: true
 				}
 			]
 		}],
