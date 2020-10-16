@@ -9,7 +9,8 @@ const moduleapp = {};
 		appsList = [],
 		socket = null;
 
-	const defaultList = [{
+	const defaultList = [
+		{
 			"appID": "vUf39tzQ3s.UIComponents",
 			"isInstalled": true,
 			"isActive": true,
@@ -19,22 +20,21 @@ const moduleapp = {};
 					isSelected: true
 				}
 			]
-		},
-		{
+		}, {
 			"appID": "vUf39tzQ3t.UIComponents",
 			"isInstalled": true,
 			"isActive": false,
 			"webClipsList": [
-			  {
-				url: "webclip/now-on-tv",
-				isSelected: false
-			  },
-			  {
-				url: "webclip/restaurant",
-				isSelected: true
-			  }
+				{
+					url: "webclip/now-on-tv",
+					isSelected: false
+				},
+				{
+					url: "webclip/restaurant",
+					isSelected: true
+				}
 			]
-		  }],
+		}],
 		getAppsList = new Promise((resolve, reject) => {
 			const requestURL = "updateWebclip";
 
@@ -49,17 +49,82 @@ const moduleapp = {};
 				})
 		});
 
-	function updateAppsList(apps) {
+	function updateAppsList(message) {
+		if (message.type === "full") {
+			return updateAppsListFull(message.data);
+		} else if (message.type === "diff") {
+			updateAppsListDiff(message.data);
+			return true;
+		} else {
+			console.warn("app.js: unsupported type of applist.");
+		}
+		return false;
+	}
+
+	function updateAppsListDiff(apps) {
+		apps.forEach(function (remoteApp) {
+			if (remoteApp.action === "add") { // add (or update if app already added)
+				let localApp = appsList.filter(function (localApp) {
+					return remoteApp.appID === localApp.appID;
+				})[0];
+				delete remoteApp.action;
+
+				if (!localApp) { // add new
+					appsList.push(remoteApp);
+				} else { // update local app
+					/**
+					 * @todo
+					 * Which properties we need update
+					 */
+					localApp.isActive = remoteApp.isActive;
+				}
+			} else if (remoteApp.action === "remove") { // remove local app
+				appsList = appsList.filter(function (localApp) {
+					return remoteApp.appID !== localApp.appID;
+				});
+			} else {
+				console.warn("Unsupported action:", remoteApp.action);
+			}
+
+		});
+
+		updateOrderOfApplist();
+	}
+
+	function updateOrderOfApplist() {
 		var change = false,
-			appsCount = appsList.length,
 			currentOrder = "";
+
+		currentOrder = appsList.reduce(function (prev, app) {
+			return prev + app.appID;
+		}, "");
+
+		// check apps order
+		appsList = appsList.sort(function (app1, app2) {
+			return (app1.isActive) ?
+				(app2.isActive) ? 0 : -1 : 1
+		});
+
+		// order has been changed
+		if (currentOrder !== appsList.reduce(function (prev, app) {
+			return prev + app.appID;
+		}, "")) {
+			change = true;
+		}
+
+		return change;
+	}
+
+	function updateAppsListFull(apps) {
+		var change = false,
+			appsCount = appsList.length;
+
 		// remove app from local apps list if not exists on remote host
 		appsList = appsList.filter(function (localApp) {
 			return apps.some(function (remoteApp) {
 				return remoteApp.appID === localApp.appID;
 			});
 		});
-		
 
 		if (appsCount !== appsList.length) {
 			change = true;
@@ -93,29 +158,14 @@ const moduleapp = {};
 			})
 		});
 
-		currentOrder = appsList.reduce(function (prev, app) {
-			return prev + app.appID;
-		}, "");
-
-		// check apps order
-		appsList = appsList.sort(function (app1, app2) {
-			return (app1.isActive) ?
-				(app2.isActive) ? 0 : -1 : 1
-		});
-
-		// order has been changed
-		if (currentOrder !== appsList.reduce(function (prev, app) {
-			return prev + app.appID;
-		}, "")) {
+		if (updateOrderOfApplist()) {
 			change = true;
-		}
+		};
 
 		return change;
 	}
 
 	function onWSMessage(message) {
-		//const messageObj = JSON.parse(message);
-		//socket.send(JSON.stringify({cmd: "echo"}));
 		if (updateAppsList(message)) {
 			tau.log("change");
 			storage.refreshStorage(Storage.elements.APPSLIST, appsList);
@@ -127,12 +177,6 @@ const moduleapp = {};
 		}
 	}
 
-	/*function addWSListener(wsPort) {
-		var wsURL = "ws://" + window.location.hostname + ":" + wsPort + "/ws";
-
-		socket = new WebSocket(wsURL);
-		socket.addEventListener("message", onWSMessage);
-	}*/
 	async function validateAppsList() {
 		const promisesList = [],
 			indexesList = [];
@@ -164,7 +208,7 @@ const moduleapp = {};
 		appsList.forEach(function (app) {
 			app.webClipsList.forEach(function (webclip) {
 				const webClipName = getWebClipName(webclip.url),
-					checkbox = document.querySelector("#" + webClipName);
+					checkbox = document.getElementById("popup-checkbox-" + webClipName);
 
 				webclip.isSelected = checkbox.checked;
 			})
@@ -247,9 +291,9 @@ const moduleapp = {};
 				li.classList.add("ui-group-index");
 
 				input.setAttribute("type", "checkbox");
-				input.setAttribute("id", webClipName);
+				input.setAttribute("id", "popup-checkbox-" + webClipName);
 
-				label.setAttribute("for", webClipName);
+				label.setAttribute("for", "popup-checkbox-" + webClipName);
 				label.classList.add("ui-li-text");
 
 				fetch(`${webclip.url}/manifest.json`)
@@ -274,7 +318,7 @@ const moduleapp = {};
 			app.webClipsList.forEach(function (webclip) {
 				if (webclip.isSelected) {
 					const webClipName = getWebClipName(webclip.url),
-						checkbox = document.querySelector("#" + webClipName);
+						checkbox = document.getElementById("popup-checkbox-" + webClipName);
 
 					if (checkbox) {
 						checkbox.checked = true;
@@ -307,12 +351,12 @@ const moduleapp = {};
 
 		// check webclips on remote server
 		getAppsList.then((apps) => {
-			updateAppsList(apps);
+			updateAppsListFull(apps);
 		})
 			.catch((e) => {
 				console.warn("Error getting app lits: " + e.message);
 				if (appsList.length === 0) {
-					updateAppsList(defaultList);
+					updateAppsListFull(defaultList);
 				}
 			})
 			.finally(() => {
