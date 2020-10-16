@@ -1,44 +1,3 @@
-.app-weather-container {
-    height: 209px;
-    position: relative;
-}
-
-.ui-active-item {
-    transform: scale(1.2);
-}
-.ui-container {
-    max-height: 200px;
-}
-.ui-container > * {
-    transition: transform 200ms ease-in-out;
-    margin: 4px;
-}
-.ui-container-hidden {
-    display: none;
-}
-.app-disney.ui-container .ui-container-item {
-    width: auto;
-}
-.app-disney.ui-container .ui-container-item img {
-    width: auto;
-    height: 200px;
-}
-.app-primevideo.ui-container .ui-container-item {
-    width: auto;
-}
-.app-primevideo.ui-container .ui-container-item img {
-    width: auto;
-    height: 200px;
-} 
-.app-progress-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-}
-
 .app-image-grid {
     margin: auto;
     display: grid;
@@ -55,116 +14,14 @@
     height: 100px;
 }
 
-.app-channel-content {
-    display: flex;
-}
-
-.app-movie-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 50%;
-}
-
-.app-movie-poster {
-    width: 80%;
-    height: auto;
-}
-
-.app-movie-poster-next {
-    width: 50%;
-}
-
-.app-remote-control {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 5px 0;
-}
-.app-volume-control {
-    display: flex;
-    flex-direction: column;
-    border-radius: 20px;
-    box-shadow: 1px 1px 3px 0 var(--overlay);
-    margin: 5px;
-    font-size: 16px;
-    background-image: linear-gradient(170deg,
-        rgba(0, 0, 0, 0.2) 0%, var(--background-area-color) 15%,
-        var(--background-area-color) 85%, rgba(0, 0, 0, 0.2) 100%);
-}
-.app-channel-control {
-    display: flex;
-    flex-direction: column;
-    border-radius: 20px;
-    box-shadow: 1px 1px 3px 0 var(--overlay);
-    margin: 5px;
-    font-size: 16px;
-    background-image: linear-gradient(170deg,
-        rgba(0, 0, 0, 0.2) 0%, var(--background-area-color) 15%,
-        var(--background-area-color) 85%, rgba(0, 0, 0, 0.2) 100%);
-}
-.app-4way-direction {
-    display: grid;
-    grid-template-columns: repeat(3, 56px);
-    grid-gap: 5px;
-    border-radius: 100%;
-    box-shadow: 1px 1px 3px 0 var(--overlay);
-    margin: 5px;
-    background-image: radial-gradient(var(--background-area-color) 50%, rgba(0, 0, 0, 0.2));
-}
-.app-btn-4way-up {
-    grid-column: 2 / 2;
-    grid-row: 1;
-}
-.app-btn-4way-left {
-    grid-column: 1 / 1;
-    grid-row: 2;
-}
-.app-btn-4way-ok {
-    grid-column: 2 / 2;
-    grid-row: 2;
-    display: flex;
-    align-items: center;
-    box-shadow: -1px -1px 3px 0 var(--overlay) inset;
-    background-color: var(--button-background);
-}
-.app-btn-4way-right {
-    grid-column: 3 / 3;
-    grid-row: 2;
-}
-.app-btn-4way-down {
-    grid-column: 2 / 2;
-    grid-row: 3;
-}
 .app-btn-icon-burger {
     margin-left: 20px;
     margin-right: 12px;
 }
+
 .app-btn-icon-burger::after {
     -webkit-mask-image: url(../images/Hamburger_icon.svg);
     mask-image: url(../images/Hamburger_icon.svg);
-}
-
-.app-hotel-breakfast {
-    height: 370px;
-}
-.app-hotel-breakfast-image {
-    height: 200px;
-    background-image: url(../images/English_breakfast_2.jpg);
-    background-size: 100%;
-}
-.app-breakfast-2 {
-    background-image: url(../images/Vegetarian_breakfast_at_Cafe_Cuilles.jpg);
-}
-.app-breakfast-3 {
-    background-image: url(../images/800px-Korean.cuisine-Bibimbap-01.jpg);
-}
-
-.app-hotel-order {
-    display: flex;
-    align-self: center;
 }
 
 .app-dummy-payment input {
@@ -181,99 +38,12 @@
     width: auto;
     display: inline;
 }
-.app-cards {
-    margin-left: 30px;
-}
-.app-cards .app-visa {
-    width: 36px;
-    -webkit-mask-image: url(../images/270px-Font_Awesome_5_brands_cc-visa.svg.png);
-    background-color: blue;
-    height: 30px;
-    -webkit-mask-size: 100%;
-    display: inline-block;
-}
-.app-cards .app-mc {
-    background-image: url(../images/MasterCard_Logo.svg.png);
-    width: 36px;
-    height: 30px;
-    background-size: 100%;
-    background-repeat: no-repeat;
-    display: inline-block;
-    background-position: center;
-    margin: 0 5px;
-}
 
 body {
     /*disable-pull-to-refresh-effect*/
     overscroll-behavior: contain;
 }
+
 .app-display-none {
     display: none;
-}
-.page-main {
-    display: block;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-.mySlides {
-    display: none;
-}
-
-.slideshow-container {
-    max-width: 100%;
-    position: relative;
-    margin: auto;
-}
-
-.prev, .next {
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
-    width: auto;
-    padding: 5px;
-    color: #bbb;
-    font-weight: bold;
-    font-size: 18px;
-    transition: 0.6s ease;
-    border-radius: 100%;
-  }
-  
-.next {
-    right: 0;
-}
-
-.dot {
-    cursor: pointer;
-    height: 15px;
-    width: 15px;
-    margin: 0 2px;
-    background-color: #bbb;
-    border-radius: 50%;
-    display: inline-block;
-    transition: background-color 0.6s ease;
-}
-
-.active, .dot:hover {
-    background-color: #717171;
-  }
-
-/* Fading animation */
-.fade {
-    -webkit-animation-name: fade;
-    -webkit-animation-duration: 1.5s;
-    animation-name: fade;
-    animation-duration: 1.5s;
-}
-
-@-webkit-keyframes fade {
-    from {opacity: .4} 
-    to {opacity: 1}
-}
-
-@keyframes fade {
-    from {opacity: .4} 
-    to {opacity: 1}
 }

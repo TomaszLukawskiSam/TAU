@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://yourdomain/GlobalDeviceWebServer" version="1.0.0" viewmodes="maximized">
-    <tizen:application id="QKatUa7aon.GlobalDeviceWebServer" package="QKatUa7aon" required_version="2.3"/>
+<widget xmlns:tizen="http://tizen.org/ns/widgets" xmlns="http://www.w3.org/ns/widgets" id="http://yourdomain/GlobalDeviceWebServer" version="1.0.0" viewmodes="maximized">
+    <tizen:application package="QKatUa7aon" required_version="2.3"/>
     <feature name="http://tizen.org/feature/screen.size.all"/>
     <name>GlobalDeviceWebServer</name>
-    <content src="about.html"></content>
+    <tizen:profile name="mobile"/>
     <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
     <tizen:privilege name="http://tizen.org/privilege/application.info"/>
     <tizen:privilege name="http://tizen.org/privilege/package.info"/>
     <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
     <tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
     <tizen:privilege name="http://tizen.org/privilege/mediastorage"/>
-    <tizen:profile name="mobile"/>
-    <tizen:service id="QKatUa7aon.Service" type="global" on-boot="true" auto-restart="true">
+    <tizen:service id="QKatUa7aon.Service" type="global" auto-restart="true" on-boot="true">
         <tizen:content src="service/service.js"/>
         <tizen:name>TC001GlobalService</tizen:name>
         <tizen:description>TC001GlobalService</tizen:description>

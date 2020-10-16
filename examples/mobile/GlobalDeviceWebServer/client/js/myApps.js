@@ -14,11 +14,10 @@
  * limitations under the License.
  */
  "use strict";
- 
+import { UpdateWebClip } from './app.js';
+
 const serverPort = 9000;
 const serverURL = window.location.protocol + '//' + window.location.hostname;
-var slideIndex = 1;
-var slideFlag = false;
 (function() {
     var xhr ;
     function emptyElement(elm) {
@@ -26,33 +25,6 @@ var slideFlag = false;
             elm.removeChild(elm.firstChild);
         }
         return elm;
-    }
-
-    function showSlides(n) {
-        var i;
-        var slides = document.getElementsByClassName("mySlides");
-        var dots = document.getElementsByClassName("dot");
-        if (n > slides.length) {
-            slideIndex = 1;
-        }    
-        if (n < 1) {
-            slideIndex = slides.length;
-        }
-        for (i = 0; i < slides.length; i++) {
-            slides[i].style.display = "none";
-        }
-        for (i = 0; i < dots.length; i++) {
-            dots[i].className = dots[i].className.replace(" active", "");
-        }
-        slides[slideIndex-1].style.display = "block";
-        dots[slideIndex-1].className += " active";
-    }
-
-    function minusSlides() {
-        showSlides(slideIndex += -1);
-    }
-    function plusSlides() {
-        showSlides(slideIndex += 1);
     }
 
     function showListView(dataArray) {
@@ -69,16 +41,6 @@ var slideFlag = false;
 
         emptyElement(imgResult);
         
-        if (slideFlag === false) {
-            showSlides(slideIndex);
-            slideFlag = true;
-        }
-
-        var prev = document.getElementById("prevBtn");
-        var next = document.getElementById("nextBtn");
-        prev.addEventListener("vclick", minusSlides);
-        next.addEventListener("vclick", plusSlides);
-
         objTable = document.createElement("div");
         objTable.className = "result-table";
 
@@ -163,7 +125,8 @@ var slideFlag = false;
     function init() {
         var eventSource = new EventSource(serverURL + ':' + serverPort + '/updateAppList');
         eventSource.addEventListener('message', evt => {
-            showListView(JSON.parse(evt.data));
+            //showListView(JSON.parse(evt.data));
+            UpdateWebClip(JSON.parse(evt.data)); //whktest
         }, false);
         eventSource.addEventListener('open', evt => {
            console.log("Connected to...");

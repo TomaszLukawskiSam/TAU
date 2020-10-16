@@ -1,32 +1,159 @@
+import Storage from "./clipping-storage.js";
+
+const moduleapp = {};
+
 (function () {
 	"use strict";
 	var tau = window.tau,
-		state = {
-			widgets: {
-				news: false,
-				nowontv: false,
-				restaurant: true
-			}
-		};
+		storage = new Storage(),
+		appsList = [],
+		socket = null;
 
-	function getWidgetsState() {
-		var latestNews = document.querySelector("#latest-news-check"),
-			nowOnTV = document.querySelector("#now-on-tv-check"),
-			hotelRestaurant = document.querySelector("#hotel-restaurant-check");
+	const defaultList = [{
+			"appID": "vUf39tzQ3s.UIComponents",
+			"isInstalled": true,
+			"isActive": true,
+			"webClipsList": [
+				{
+					url: "webclip/apps-on-tv",
+					isSelected: true
+				}
+			]
+		},
+		{
+			"appID": "vUf39tzQ3t.UIComponents",
+			"isInstalled": true,
+			"isActive": false,
+			"webClipsList": [
+			  {
+				url: "webclip/now-on-tv",
+				isSelected: false
+			  },
+			  {
+				url: "webclip/restaurant",
+				isSelected: true
+			  }
+			]
+		  }],
+		getAppsList = new Promise((resolve, reject) => {
+			const requestURL = "updateWebclip";
 
-		state.widgets.news = latestNews.checked;
-		state.widgets.nowontv = nowOnTV.checked;
-		state.widgets.restaurant = hotelRestaurant.checked;
+			fetch(requestURL)
+				.then((response) => response.json())
+				.then((data) => {
+					//addWSListener(data.wsPort);
+					resolve(data.apps);
+				})
+				.catch((e) => {
+					reject(e);
+				})
+		});
+
+	function updateAppsList(apps) {
+		var change = false,
+			appsCount = appsList.length,
+			currentOrder = "";
+		// remove app from local apps list if not exists on remote host
+		appsList = appsList.filter(function (localApp) {
+			return apps.some(function (remoteApp) {
+				return remoteApp.appID === localApp.appID;
+			});
+		});
+		
+
+		if (appsCount !== appsList.length) {
+			change = true;
+		}
+
+		// filter app which should be add to local apps list
+		const added = apps.filter(function (remoteApp) {
+			return !appsList.some(function (localApp) {
+				return localApp.appID === remoteApp.appID;
+			});
+		});
+
+		if (added.length) {
+			change = true;
+		}
+
+		// add apps to local apps list
+		added.forEach(function (remoteApp) {
+			appsList.push(remoteApp);
+		});
+
+		// update active items
+		appsList.forEach(function (localApp) {
+			apps.forEach(function (remoteApp) {
+				if (remoteApp.appID === localApp.appID) {
+					if (localApp.isActive !== remoteApp.isActive) {
+						localApp.isActive = remoteApp.isActive;
+						change = true;
+					}
+				}
+			})
+		});
+
+		currentOrder = appsList.reduce(function (prev, app) {
+			return prev + app.appID;
+		}, "");
+
+		// check apps order
+		appsList = appsList.sort(function (app1, app2) {
+			return (app1.isActive) ?
+				(app2.isActive) ? 0 : -1 : 1
+		});
+
+		// order has been changed
+		if (currentOrder !== appsList.reduce(function (prev, app) {
+			return prev + app.appID;
+		}, "")) {
+			change = true;
+		}
+
+		return change;
 	}
 
-	function toggleWidgetsState() {
-		var latestNews = document.querySelector("#latest-news-container"),
-			nowOnTv = document.querySelector("#now-on-tv-container"),
-			hotelRestaurant = document.querySelector("#restaurant-container");
+	function onWSMessage(message) {
+		//const messageObj = JSON.parse(message);
+		//socket.send(JSON.stringify({cmd: "echo"}));
+		if (updateAppsList(message)) {
+			tau.log("change");
+			storage.refreshStorage(Storage.elements.APPSLIST, appsList);
 
-		latestNews.classList.toggle("app-display-none", !state.widgets.news);
-		nowOnTv.classList.toggle("app-display-none", !state.widgets.nowontv);
-		hotelRestaurant.classList.toggle("app-display-none", !state.widgets.restaurant);
+			updateWebClipsUI();
+			updateWebClipListPopup();
+		} else {
+			tau.log("nothing change");
+		}
+	}
+
+	/*function addWSListener(wsPort) {
+		var wsURL = "ws://" + window.location.hostname + ":" + wsPort + "/ws";
+
+		socket = new WebSocket(wsURL);
+		socket.addEventListener("message", onWSMessage);
+	}*/
+	async function validateAppsList() {
+		const promisesList = [],
+			indexesList = [];
+		let	i,
+			j,
+			responses = [];
+
+		for (i = 0; i < appsList.length; i++) {
+			for (j = 0; j < appsList[i].webClipsList.length; j++) {
+				promisesList.push(fetch(appsList[i].webClipsList[j].url + "\\webclip.html"));
+				indexesList.push({appIndex: i, webClipIndex: j})
+			}
+		}
+
+		responses = await Promise.allSettled(promisesList);
+
+		for (i = 0; i < responses.length; i++) {
+			if (responses[i].status === "rejected" || !responses[i].value.ok) {
+				appsList[indexesList[i].appIndex].webClipsList.splice(indexesList[i].webClipIndex, 1);
+			}
+		}
 	}
 
 	function changeTheme(event) {
@@ -34,8 +161,17 @@
 	}
 
 	function onPopupSubmit() {
-		getWidgetsState();
-		toggleWidgetsState();
+		appsList.forEach(function (app) {
+			app.webClipsList.forEach(function (webclip) {
+				const webClipName = getWebClipName(webclip.url),
+					checkbox = document.querySelector("#" + webClipName);
+
+				webclip.isSelected = checkbox.checked;
+			})
+		});
+		storage.refreshStorage(Storage.elements.APPSLIST, appsList);
+
+		updateWebClipsUI();
 		tau.history.back();
 	}
 
@@ -47,6 +183,105 @@
 		var drawerWidget = tau.widget.Drawer(document.querySelector(".ui-drawer"));
 
 		drawerWidget.open();
+	}
+
+	function updateWebClipsUI() {
+		var current = document.querySelectorAll(".ui-card"),
+			webclipsContainer = document.getElementById("web-clips");
+
+		// remove previous
+		current.forEach(function (card) {
+			card.parentElement.removeChild(card);
+		});
+
+		appsList.forEach(function (app) {
+			app.webClipsList.forEach((webclip) => {
+				let card,
+					webClipUrl;
+
+				if (webclip.isSelected) {
+					card = document.createElement("div"),
+					webClipUrl = webclip.url;
+
+					// add slash for name of webClip
+					if (!webClipUrl.match(/\/$/)) {
+						webClipUrl += "/";
+					}
+					webClipUrl += "webclip.html";
+
+					card.classList.add("ui-card");
+					card.setAttribute("data-src", webClipUrl);
+
+					webclipsContainer.appendChild(card);
+				}
+			});
+		});
+
+		tau.engine.createWidgets(webclipsContainer);
+	}
+
+	//TODO: provide mechanism for getting web clip name from webClip meta data
+	//		and separate from getting ID
+	function getWebClipName(webClip) {
+		// remove all text to the last \
+		return webClip.replace(/.*\//, "");
+	}
+
+	function updateWebClipListPopup() {
+
+		var popupList = document.getElementById("popup-list");
+
+		// remove previous li items
+		while (popupList.firstChild) {
+			popupList.firstChild.remove()
+		}
+
+		appsList.forEach(function (app) {
+			app.webClipsList.forEach(function (webclip) {
+				var li = document.createElement("li"),
+					input = document.createElement("input"),
+					label = document.createElement("label"),
+					webClipName = getWebClipName(webclip.url);
+
+				li.classList.add("ui-li-has-checkbox");
+				li.classList.add("ui-group-index");
+
+				input.setAttribute("type", "checkbox");
+				input.setAttribute("id", webClipName);
+
+				label.setAttribute("for", webClipName);
+				label.classList.add("ui-li-text");
+
+				fetch(`${webclip.url}/manifest.json`)
+					.then((out) => out.json())
+					.then((manifest) => {
+						label.innerHTML = manifest.description;
+					})
+					.catch((err) => {
+						console.error(err);
+					});
+
+				li.appendChild(input);
+				li.appendChild(label);
+				popupList.appendChild(li);
+
+			});
+		});
+
+		tau.engine.createWidgets(popupList);
+
+		appsList.forEach(function (app) {
+			app.webClipsList.forEach(function (webclip) {
+				if (webclip.isSelected) {
+					const webClipName = getWebClipName(webclip.url),
+						checkbox = document.querySelector("#" + webClipName);
+
+					if (checkbox) {
+						checkbox.checked = true;
+					}
+				}
+			});
+		});
 	}
 
 	function init() {
@@ -66,33 +301,40 @@
 
 		burgerButton.addEventListener("click", onButtonClick);
 		popupButton.addEventListener("click", onPopupSubmit);
-		var card = document.getElementById("apps-on-tv"),
-		apps;
 
-		apps = card.querySelector(".webclip-apps");
-		apps.addEventListener("vclick", function (e) {
-			var currentActive = apps.querySelector(".ui-active-item"),
-				selected = tau.util.selectors.getClosestBySelector(e.target, ".ui-container > *"),
-				activeContainer,
-				selectedContainer;
-			// toggle selected
+		// use apps list from storage or default apps list if sth wrong
+		appsList = storage.readAllFromStorage(Storage.elements.APPSLIST);
 
-			if (currentActive && currentActive !== selected) {
-				currentActive.classList.remove("ui-active-item");
-				selected.classList.add("ui-active-item");
-				// container change
+		// check webclips on remote server
+		getAppsList.then((apps) => {
+			updateAppsList(apps);
+		})
+			.catch((e) => {
+				console.warn("Error getting app lits: " + e.message);
+				if (appsList.length === 0) {
+					updateAppsList(defaultList);
+				}
+			})
+			.finally(() => {
+				validateAppsList().then(() => {
+					storage.refreshStorage(Storage.elements.APPSLIST, appsList);
+					updateWebClipsUI();
+					updateWebClipListPopup();
+				});
+			});
 
-				activeContainer = card.querySelector(".ui-container-active");
-				activeContainer.classList.remove("ui-container-active");
-				activeContainer.classList.add("ui-container-hidden");
-				selectedContainer = card.querySelector(".app-" + selected.dataset.container);
-				selectedContainer.classList.add("ui-container-active");
-				selectedContainer.classList.remove("ui-container-hidden");
-				// reset scroll position
-				card.querySelector(".ui-content").scrollLeft = 0;
-			}
-		}, true)
 	}
 
-	document.addEventListener("pagebeforeshow", init);
+	function onPageBeforeShow(event) {
+		if (event.target.id === "main") {
+			init();
+		}
+	}
+
+	document.addEventListener("pagebeforeshow", onPageBeforeShow);
+	moduleapp.onWSMessage = onWSMessage;
 }());
+
+export function UpdateWebClip(message) {
+	moduleapp.onWSMessage(message);
+};
