@@ -14,18 +14,19 @@ var webclipapps1 = [{
     {
       url: "webclip/weather"
     }
-  ]
+  ],
+  "action": "add"
 }];
 var webclipapps2 = [{
-  "appID": "vUf39tzQ3r.remotecontrol",
-  "isInstalled": true,
-  "isActive": true,
+  "appID": "OZBS6gG8Jl.weather",
+  "isInstalled": false,
+  "isActive": false,
   "webClipsList": [
     {
-      url: "webclip/tv-remote-control",
-      isSelected: true
+      url: "webclip/weather"
     }
-  ]
+  ],
+  "action": "remove"
 }];
 
 function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
@@ -86,8 +87,8 @@ function setPackageInfoEventListener() {
     oninstalled: function(packageInfo) {
       console.log("The package " + packageInfo.name + " is installed");
       addD2Ddata(packageInfo.id, packageInfo.appIds[0], packageInfo.name, packageInfo.iconPath);
-      //evtEmit.emit("updateapplist", "message", dataApps); //whktest
-      evtEmit.emit("updateapplist", "message", webclipapps1);
+      //evtEmit.emit("updateapplist", "message", {type:"diff", "data": dataApps}); //whktest
+      evtEmit.emit("updateapplist", "message", {"type": "diff", "data": webclipapps1});
     },
     onupdated: function(packageInfo) {
       console.log("The package " + packageInfo.name + " is updated");
@@ -95,8 +96,8 @@ function setPackageInfoEventListener() {
     onuninstalled: function(packageId) {
       console.log("The package " + packageId + " is uninstalled");
       removeD2Ddata(packageId);
-      //evtEmit.emit("updateapplist", "message", dataApps);
-      evtEmit.emit("updateapplist", "message", webclipapps2);
+      //evtEmit.emit("updateapplist", "message", {type:"diff", "data": dataApps});
+      evtEmit.emit("updateapplist", "message", {"type": "diff", "data": webclipapps2});
     }
   };
   tizen.package.setPackageInfoEventListener(packageEventCallback);
