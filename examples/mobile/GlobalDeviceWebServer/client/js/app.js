@@ -229,36 +229,79 @@ const moduleapp = {};
 		drawerWidget.open();
 	}
 
-	function updateWebClipsUI() {
-		var current = document.querySelectorAll(".ui-card"),
-			webclipsContainer = document.getElementById("web-clips");
+	function createWebClipCard(webClip) {
+		var card = document.createElement("div"),
+			webClipUrl = webClip.url;
 
-		// remove previous
-		current.forEach(function (card) {
-			card.parentElement.removeChild(card);
+		// add slash for name of webClip
+		if (!webClipUrl.match(/\/$/)) {
+			webClipUrl += "/";
+		}
+		webClipUrl += "webclip.html";
+
+		card.classList.add("ui-card");
+		card.setAttribute("data-src", webClipUrl);
+
+		return card;
+	}
+
+	function updateWebClipsUI() {
+		var webclipsContainer = document.getElementById("web-clips"),
+			// get Cards elements and convert NodeList to array
+			currentWebClipsCards = [].slice.call(webclipsContainer.querySelectorAll(".ui-card[data-url],.ui-card[data-src]")),
+			// list of webClips url in order
+			webClipsUrlList = appsList.reduce(function (prev, app) {
+				return prev.concat(
+					app.webClipsList.filter((webClip) => webClip.isSelected)
+						.map((webClip) => webClip.url));
+			}, []);
+
+		// remove card
+		currentWebClipsCards.forEach(function (card) {
+			const found = webClipsUrlList.filter(function (webClipUrl) {
+				return card.dataset.url && card.dataset.url.indexOf(webClipUrl) > -1 ||
+					card.dataset.src && card.dataset.src.indexOf(webClipUrl) > -1;
+			});
+
+			// remove card from UI if not exists on list
+			if (found.length === 0) {
+				card.parentElement.removeChild(card);
+			}
 		});
 
+		// add card
 		appsList.forEach(function (app) {
-			app.webClipsList.forEach((webclip) => {
-				let card,
-					webClipUrl;
+			app.webClipsList.forEach((webClip) => {
+				const found = currentWebClipsCards.filter(function (card) {
+					return card.dataset.url && card.dataset.url.indexOf(webClip.url) > -1 ||
+						card.dataset.src && card.dataset.src.indexOf(webClip.url) > -1;
+				});
 
-				if (webclip.isSelected) {
-					card = document.createElement("div"),
-					webClipUrl = webclip.url;
-
-					// add slash for name of webClip
-					if (!webClipUrl.match(/\/$/)) {
-						webClipUrl += "/";
+				if (found.length === 0) {
+					if (webClip.isSelected) {
+						webclipsContainer.appendChild(
+							createWebClipCard(webClip)
+						);
 					}
-					webClipUrl += "webclip.html";
-
-					card.classList.add("ui-card");
-					card.setAttribute("data-src", webClipUrl);
-
-					webclipsContainer.appendChild(card);
 				}
 			});
+		});
+
+		// set proper order of cards
+		// @todo change inline styles to css class after merge HomeApp branches
+		webclipsContainer.style.display = "flex";
+		webclipsContainer.style.flexDirection = "column";
+		currentWebClipsCards = [].slice.call(webclipsContainer.querySelectorAll(".ui-card[data-url],.ui-card[data-src]"));
+
+		webClipsUrlList.forEach(function (url, order) {
+			const card = currentWebClipsCards.filter(function (card) {
+				return card.dataset.url && card.dataset.url.indexOf(url) > -1 ||
+					card.dataset.src && card.dataset.src.indexOf(url) > -1;
+			})[0];
+
+			if (card) {
+				card.style.order = order;
+			}
 		});
 
 		tau.engine.createWidgets(webclipsContainer);
