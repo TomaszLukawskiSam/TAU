@@ -343,7 +343,11 @@ import Storage from "./clipping-storage.js";
 		drawerWidget.open();
 	}
 
-	function createWebClipCard(webClip) {
+	function sendToHost(data, webClip, appID) {
+		console.log("sendToHost", data, appID, webClip);
+	}
+
+	function createWebClipCard(webClip, appID) {
 		var card = document.createElement("div"),
 			webClipUrl = webClip.url;
 
@@ -355,6 +359,11 @@ import Storage from "./clipping-storage.js";
 
 		card.classList.add("ui-card");
 		card.setAttribute("data-src", webClipUrl);
+
+		card.addEventListener("webclip-message", function (ev) {
+			console.log("webclip-message", ev, webClip);
+			sendToHost(ev.detail, webClip, appID);
+		});
 
 		return card;
 	}
@@ -395,7 +404,7 @@ import Storage from "./clipping-storage.js";
 					webClip.manifest && webClip.manifest.cardType !== "control") {
 					if (webClip.isSelected) {
 						webclipsContainer.appendChild(
-							createWebClipCard(webClip)
+							createWebClipCard(webClip, app.appID)
 						);
 					}
 				}
