@@ -625,7 +625,7 @@ header .ui-appbar-container .ui-btn.ui-btn-icon.ui-btn-icon-only {
   margin-bottom: 10px;
 }
 .ui-card-service {
-  background-color: var(--background-area-color);
+  background-color: transparent;
 }
 .ui-card .ui-header {
   display: -webkit-flex;
@@ -824,7 +824,7 @@ header .ui-appbar-container .ui-btn.ui-btn-icon.ui-btn-icon-only {
   color: var(--text-color);
   font-size: 16px;
   white-space: normal;
-  margin: 0 20px;
+  margin: 0 20px 0 0;
   -webkit-flex: 1;
       -ms-flex: 1;
           flex: 1;
@@ -2075,6 +2075,7 @@ a.ui-link-inherit {
   margin: auto;
   margin-bottom: 64px;
   width: -webkit-fit-content;
+  width: -moz-fit-content;
   width: fit-content;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -2127,6 +2128,7 @@ a.ui-link-inherit {
   padding: 4px 0 4px 20px;
   margin: 0;
   width: -webkit-fit-content;
+  width: -moz-fit-content;
   width: fit-content;
   color: var(--btn-toast-text-color);
   font-size: 18px;
@@ -6079,6 +6081,7 @@ input[type="search"][disabled] {
 }
 .ui-handler .ui-handler-track {
   -webkit-user-select: none;
+  -moz-user-select: none;
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
@@ -6089,6 +6092,7 @@ input[type="search"][disabled] {
 }
 .ui-handler .ui-handler-track .ui-handler-handle {
   -webkit-user-select: none;
+  -moz-user-select: none;
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
@@ -6842,6 +6846,7 @@ input[type="search"][disabled] {
   margin-top: 2.5px;
   text-decoration: none;
   -webkit-user-select: none;
+  -moz-user-select: none;
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
@@ -7082,6 +7087,7 @@ input[type="search"][disabled] {
   z-index: 1000;
   overflow: visible;
   -webkit-user-select: none;
+  -moz-user-select: none;
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
@@ -7674,6 +7680,7 @@ a.ui-btn {
   background-color: var(--button-background);
   box-sizing: border-box;
   -webkit-user-select: none;
+  -moz-user-select: none;
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
@@ -8128,6 +8135,7 @@ a.ui-btn {
 .ui-content-area .ui-expandable {
   padding: 0 24px;
   -webkit-user-select: none;
+     -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
   -webkit-flex-direction: column;
@@ -9916,6 +9924,7 @@ tau-textenveloper {
   min-height: 40px;
   vertical-align: top;
   -webkit-user-select: none;
+  -moz-user-select: none;
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
@@ -11032,6 +11041,7 @@ tau-gridview {
   color: var(--primary-dark-color);
   opacity: var(--spin-item-opacity) !important;
   -webkit-user-select: none;
+     -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
   font-family: Roboto-Medium;
