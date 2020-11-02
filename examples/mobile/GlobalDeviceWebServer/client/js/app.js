@@ -1,4 +1,5 @@
 import Storage from "./clipping-storage.js";
+import Actions from './actions.js';
 
 const moduleapp = {};
 
@@ -6,6 +7,7 @@ const moduleapp = {};
 	"use strict";
 	var tau = window.tau,
 		storage = new Storage(),
+		actions = new Actions(),
 		appsList = [],
 		socket = null;
 
@@ -31,6 +33,20 @@ const moduleapp = {};
 				},
 				{
 					url: "webclip/restaurant",
+					isSelected: true
+				}
+			]
+		}, {
+			"appID": "OZBS6gG8Jl.video",
+			"isInstalled": true,
+			"isActive": false,
+			"webClipsList": [
+				{
+					url: "webclip/video-control",
+					isSelected: true
+				},
+				{
+					url: "webclip/video-service",
 					isSelected: true
 				}
 			]
@@ -229,7 +245,11 @@ const moduleapp = {};
 		drawerWidget.open();
 	}
 
-	function createWebClipCard(webClip) {
+	function onDone(result) {
+		tau.log("Send 'webclip-message' done.", result);
+	}
+
+	function createWebClipCard(webClip, appID) {
 		var card = document.createElement("div"),
 			webClipUrl = webClip.url;
 
@@ -241,6 +261,9 @@ const moduleapp = {};
 
 		card.classList.add("ui-card");
 		card.setAttribute("data-src", webClipUrl);
+		card.addEventListener("webclip-message", function (ev) {
+			actions.sendDataToApp(appID, ev.detail, onDone);
+		});
 
 		return card;
 	}
@@ -280,7 +303,7 @@ const moduleapp = {};
 				if (found.length === 0) {
 					if (webClip.isSelected) {
 						webclipsContainer.appendChild(
-							createWebClipCard(webClip)
+							createWebClipCard(webClip, app.appID)
 						);
 					}
 				}

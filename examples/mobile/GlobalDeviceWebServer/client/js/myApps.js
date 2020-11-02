@@ -15,9 +15,13 @@
  */
  "use strict";
 import { UpdateWebClip } from './app.js';
+import Actions from './actions.js';
 
 const serverPort = 9000;
 const serverURL = window.location.protocol + '//' + window.location.hostname;
+const actions = new Actions();
+const NEW_WINDOW_TIMEOUT = 1000;
+
 (function() {
     var xhr ;
     function emptyElement(elm) {
@@ -26,6 +30,20 @@ const serverURL = window.location.protocol + '//' + window.location.hostname;
         }
         return elm;
     }
+
+    /**
+     * Open app in new window
+     * @param {Object} response
+     * @private
+     */
+    function openAppWindow (response) {
+        document.getElementById("page-main").style.display = "none";
+        var timer = setTimeout(function(){
+            clearTimeout(timer);
+            document.getElementById("page-main").style.display = "block";
+            window.open(serverURL + ':' + response.port + '/app', 'newWindow');
+        }, NEW_WINDOW_TIMEOUT);
+    };
 
     function showListView(dataArray) {
         var formResult = document.getElementById("d2dApps"), 
@@ -64,7 +82,12 @@ const serverURL = window.location.protocol + '//' + window.location.hostname;
                         textObj.style.fontSize = "14px";
                         textObj.innerHTML = dataArray[i][prop].appName;
                     }
-                    imgObj.addEventListener("click", sendAppID(dataArray[i][prop].appPkgID, dataArray[i][prop].appAppID));
+                    imgObj.addEventListener("click", actions.launchAppOnTV(
+                        dataArray[i][prop].appPkgID,
+                        dataArray[i][prop].appAppID,
+                        function (response) {
+                            openAppWindow(response);
+                        }));
                     formObj.appendChild(imgObj);
                     formObj.appendChild(textObj);
                 }
@@ -92,34 +115,6 @@ const serverURL = window.location.protocol + '//' + window.location.hostname;
         };
         xhr.open('GET', serverURL + ':' + serverPort + '/appList');
         xhr.send();
-    }
-
-    function sendAppID(appPkgID, appAppID) {
-        var retFunc = function() {
-            var data = {
-                appPkgID: appPkgID,
-                appAppID: appAppID
-            };
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === xhr.DONE) {
-                    if (xhr.status === 200 || xhr.status === 201) {
-                        var res = JSON.parse(xhr.responseText);
-                        document.getElementById("page-main").style.display = "none";
-                        var timer = setTimeout(function(){
-                            clearTimeout(timer);
-                            document.getElementById("page-main").style.display = "block";
-                            window.open(serverURL + ':' + res.port + '/app', 'newWindow');
-                        }, 1000);
-                    } else {
-                        console.error(xhr.responseText);
-                    }
-                }
-            }
-            xhr.open('POST', serverURL + ':' + serverPort + '/app');
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.send(JSON.stringify(data));
-        };
-        return retFunc;
     }
 
     function init() {
