@@ -3398,7 +3398,6 @@ ns.version = '1.2.7';
 					element = document.getElementById(element);
 				}
 
-				
 				// If type is not defined all widgets should be removed
 				// this is for backward compatibility
 				widgetInstance = getBinding(element, type);
@@ -3456,7 +3455,6 @@ ns.version = '1.2.7';
 					element = document.getElementById(element);
 				}
 
-				
 				if (!childOnly) {
 					// If type is not defined all widgets should be removed
 					// this is for backward compatibility
@@ -8100,13 +8098,29 @@ ns.version = '1.2.7';
 				 */
 				IMAGE_PATH_REGEXP = /url\((\.\/)?images/gm,
 				/**
+				 * Regular expression for extracting url from css content
+				 * @property {RegExp} CSS_URL_REGEXP
+				 * @static
+				 * @private
+				 * @member ns.util.load
+				 */
+				CSS_URL_REGEXP = /url\((.+)\)/gm,
+				/**
 				 * Regular expression for extracting path to the css
 				 * @property {RegExp} CSS_FILE_REGEXP
 				 * @static
 				 * @private
 				 * @member ns.util.load
 				 */
-				CSS_FILE_REGEXP = /[^/]+\.css$/;
+				CSS_FILE_REGEXP = /[^/]+\.css$/,
+				/**
+				 * Regular expression for extracting base path of css file
+				 * @property {RegExp} BASE_PATH_REGEXP
+				 * @static
+				 * @private
+				 * @member ns.util.load
+				 */
+				BASE_PATH_REGEXP = /[^\/]+$/;
 
 			/**
 			 * Load file
@@ -8223,12 +8237,36 @@ ns.version = '1.2.7';
 			 * @method cssSyncSuccess
 			 * @param {string} cssPath
 			 * @param {?Function} successCB
-			 * @param {?Function} xhrObj
+			 * @param {Object} xhrObj
 			 * @member ns.util.load
 			 * @static
 			 * @private
 			 */
 			function cssSyncSuccess(cssPath, successCB, xhrObj) {
+				var css = document.createElement("style"),
+					pathRelatedToBaseApp = cssPath.replace(BASE_PATH_REGEXP, "");
+
+				css.type = "text/css";
+				css.textContent = xhrObj.responseText.replace(
+					CSS_URL_REGEXP,
+					"url(" + pathRelatedToBaseApp + "$1)"
+				);
+				if (typeof successCB === "function") {
+					successCB(css);
+				}
+			}
+
+			/**
+			 * Callback function on tau theme css load success
+			 * @method cssThemeSyncSuccess
+			 * @param {string} cssPath
+			 * @param {?Function} successCB
+			 * @param {Object} xhrObj
+			 * @member ns.util.load
+			 * @static
+			 * @private
+			 */
+			function cssThemeSyncSuccess(cssPath, successCB, xhrObj) {
 				var css = document.createElement("style");
 
 				css.type = "text/css";
@@ -8249,11 +8287,24 @@ ns.version = '1.2.7';
 			 * @param {?Function} successCB
 			 * @param {?Function} errorCB
 			 * @static
-			 * @private
 			 * @member ns.util.load
 			 */
 			function cssSync(cssPath, successCB, errorCB) {
 				loadFileSync(cssPath, cssSyncSuccess.bind(null, cssPath, successCB), errorCB);
+			}
+
+			/**
+			 * Add tau theme css to document
+			 * (synchronous loading)
+			 * @method cssThemeSync
+			 * @param {string} cssPath
+			 * @param {?Function} successCB
+			 * @param {?Function} errorCB
+			 * @static
+			 * @member ns.util.load
+			 */
+			function cssThemeSync(cssPath, successCB, errorCB) {
+				loadFileSync(cssPath, cssThemeSyncSuccess.bind(null, cssPath, successCB), errorCB);
 			}
 
 			/**
@@ -8348,7 +8399,7 @@ ns.version = '1.2.7';
 
 				if (embed) {
 					// Load and replace old styles or append new styles
-					cssSync(path, function (styleElement) {
+					cssThemeSync(path, function (styleElement) {
 						addNodeAsTheme(styleElement, themeName, previousElement);
 					}, function (xhrObj, xhrStatus) {
 						ns.warn("There was a problem when loading '" + themeName + "', status: " + xhrStatus);
@@ -8371,6 +8422,7 @@ ns.version = '1.2.7';
 			load.addElementToHead = addElementToHead;
 			load.makeLink = makeLink;
 			load.themeCSS = themeCSS;
+			load.cssSync = cssSync;
 			load.JSON = loadJSON;
 
 			ns.util.load = load;
@@ -24667,6 +24719,7 @@ function pathToRegexp (path, keys, options) {
 					element.classList.add(classes.uiSectionChanger);
 
 					self.scroller.style.position = "absolute";
+					self.scroller.classList.add("ui-section-changer-container");
 					self.orientation = options.orientation === "horizontal" ? Orientation.HORIZONTAL : Orientation.VERTICAL;
 
 					return element;
@@ -28748,18 +28801,29 @@ function pathToRegexp (path, keys, options) {
 					urlObject;
 
 				if (!content.parentNode || content.ownerDocument !== document) {
-					content = ns.util.importEvaluateAndAppendElement(content, element, options);
-					// make urls relative to base dir
+					// load styles.css
+					links = content.querySelectorAll(selectors.LINKS);
+					links.forEach(function (link) {
+						if (link.href.indexOf(ns.util.path.parseLocation(options.url).domain) === 0) {
+							urlObject = ns.util.path.parseLocation(options.url);
+							relativeFile = link.href.replace(urlObject.domain, "").replace(urlObject.directory, "");
+							ns.util.load.cssSync(link.href, function (styleElement) {
+								ns.util.load.addElementToHead(styleElement, true);
+							}, function (xhrObj, xhrStatus) {
+								ns.warn("There was a problem when loading, status: " + xhrStatus);
+							});
+						}
+						link.parentElement.removeChild(link);
+					});
+
+					// evaluate scripts
+					content = ns.util.importEvaluateAndAppendElement(content, element);
+
+					// make images urls relative to base dir
 					if (options && options.url) {
 						urlObject = ns.util.path.parseLocation(options.url);
 						relativePath = options.url.replace(URL_FILE_REGEXP, "");
-						links = content.querySelectorAll(selectors.LINKS);
-						links.forEach(function (link) {
-							if (link.href.indexOf(ns.util.path.parseLocation(options.url).domain) === 0) {
-								relativeFile = link.href.replace(urlObject.domain, "").replace(urlObject.directory, "");
-								link.href = relativePath + relativeFile;
-							}
-						});
+
 						images = content.querySelectorAll(selectors.IMAGES);
 						images.forEach(function (source) {
 							if (source.src.indexOf(ns.util.path.parseLocation(options.url).domain) === 0) {
@@ -28775,10 +28839,14 @@ function pathToRegexp (path, keys, options) {
 			prototype.changeContent = function (content, options) {
 				var self = this;
 
-				content = self._include(content, options);
-				self.element.parentElement.replaceChild(content, self.element);
-				ns.engine.createWidgets(content);
-				eventUtils.trigger(content, "cardcontentchange");
+				if (self.element.parentElement) {
+					content = self._include(content, options);
+					ns.engine.createWidgets(content);
+					eventUtils.trigger(content, "cardcontentchange");
+				} else {
+					eventUtils.trigger(content, "cardcontentabort");
+				}
+
 			};
 
 			/**
@@ -28854,12 +28922,14 @@ function pathToRegexp (path, keys, options) {
 						actionButtonsContainer: null,
 						page: null,
 						selectAll: null,
-						bottomBar: null
+						bottomBar: null,
+						instantContainers: []
 					};
 					self._expandedHeight = nominalHeights.EXPANDED;
 					self._appbarState = states.COLLAPSED;
 					self._dragStartingHeight = 0;
 					self._currentHeight = 0;
+					self._instantContainersHeight = 0;
 					self._scrolledToTop = true;
 					self._lockExpanding = false;
 					self._calculateExtendedHight();
@@ -28871,6 +28941,7 @@ function pathToRegexp (path, keys, options) {
 					title: classPrefix + "-title",
 					leftIconsContainer: classPrefix + "-left-icons-container",
 					actionButtonsContainer: classPrefix + "-action-buttons-container",
+					instantContainer: classPrefix + "-container",
 					titleContainer: classPrefix + "-title-container",
 					hasMultilineTitle: classPrefix + "-has-multiline",
 					hasSubtitle: classPrefix + "-has-subtitle",
@@ -28939,21 +29010,115 @@ function pathToRegexp (path, keys, options) {
 				var self = this;
 
 				self._createContainers(element);
+				self._findInstantContainers(element);
 				self._readTitleType(element);
 				self._setTitleType(element, self.options.titleType);
 				return element;
 			};
 
+			prototype._calculateInstantContainers = function (element) {
+				var self = this,
+					instantContainersHeight = 0;
+
+				// calculate instant containers height
+				element.style.height = "auto";
+				self._ui.instantContainers.forEach(function (container) {
+					instantContainersHeight += container.offsetHeight;
+				});
+
+				return instantContainersHeight;
+			};
+
+			prototype._updateAppbarDimensions = function (element) {
+				var self = this,
+					instantContainersHeight = self._instantContainersHeight,
+					controlsContainer = self._ui.controlsContainer;
+
+				// increase height of appbar and change bottom possition of control container
+				if (instantContainersHeight > 0) {
+					self._calculateExtendedHight();
+					self._expandedHeight += instantContainersHeight;
+					self._currentHeight += instantContainersHeight;
+					if (controlsContainer) {
+						controlsContainer.style.bottom = instantContainersHeight + "px";
+					}
+					self._instantContainersHeight = instantContainersHeight
+				}
+
+				// set initial height of collapsed appbar
+				element.style.height = nominalHeights.COLLAPSED + self._instantContainersHeight + "px";
+			};
+
+			/**
+			 * Method set new height of appbar if instant container exists
+			 * @param {HTMLElement} element
+			 * @method _findInstantContainers
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype._findInstantContainers = function (element) {
+				var self = this;
+
+				self._ui.instantContainers = [].slice.call(element.querySelectorAll("." + classes.instantContainer));
+
+				self._instantContainersHeight = self._calculateInstantContainers(element);
+				self._updateAppbarDimensions(element);
+			};
+
+			/**
+			 * Add Html element as instant container
+			 * @param {HTMLElement} container
+			 * @method addInstantContainer
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype.addInstantContainer = function (container) {
+				var self = this;
+
+				if (container && container instanceof HTMLElement) {
+					container.classList.add(classes.instantContainer);
+					self.element.appendChild(container);
+					self.refresh();
+				} else {
+					ns.warn("AppBar: method addInstantContainer needs argument");
+				}
+			}
+
+			/**
+			 * Remove instant container
+			 * @param {HTMLElement} container
+			 * @method removeInstantContainer
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype.removeInstantContainer = function (container) {
+				var self = this;
+
+				if (container && container instanceof HTMLElement) {
+					if (container.parentElement) {
+						container.parentElement.removeChild(container);
+						self.refresh();
+					}
+				} else {
+					ns.warn("AppBar: method removeInstantContainer needs argument");
+				}
+			}
+
 			/**
 			 * Refresh the widget
 			 * @method _refresh
 			 * @member ns.widget.core.Appbar
+			 * @param {HTMLElement} element
 			 * @protected
 			 */
 			prototype._refresh = function (element) {
 				var self = this;
 
-				self._setLineType(element);
+				element = element || self.element;
+				self._findInstantContainers(element);
+				self._ui.instantContainers.forEach(function (container) {
+					ns.engine.createWidgets(container);
+				});
 			};
 
 			/**
@@ -28972,7 +29137,7 @@ function pathToRegexp (path, keys, options) {
 
 				if (screenHeight >= 580 && screenHeight < 960 && screenWidth > screenHeight) { // lanscape
 					self._expandedHeight = screenHeight * 0.3 - bottomMarginHeight;
-				} else if (screenHeight >= 580 && screenHeight < 960 && screenWidth < screenHeight) { // portrait
+				} else if (screenHeight >= 580 && screenHeight < 960 && screenWidth <= screenHeight) { // portrait
 					self._expandedHeight = screenHeight * 0.3967 - bottomMarginHeight;
 				} else if (screenHeight >= 960) {
 					self._expandedHeight = screenHeight * 0.25 - bottomMarginHeight;
@@ -29220,7 +29385,7 @@ function pathToRegexp (path, keys, options) {
 				var self = this,
 					element = self.element;
 
-				element.style.height = "";
+				element.style.height = self._expandedHeight + "px";
 				element.classList.add(classes.expanded);
 				self._appbarState = states.EXPANDED;
 				self._setTitlesOpacity(1);
@@ -29253,8 +29418,9 @@ function pathToRegexp (path, keys, options) {
 				var self = this,
 					element = self.element;
 
-				element.style.height = "";
-				self._currentHeight = 0;
+				self._currentHeight = self._instantContainersHeight;
+				element.style.height = nominalHeights.COLLAPSED + self._instantContainersHeight + "px";
+
 				element.classList.remove(classes.expanded);
 				self._appbarState = states.COLLAPSED;
 				self._setTitlesOpacity(0);
