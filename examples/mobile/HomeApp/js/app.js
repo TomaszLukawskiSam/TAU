@@ -4,10 +4,15 @@ import Storage from "./clipping-storage.js";
 
 	"use strict";
 	var tau = window.tau,
+		HomeApp = function () {
+			this.version = "0.1";
+			this.appsList = [];
+		},
+		prototype = HomeApp.prototype,
 
 		storage = new Storage(),
-		appsList = [],
-		socket = null;
+		socket = null,
+		homeApp;
 
 	const defaultList = [{
 			"appID": "vUf39tzQ3s.UIComponents",
@@ -16,11 +21,22 @@ import Storage from "./clipping-storage.js";
 			"webClipsList": [
 				{
 					url: "webclip/apps-on-tv",
-					isSelected: false
+					isSelected: true
 				},
 				{
 					url: "webclip/latest-news",
 					isSelected: false
+				}
+			]
+		},
+		{
+			"appID": "vUf39tzQ4s.UIComponents",
+			"isInstalled": false,
+			"isActive": false,
+			"webClipsList": [
+				{
+					url: "webclip/netflix",
+					isSelected: true
 				}
 			]
 		},
@@ -31,11 +47,11 @@ import Storage from "./clipping-storage.js";
 			"webClipsList": [
 				{
 					url: "webclip/now-on-tv",
-					isSelected: false
+					isSelected: true
 				},
 				{
 					url: "webclip/restaurant",
-					isSelected: true
+					isSelected: false
 				}
 			]
 		},
@@ -46,10 +62,21 @@ import Storage from "./clipping-storage.js";
 			"webClipsList": [
 				{
 					url: "webclip/tv-remote-control",
-					isSelected: true
+					isSelected: false
 				},
 				{
 					url: "webclip/weather",
+					isSelected: false
+				}
+			]
+		},
+		{
+			"appID": "vUf39tzQvi.Video",
+			"isInstalled": false,
+			"isActive": false,
+			"webClipsList": [
+				{
+					url: "webclip/video-service",
 					isSelected: true
 				}
 			]
@@ -74,34 +101,147 @@ import Storage from "./clipping-storage.js";
 
 			fetch(requestURL)
 				.then((response) => response.json())
-				.then((data) => {
-					addWSListener(data.wsPort);
-					resolve(data.apps);
+				.then((response) => {
+					addWSListener(response.data.wsPort);
+					resolve(response.data.apps);
 				})
-				.catch(() => {
-					reject();
+				.catch((e) => {
+					reject(e);
 				})
 		});
 
-	function updateAppsList(apps) {
+
+	homeApp = new HomeApp();
+
+	prototype.createControlCard = function (data) {
+		var controlCard = document.createElement("div"),
+			title = document.createElement("span"),
+			icon = document.createElement("div"),
+			img = document.createElement("img"),
+			a = document.createElement("a");
+
+		controlCard.classList.add("ui-content-area");
+		icon.classList.add("ui-icon");
+		title.classList.add("ui-title");
+		title.textContent = data.title;
+		img.src = data.icon;
+		a.href = data.href || "#next-control";
+		a.setAttribute("data-style", "flat");
+		a.setAttribute("data-inline", true);
+		a.setAttribute("data-icon", "next");
+		a.classList.add("ui-btn");
+
+		icon.appendChild(img);
+
+		controlCard.appendChild(icon);
+		controlCard.appendChild(title);
+		controlCard.appendChild(a);
+
+		return controlCard;
+	}
+
+	prototype.addControlCard = function (data) {
+		var controlCard = this.createControlCard(data),
+			appBarElement = document.querySelector(".ui-page-active header"),
+			appBar = tau.widget.Appbar(appBarElement);
+
+		controlCard.setAttribute("data-title", data.title);
+
+		appBar.addInstantContainer(controlCard);
+	}
+
+	prototype.removeControlCard = function (card) {
+		var appBarElement = document.querySelector(".ui-page-active header"),
+			appBar = tau.widget.Appbar(appBarElement);
+
+		appBar.removeInstantContainer(card);
+	}
+
+	function updateAppsList(message) {
+		if (message.type === "full") {
+			return updateAppsListFull(message.data);
+		} else if (message.type === "diff") {
+			updateAppsListDiff(message.data);
+			return true;
+		} else {
+			console.warn("app.js: unsupported type of applist.");
+		}
+		return false;
+	}
+
+	function updateAppsListDiff(apps) {
+		apps.forEach(function (remoteApp) {
+			if (remoteApp.action === "add") { // add (or update if app already added)
+				const localApp = homeApp.appsList.filter(function (localApp) {
+					return remoteApp.appID === localApp.appID;
+				})[0];
+
+				delete remoteApp.action;
+
+				if (!localApp) { // add new
+					homeApp.appsList.push(remoteApp);
+				} else { // update local app
+					/**
+					 * @todo
+					 * Which properties we need update
+					 */
+					localApp.isActive = remoteApp.isActive;
+				}
+			} else if (remoteApp.action === "remove") { // remove local app
+				homeApp.appsList = homeApp.appsList.filter(function (localApp) {
+					return remoteApp.appID !== localApp.appID;
+				});
+			} else {
+				console.warn("Unsupported action:", remoteApp.action);
+			}
+
+		});
+
+		updateOrderOfApplist();
+	}
+
+	function updateOrderOfApplist() {
 		var change = false,
-			appsCount = appsList.length,
 			currentOrder = "";
 
+		currentOrder = homeApp.appsList.reduce(function (prev, app) {
+			return prev + app.appID;
+		}, "");
+
+		// check apps order
+		homeApp.appsList = homeApp.appsList.sort(function (app1, app2) {
+			return (app1.isActive) ?
+				(app2.isActive) ? 0 : -1 : 1
+		});
+
+		// order has been changed
+		if (currentOrder !== homeApp.appsList.reduce(function (prev, app) {
+			return prev + app.appID;
+		}, "")) {
+			change = true;
+		}
+
+		return change;
+	}
+
+	function updateAppsListFull(apps) {
+		var change = false,
+			appsCount = homeApp.appsList.length;
+
 		// remove app from local apps list if not exists on remote host
-		appsList = appsList.filter(function (localApp) {
+		homeApp.appsList = homeApp.appsList.filter(function (localApp) {
 			return apps.some(function (remoteApp) {
 				return remoteApp.appID === localApp.appID;
 			});
 		});
 
-		if (appsCount !== appsList.length) {
+		if (appsCount !== homeApp.appsList.length) {
 			change = true;
 		}
 
 		// filter app which should be add to local apps list
 		const added = apps.filter(function (remoteApp) {
-			return !appsList.some(function (localApp) {
+			return !homeApp.appsList.some(function (localApp) {
 				return localApp.appID === remoteApp.appID;
 			});
 		});
@@ -112,14 +252,11 @@ import Storage from "./clipping-storage.js";
 
 		// add apps to local apps list
 		added.forEach(function (remoteApp) {
-			remoteApp.webClipsList.forEach((webclip) => {
-				webclip.isSelected = !!remoteApp.isSelected;
-			});
-			appsList.push(remoteApp);
+			homeApp.appsList.push(remoteApp);
 		});
 
 		// update active items
-		appsList.forEach(function (localApp) {
+		homeApp.appsList.forEach(function (localApp) {
 			apps.forEach(function (remoteApp) {
 				if (remoteApp.appID === localApp.appID) {
 					if (localApp.isActive !== remoteApp.isActive) {
@@ -130,20 +267,7 @@ import Storage from "./clipping-storage.js";
 			})
 		});
 
-		currentOrder = appsList.reduce(function (prev, app) {
-			return prev + app.appID;
-		}, "");
-
-		// check apps order
-		appsList = appsList.sort(function (app1, app2) {
-			return (app1.isActive) ?
-				(app2.isActive) ? 0 : -1 : 1
-		});
-
-		// order has been changed
-		if (currentOrder !== appsList.reduce(function (prev, app) {
-			return prev + app.appID;
-		}, "")) {
+		if (updateOrderOfApplist()) {
 			change = true;
 		}
 
@@ -151,14 +275,14 @@ import Storage from "./clipping-storage.js";
 	}
 
 	function onWSMessage(message) {
-		const messageObj = JSON.parse(message.data);
+		const data = (typeof message.data === "string") ? JSON.parse(message.data) : message;
 
 		socket.send(JSON.stringify({cmd: "echo"}));
 
-		if (updateAppsList(messageObj.apps)) {
+		if (updateAppsList(data)) {
 			tau.log("change");
 
-			storage.refreshStorage(Storage.elements.APPSLIST, appsList);
+			storage.refreshStorage(Storage.elements.APPSLIST, homeApp.appsList);
 
 			updateWebClipsUI();
 			updateWebClipListPopup();
@@ -175,20 +299,50 @@ import Storage from "./clipping-storage.js";
 		socket.addEventListener("message", onWSMessage);
 	}
 
+	async function getManifests() {
+		const promisesList = [],
+			indexesList = [];
+
+		let	responses = [];
+
+		homeApp.appsList.forEach(function (app, appIndex) {
+			app.webClipsList.forEach(function (webClip, webClipIndex) {
+				promisesList.push(
+					fetch(webClip.url + "\\manifest.json")
+				);
+				indexesList.push({appIndex: appIndex, webClipIndex: webClipIndex});
+			});
+		});
+
+		responses = await Promise.allSettled(promisesList);
+
+		for (let responseIndex = 0; responseIndex < responses.length; responseIndex++) {
+			const response = responses[responseIndex];
+
+			if (response.status === "rejected" || !response.value.ok) {
+				homeApp.appsList[indexesList[responseIndex].appIndex].webClipsList.splice(indexesList[responseIndex].webClipIndex, 1);
+			} else {
+				const contentPromise = await response.value.json();
+
+				homeApp.appsList[indexesList[responseIndex].appIndex].webClipsList[indexesList[responseIndex].webClipIndex].manifest = contentPromise;
+			}
+		}
+	}
+
 	function changeTheme(event) {
 		tau.theme.setTheme(event.target.value);
 	}
 
 	function onPopupSubmit() {
-		appsList.forEach(function (app) {
-			app.webClipsList.forEach(function (webclip) {
-				const webClipName = getWebClipName(webclip.url),
-					checkbox = document.querySelector("#" + webClipName);
+		homeApp.appsList.forEach(function (app) {
+			app.webClipsList.forEach(function (webClip) {
+				const webClipName = getWebClipNameFromUrl(webClip.url),
+					checkbox = document.getElementById("popup-checkbox-" + webClipName);
 
-				webclip.isSelected = checkbox.checked;
+				webClip.isSelected = checkbox.checked;
 			})
 		});
-		storage.refreshStorage(Storage.elements.APPSLIST, appsList);
+		storage.refreshStorage(Storage.elements.APPSLIST, homeApp.appsList);
 
 		updateWebClipsUI();
 		tau.history.back();
@@ -204,34 +358,98 @@ import Storage from "./clipping-storage.js";
 		drawerWidget.open();
 	}
 
-	function updateWebClipsUI() {
-		var current = document.querySelectorAll(".ui-card"),
-			webclipsContainer = document.getElementById("web-clips");
+	function createWebClipCard(webClip) {
+		var card = document.createElement("div"),
+			webClipUrl = webClip.url;
 
-		// remove previous
-		current.forEach(function (card) {
-			card.parentElement.removeChild(card);
+		// add slash for name of webClip
+		if (!webClipUrl.match(/\/$/)) {
+			webClipUrl += "/";
+		}
+		webClipUrl += "webclip.html";
+
+		card.classList.add("ui-card");
+		card.setAttribute("data-src", webClipUrl);
+
+		return card;
+	}
+
+	function updateWebClipsUI() {
+		var webclipsContainer = document.getElementById("web-clips"),
+			// get Cards elements and convert NodeList to array
+			currentWebClipsCards = [].slice.call(webclipsContainer.querySelectorAll(".ui-card[data-url],.ui-card[data-src]")),
+			// list of webClips url in order
+			webClipsUrlList = homeApp.appsList.reduce(function (prev, app) {
+				return prev.concat(
+					app.webClipsList.filter((webClip) => webClip.isSelected)
+						.map((webClip) => webClip.url));
+			}, []);
+
+		// remove card
+		currentWebClipsCards.forEach(function (card) {
+			const found = webClipsUrlList.filter(function (webClipUrl) {
+				return card.dataset.url && card.dataset.url.indexOf(webClipUrl) > -1 ||
+					card.dataset.src && card.dataset.src.indexOf(webClipUrl) > -1;
+			});
+
+			// remove card from UI if not exists on list
+			if (found.length === 0) {
+				card.parentElement.removeChild(card);
+			}
 		});
 
-		appsList.forEach(function (app) {
-			app.webClipsList.forEach((webclip) => {
-				let card,
-					webClipUrl;
+		// add card
+		homeApp.appsList.forEach(function (app) {
+			app.webClipsList.forEach((webClip) => {
+				const found = currentWebClipsCards.filter(function (card) {
+					return card.dataset.url && card.dataset.url.indexOf(webClip.url) > -1 ||
+						card.dataset.src && card.dataset.src.indexOf(webClip.url) > -1;
+				});
 
-				if (webclip.isSelected) {
-					card = document.createElement("div"),
-					webClipUrl = webclip.url;
-
-					// add slash for name of webClip
-					if (!webClipUrl.match(/\/$/)) {
-						webClipUrl += "/";
+				if (found.length === 0 &&
+					webClip.manifest && webClip.manifest.cardType !== "control") {
+					if (webClip.isSelected) {
+						webclipsContainer.appendChild(
+							createWebClipCard(webClip)
+						);
 					}
-					webClipUrl += "webclip.html";
+				}
+			});
+		});
 
-					card.classList.add("ui-card");
-					card.setAttribute("data-src", webClipUrl);
+		// set proper order of cards
+		// @todo change inline styles to css class after merge HomeApp branches
+		webclipsContainer.style.display = "flex";
+		webclipsContainer.style.flexDirection = "column";
+		currentWebClipsCards = [].slice.call(webclipsContainer.querySelectorAll(".ui-card[data-url],.ui-card[data-src]"));
 
-					webclipsContainer.appendChild(card);
+		webClipsUrlList.forEach(function (url, order) {
+			const card = currentWebClipsCards.filter(function (card) {
+				return card.dataset.url && card.dataset.url.indexOf(url) > -1 ||
+					card.dataset.src && card.dataset.src.indexOf(url) > -1;
+			})[0];
+
+			if (card) {
+				card.style.order = order;
+			}
+		});
+
+		// add/remove mini control cards
+		homeApp.appsList.forEach(function (app) {
+			app.webClipsList.forEach((webClip) => {
+				if (webClip.manifest && webClip.manifest.cardType === "control") {
+					if (webClip.isSelected) {
+						if (!document.querySelector("[data-title='" + webClip.manifest.description + "']")) {
+							homeApp.addControlCard({
+								title: webClip.manifest.description,
+								href: "#open-control-card",
+								icon: "images/Icon.png"}
+							);
+						}
+					} else if (document.querySelector("[data-title='" + webClip.manifest.description + "']")) {
+						// remove mini controll card
+						homeApp.removeControlCard(document.querySelector("[data-title='" + webClip.manifest.description + "']"));
+					}
 				}
 			});
 		});
@@ -241,13 +459,12 @@ import Storage from "./clipping-storage.js";
 
 	//TODO: provide mechanism for getting web clip name from webClip meta data
 	//		and separate from getting ID
-	function getWebClipName(webClip) {
+	function getWebClipNameFromUrl(webClip) {
 		// remove all text to the last \
 		return webClip.replace(/.*\//, "");
 	}
 
 	function updateWebClipListPopup() {
-
 		var popupList = document.getElementById("popup-list");
 
 		// remove previous li items
@@ -255,45 +472,36 @@ import Storage from "./clipping-storage.js";
 			popupList.firstChild.remove()
 		}
 
-		appsList.forEach(function (app) {
-			app.webClipsList.forEach(function (webclip) {
+		homeApp.appsList.forEach(function (app) {
+			app.webClipsList.forEach(function (webClip) {
 				var li = document.createElement("li"),
 					input = document.createElement("input"),
 					label = document.createElement("label"),
-					webClipName = getWebClipName(webclip.url);
+					webClipName = getWebClipNameFromUrl(webClip.url);
 
 				li.classList.add("ui-li-has-checkbox");
 				li.classList.add("ui-group-index");
 
 				input.setAttribute("type", "checkbox");
-				input.setAttribute("id", webClipName);
+				input.setAttribute("id", "popup-checkbox-" + webClipName);
 
-				label.setAttribute("for", webClipName);
+				label.setAttribute("for", "popup-checkbox-" + webClipName);
 				label.classList.add("ui-li-text");
-
-				fetch(`${webclip.url}/manifest.json`)
-					.then((out) => out.json())
-					.then((manifest) => {
-						label.innerHTML = manifest.description;
-					})
-					.catch((err) => {
-						console.error(err);
-					});
+				label.innerHTML = webClip.manifest && webClip.manifest.description || webClipName;
 
 				li.appendChild(input);
 				li.appendChild(label);
 				popupList.appendChild(li);
-
 			});
 		});
 
 		tau.engine.createWidgets(popupList);
 
-		appsList.forEach(function (app) {
-			app.webClipsList.forEach(function (webclip) {
-				if (webclip.isSelected) {
-					const webClipName = getWebClipName(webclip.url),
-						checkbox = document.querySelector("#" + webClipName);
+		homeApp.appsList.forEach(function (app) {
+			app.webClipsList.forEach(function (webClip) {
+				if (webClip.isSelected) {
+					const webClipName = getWebClipNameFromUrl(webClip.url),
+						checkbox = document.getElementById("popup-checkbox-" + webClipName);
 
 					if (checkbox) {
 						checkbox.checked = true;
@@ -322,18 +530,23 @@ import Storage from "./clipping-storage.js";
 		popupButton.addEventListener("click", onPopupSubmit);
 
 		// use apps list from storage or default apps list if sth wrong
-		appsList = storage.readAllFromStorage(Storage.elements.APPSLIST);
-		if (appsList.length === 0) {
-			updateAppsList(defaultList);
-		}
+		homeApp.appsList = storage.readAllFromStorage(Storage.elements.APPSLIST);
 
-		// check webclips on remote server
+		// upate webclips from remote server
 		getAppsList.then((apps) => {
-			updateAppsList(apps);
+			updateAppsListFull(apps);
+		}).catch((e) => {
+			console.warn("Error getting app lits: " + e.message);
+			if (homeApp.appsList.length === 0) {
+				updateAppsListFull(defaultList);
+			}
 		}).finally(() => {
-			storage.refreshStorage(Storage.elements.APPSLIST, appsList);
-			updateWebClipsUI();
-			updateWebClipListPopup();
+			// check webclips access
+			getManifests().then(() => {
+				storage.refreshStorage(Storage.elements.APPSLIST, homeApp.appsList);
+				updateWebClipsUI();
+				updateWebClipListPopup();
+			});
 		});
 	}
 
@@ -347,5 +560,5 @@ import Storage from "./clipping-storage.js";
 
 	// assing D2D class to global scope
 	window.D2DServiceLocal = D2DServiceLocal;
-
+	window.homeApp = homeApp;
 }());
