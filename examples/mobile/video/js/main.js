@@ -31,31 +31,21 @@ function onMessage(evt) {
     var msg = JSON.parse(evt.data);
     if (msg.id == d2dservice.SERVER) {
     } else {
-        switch(msg.type) {
-            case "channelList":
-               d2dservice.sendMessage("channelList", {channelList: channelList});
-                break;
-            case "playTV":
-                    currentChannel = msg.data.index;
-                    vid.src = channelList[msg.data.index];
-                    vid.currentTime = msg.data.time;
-                    vid.play();
-                break;
-            case "pausePlayTV":
-                if (vid.paused) {
-                    vid.play();
-                } else {
-                    vid.pause();
-                }
-                break;
-            case "changePosTV":
-                vid.currentTime += msg.data.timeDiff;
-                break;
-            case "playMobile": {
-                d2dservice.sendMessage("playMobile", {index: currentChannel, time: vid.currentTime});
-                vid.pause();
-                break;
-            }
+        if (msg.type == "channellist") {
+            d2dservice.sendMessage("channellist", {channelList: channelList});
+        } else if (msg.type == "playtv") {
+            currentChannel = msg.data.index;
+            vid.src = channelList[msg.data.index];
+            vid.currentTime = msg.data.time;
+            vid.play();
+            /*
+            vid.oncanplaythrough = function() {
+                vid.play();
+            };
+            */
+        } else if (msg.type == "playmobile") {
+            d2dservice.sendMessage("playmobile", {index: currentChannel, time: vid.currentTime});
+            vid.pause();
         }
     }
 }

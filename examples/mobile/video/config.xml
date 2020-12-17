@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://yourdomain/Single" version="1.0.0" viewmodes="maximized">
-    <access origin="*" subdomains="true"></access>
-    <tizen:application id="OZBS6gG8Jl.video" package="OZBS6gG8Jl" required_version="2.3.2"/>
-    <content src="index.html"/>
+<widget xmlns:tizen="http://tizen.org/ns/widgets" xmlns="http://www.w3.org/ns/widgets" id="http://yourdomain/Single" version="1.0.0" viewmodes="maximized">
+    <tizen:application id="OZBS6gG8Jl.video" package="OZBS6gG8Jl" required_version="5.5"/>
+    <content src="client.html"/>
     <feature name="http://tizen.org/feature/screen.size.all"/>
     <icon src="icon.png"/>
     <tizen:metadata key="d2dservice" value="enable"/>
     <name>video</name>
-    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <access origin="*" subdomains="true"></access> <tizen:privilege name="http://tizen.org/privilege/internet"/>
     <tizen:setting context-menu="disable"/>
 </widget>

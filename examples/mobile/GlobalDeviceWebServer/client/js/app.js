@@ -1,5 +1,6 @@
 import Storage from "./clipping-storage.js";
 import Actions from './actions.js';
+import { openAppWindow } from './myApps.js';
 
 const moduleapp = {};
 
@@ -13,40 +14,22 @@ const moduleapp = {};
 
 	const defaultList = [
 		{
-			"appID": "vUf39tzQ3s.UIComponents",
+			"appID": "OZBS6gG8Jl.video",
 			"isInstalled": true,
 			"isActive": true,
 			"webClipsList": [
 				{
-					url: "webclip/apps-on-tv",
+					url: "opt/usr/globalapps/OZBS6gG8JL/shared/res/webclip",
 					isSelected: true
 				}
 			]
-		}, {
+		},{
 			"appID": "vUf39tzQ3t.UIComponents",
 			"isInstalled": true,
 			"isActive": false,
 			"webClipsList": [
 				{
-					url: "webclip/now-on-tv",
-					isSelected: false
-				},
-				{
 					url: "webclip/restaurant",
-					isSelected: true
-				}
-			]
-		}, {
-			"appID": "OZBS6gG8Jl.video",
-			"isInstalled": true,
-			"isActive": false,
-			"webClipsList": [
-				{
-					url: "webclip/video-control",
-					isSelected: true
-				},
-				{
-					url: "webclip/video-service",
 					isSelected: true
 				}
 			]
@@ -105,7 +88,7 @@ const moduleapp = {};
 		});
 
 		updateOrderOfApplist();
-	}
+	}	
 
 	function updateOrderOfApplist() {
 		var change = false,
@@ -179,8 +162,7 @@ const moduleapp = {};
 		};
 
 		return change;
-	}
-
+	}	
 	function onWSMessage(message) {
 		if (updateAppsList(message)) {
 			tau.log("change");
@@ -192,7 +174,6 @@ const moduleapp = {};
 			tau.log("nothing change");
 		}
 	}
-
 	async function validateAppsList() {
 		const promisesList = [],
 			indexesList = [];
@@ -244,11 +225,9 @@ const moduleapp = {};
 
 		drawerWidget.open();
 	}
-
 	function onDone(result) {
-		tau.log("Send 'webclip-message' done.", result);
+		console.log("onDone", result);
 	}
-
 	function createWebClipCard(webClip, appID) {
 		var card = document.createElement("div"),
 			webClipUrl = webClip.url;
@@ -262,7 +241,10 @@ const moduleapp = {};
 		card.classList.add("ui-card");
 		card.setAttribute("data-src", webClipUrl);
 		card.addEventListener("webclip-message", function (ev) {
-			actions.sendDataToApp(appID, ev.detail, onDone);
+			if(ev.detail.remoteui)
+				actions.sendDataToApp(appID, ev.detail, openAppWindow);
+			else
+				actions.sendDataToApp(appID, ev.detail, onDone);
 		});
 
 		return card;
@@ -303,7 +285,7 @@ const moduleapp = {};
 				if (found.length === 0) {
 					if (webClip.isSelected) {
 						webclipsContainer.appendChild(
-							createWebClipCard(webClip, app.appID)
+							createWebClipCard(webClip,app.appID)
 						);
 					}
 				}

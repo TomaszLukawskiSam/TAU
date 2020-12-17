@@ -10,6 +10,7 @@ class Actions {
      * @param {Function} callback
      * @returns {Function}
      */
+
     launchAppOnTV(appPkgID, appAppID, callback) {
         const xhr = new XMLHttpRequest();
 
@@ -32,7 +33,6 @@ class Actions {
      */
     sendDataToApp(appID, data, callback) {
         const xhr = new XMLHttpRequest();
-
         data.appAppID = appID;
         data.appPkgID = appID.replace(/\..+$/, "");
 
@@ -55,4 +55,3 @@ class Actions {
 }
 
 export default Actions;
-

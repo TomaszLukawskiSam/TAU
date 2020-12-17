@@ -2,32 +2,60 @@ var express = require('express');
 var http = require('http');
 var path = require("path");
 var EventEmitter = require('events');
+var WebSocket = require('ws');
 
-var httpserver, evtEmit, appsrwDir;
+var httpserver, evtEmit, appsrwDir, d2dService;
 var apps, dataApps = [];
 var relayServer = require('./relay-server.js');
-var webclipapps1 = [{
-  "appID": "OZBS6gG8Jl.weather",
-  "isInstalled": true,
-  "isActive": true,
-  "webClipsList": [
-    {
-      url: "webclip/weather"
-    }
-  ],
-  "action": "add"
-}];
-var webclipapps2 = [{
-  "appID": "OZBS6gG8Jl.weather",
-  "isInstalled": false,
-  "isActive": false,
-  "webClipsList": [
-    {
-      url: "webclip/weather"
-    }
-  ],
-  "action": "remove"
-}];
+
+class D2DServiceLocal {
+  constructor() {
+      this.initialize();
+  }
+  initialize() {
+      const pkgId = "2FUI52kIJP";
+      const SERVER = -1;
+      const clients = [];
+      const scale = 2.5;
+
+      this.TO_ALL = 100; // Assume that only 100 clients can be connected to a web socket server
+      this.websocket = new WebSocket("ws://localhost:9000/" + pkgId);
+
+      this.websocket.onmessage = function(evt) {
+        var msg = JSON.parse(evt.data);
+        if (msg.id == SERVER) {
+          if (msg.type == "new_client") {
+            clients.push(msg.data);
+            webapis.mde.initVirtualEventGenerator(0);
+            webapis.mde.initVirtualEventGenerator(1);
+          }
+        } else {
+          if (msg.type == "keypress") {
+            webapis.mde.generateVirtualKeyEvent(msg.data.keycode, 2);
+          } else if (msg.type == "click") {
+            webapis.mde.generateVirtualMouseButtonEvent(1, 2);
+          } else if (msg.type == "touchmove") {
+            if (parseInt(msg.data.x * scale) != 0 && parseInt(msg.data.y * scale) != 0) {
+              webapis.mde.generateVirtualMouseMoveEvent(parseInt(msg.data.x * scale), parseInt(msg.data.y * scale), 1);
+            }
+          }
+        }
+      };
+      this.websocket.onclose = function(evt) {
+        webapis.mde.deInitVirtualEventGenerator(0);
+        webapis.mde.deInitVirtualEventGenerator(1);
+      };
+  }
+
+  doSend(type, data, whom = this.TO_ALL) {
+      var packet = {type: type, data: data, id: whom};
+      this.websocket.send(JSON.stringify(packet));
+  }
+
+  sendMessage(what, data, whom = this.TO_ALL) {
+      this.doSend(what, data, whom);
+  }
+}
 
 function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
   var metaDataArray = tizen.application.getAppMetaData(appAppID);
@@ -87,8 +115,7 @@ function setPackageInfoEventListener() {
     oninstalled: function(packageInfo) {
       console.log("The package " + packageInfo.name + " is installed");
       addD2Ddata(packageInfo.id, packageInfo.appIds[0], packageInfo.name, packageInfo.iconPath);
-      //evtEmit.emit("updateapplist", "message", {type:"diff", "data": dataApps}); //whktest
-      evtEmit.emit("updateapplist", "message", {"type": "diff", "data": webclipapps1});
+      evtEmit.emit("updateapplist", "message", dataApps);
     },
     onupdated: function(packageInfo) {
       console.log("The package " + packageInfo.name + " is updated");
@@ -96,8 +123,7 @@ function setPackageInfoEventListener() {
     onuninstalled: function(packageId) {
       console.log("The package " + packageId + " is uninstalled");
       removeD2Ddata(packageId);
-      //evtEmit.emit("updateapplist", "message", {type:"diff", "data": dataApps});
-      evtEmit.emit("updateapplist", "message", {"type": "diff", "data": webclipapps2});
+      evtEmit.emit("updateapplist", "message", dataApps);
     }
   };
   tizen.package.setPackageInfoEventListener(packageEventCallback);
@@ -123,18 +149,25 @@ var HTTPserverStart = function() {
   app.use(express.json());
   app.use('/app', appProxy(app, g.port));
   
-  var optDir = require('path').join(__dirname, '../client');
-  var appPath = __dirname.substring(__dirname.indexOf('/',10)+1);
-  appsrwDir = require('path').join('/home/owner/apps_rw/', appPath);
-  g.baseDir = require('path').join(appsrwDir, '../../../data/client');
-  tizen.filesystem.createDirectory(g.baseDir, true);
-  tizen.filesystem.copyDirectory(optDir,g.baseDir,true);
+  //var optDir = require('path').join(__dirname, '../client');
+  //var appPath = __dirname.substring(__dirname.indexOf('/',10)+1);
+  //appsrwDir = require('path').join('/home/owner/apps_rw/', appPath);
+  //g.baseDir = require('path').join(appsrwDir, '../../../data/client');
+  //tizen.filesystem.createDirectory(g.baseDir, true);
+  //tizen.filesystem.copyDirectory(optDir,g.baseDir,true);
 
+  //app.use(express.static(g.baseDir));
+
+ // app.get(/^\/(|enter-name\.html|index\.html)$/, (req, res) => {
+ //   res.redirect('client.html');
+ // });
+
+ // Change th code
+  g.baseDir = require('path').join(__dirname, '../../../..');
   app.use(express.static(g.baseDir));
-
   app.get(/^\/(|enter-name\.html|index\.html)$/, (req, res) => {
-    res.redirect('client.html');
-  });
+  res.redirect('QKatUa7aon' + '/res/wgt/client/client.html');
+  })
 
   app.get('/appList', (req, res) => {
     res.send(dataApps);
@@ -151,7 +184,12 @@ var HTTPserverStart = function() {
     });
   });
 
+  app.post('/url', (req, res) => {
+    webapis.mde.launchBrowserFromUrl(req.body.url);
+  });
+
   new relayServer(httpserver);
+  d2dService = new D2DServiceLocal();
 };
 
 module.exports.onStart = function() {

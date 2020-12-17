@@ -13,7 +13,7 @@ function init() {
     });
     listView = document.getElementById("listView");
     clearChannelList();
-    d2dservice.sendMessage("channelList");
+    d2dservice.sendMessage("channellist");
 }
 
 // TODO:: Developer websocket handling.
@@ -25,12 +25,12 @@ function onMessage(evt) {
     var msg = JSON.parse(evt.data);
     if (msg.id == d2dservice.SERVER) {
     } else {
-        if (msg.type == "channelList") {
+        if (msg.type == "channellist") {
             channelList = msg.data.channelList;
             for (var i = 0; i < channelList.length; i++) {
                 listupChannelList(channelList[i]);
             }
-        } else if (msg.type == "playMobile") {
+        } else if (msg.type == "playmobile") {
             currentChannel = msg.data.index;
             vid.src = channelList[msg.data.index];
             vid.currentTime = msg.data.time;
@@ -47,23 +47,12 @@ function onMessage(evt) {
 
 ////////////////////////////////////////
 function playOnTV(currentChannel,currentTime) {
-    d2dservice.sendMessage("playTV", {index: currentChannel, time: currentTime});
+    d2dservice.sendMessage("playtv", {index: currentChannel, time: currentTime});
     vid.pause();
 }
-
-function pausePlayOnTV() {
-    d2dservice.sendMessage("pausePlayTV");
-    vid.pause();
-}
-
-function changePosOnTV(value) {
-    d2dservice.sendMessage("changePosTV", {timeDiff: value})
-    vid.pause();
-}
-
 
 function playOnMobile() {
-    d2dservice.sendMessage("playMobile");
+    d2dservice.sendMessage("playmobile");
 }
 
 function playChannel(event) {

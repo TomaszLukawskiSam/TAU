@@ -10,7 +10,7 @@
     <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
     <tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
     <tizen:privilege name="http://tizen.org/privilege/mediastorage"/>
-    <tizen:service id="QKatUa7aon.Service" type="global" auto-restart="true" on-boot="true">
+    <tizen:service id="QKatUa7aon.Service" type="global">
         <tizen:content src="service/service.js"/>
         <tizen:name>TC001GlobalService</tizen:name>
         <tizen:description>TC001GlobalService</tizen:description>

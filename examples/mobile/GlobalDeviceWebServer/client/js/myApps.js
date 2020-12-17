@@ -14,13 +14,14 @@
  * limitations under the License.
  */
  "use strict";
-import { UpdateWebClip } from './app.js';
+//import { UpdateWebClip } from './app.js';
 import Actions from './actions.js';
 
 const serverPort = 9000;
 const serverURL = window.location.protocol + '//' + window.location.hostname;
 const actions = new Actions();
 const NEW_WINDOW_TIMEOUT = 1000;
+const myappsmodule = {};
 
 (function() {
     var xhr ;
@@ -30,7 +31,6 @@ const NEW_WINDOW_TIMEOUT = 1000;
         }
         return elm;
     }
-
     /**
      * Open app in new window
      * @param {Object} response
@@ -120,8 +120,8 @@ const NEW_WINDOW_TIMEOUT = 1000;
     function init() {
         var eventSource = new EventSource(serverURL + ':' + serverPort + '/updateAppList');
         eventSource.addEventListener('message', evt => {
-            //showListView(JSON.parse(evt.data));
-            UpdateWebClip(JSON.parse(evt.data)); //whktest
+            showListView(JSON.parse(evt.data));
+            //UpdateWebClip(JSON.parse(evt.data)); //whktest
         }, false);
         eventSource.addEventListener('open', evt => {
            console.log("Connected to...");
@@ -136,4 +136,10 @@ const NEW_WINDOW_TIMEOUT = 1000;
         showList();
     }
     window.onload = init;
+    myappsmodule.openAppWindow = openAppWindow;
 }());
+
+export function openAppWindow(response) {
+	myappsmodule.openAppWindow (response);
+};
+
