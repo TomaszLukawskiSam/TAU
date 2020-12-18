@@ -3,10 +3,16 @@ var http = require('http');
 var path = require("path");
 var EventEmitter = require('events');
 var WebSocket = require('ws');
+var clientRouter = express.Router();
 
 var httpserver, evtEmit, appsrwDir, d2dService;
 var apps, dataApps = [];
+var serverAppId = '';
 var relayServer = require('./relay-server.js');
+const TIZEN_WEB_APP_SHARED_RESOURCES = 'shared/res/';
+const WEBCLIP_DIRECTORY = 'webclip';
+const GLOBAL_APP_PATH = '/opt/usr/globalapps';
+const WEBCLIP_MANIFEST = 'manifest.json';
 
 class D2DServiceLocal {
   constructor() {
@@ -59,28 +65,37 @@ class D2DServiceLocal {
 
 function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
   var metaDataArray = tizen.application.getAppMetaData(appAppID);
-  for (var j = 0; j < metaDataArray.length; j++) {
-    if(metaDataArray[j].key === "d2dservice" && metaDataArray[j].value === "enable" ) {
-      var iconName = iconPath.substring(iconPath.lastIndexOf('/')+1);
-      var iconCopyPath = require('path').join(appsrwDir, '../../../data/client/images', iconName);
-      tizen.filesystem.copyFile(iconPath, iconCopyPath, true);
-      dataApps.push({
-        d2dApp: {
-          appPkgID: appPkgID,
-          appAppID: appAppID,
-          appName: appName,
-          iconName: iconName,
-        }
-      });
+
+  metaDataArray = metaDataArray.filter(function (metaData) {
+    return metaData.key === "d2dservice" && metaData.value === "enable";
+  });
+  metaDataArray.forEach(function () {
+    let appPath = path.join(GLOBAL_APP_PATH, appPkgID, TIZEN_WEB_APP_SHARED_RESOURCES);
+    let iconName = "";
+    if (iconPath) {
+      iconName =  iconPath.replace(appPath, "");
     }
-  }
+
+    //let iconCopyPath = path.join(appsrwDir, '../../../data/client/images', iconName);
+    //tizen.filesystem.copyFile(iconPath, iconCopyPath, true);
+
+    dataApps.push({
+      d2dApp: {
+        appPkgID: appPkgID,
+        appAppID: appAppID,
+        appName: appName,
+        iconName: iconName
+      },
+      path: path.join(appPath)
+    });
+  });
 }
 
 function removeD2Ddata(packageId) {
   for (var j = 0; j < dataApps.length; j++) {
     if (packageId && !packageId.indexOf(dataApps[j].d2dApp.appPkgID)) {
-      var iconFile = require('path').join(appsrwDir, '../../../data/client/images', dataApps[j].d2dApp.iconName);
-      tizen.filesystem.deleteFile(iconFile);
+      //var iconFile = require('path').join(appsrwDir, '../../../data/client/images', dataApps[j].d2dApp.iconName);
+      //tizen.filesystem.deleteFile(iconFile);
       dataApps.splice(j,1);
     }
   }
@@ -88,19 +103,19 @@ function removeD2Ddata(packageId) {
 
 function setData() {
   var i;
-  dataApps.length = 0;
+
   for (i = 0; i < apps.length; i++) {
     addD2Ddata(apps[i].packageId, apps[i].id, apps[i].name, apps[i].iconPath);
   }
 }
 
 function getAppList() {
-  var i;
   if (tizen.application) {
     try {
       tizen.application.getAppsInfo(function(applications) {
         apps = applications;
         setData();
+        getWebclipsManifest();
       });
     } catch (err) {
       return false;
@@ -110,18 +125,46 @@ function getAppList() {
   return false;
 }
 
+function getWebclipsManifest() {
+  dataApps.forEach((app) => {
+    var fileHandle;
+    var filePath = path.join(app.path, WEBCLIP_DIRECTORY, WEBCLIP_MANIFEST);
+    var data;
+
+    try {
+      fileHandle = tizen.filesystem.openFile(filePath, "r");
+    } catch (err) {
+      console.log('[GlobalWebServer] tizen.filesystem.openFile (error): ', filePath, err);
+    }
+
+    if (fileHandle) {
+      try {
+        data = fileHandle.readString();
+        data = data.replace(/\n/g, "");
+        data = JSON.parse(data);
+        app.webclip = {};
+        app.webclip.manifest = data;
+      } catch (err) {
+        console.log('[GlobalWebServer] fileHandle.readString (error): ', err);
+        app.webclip = null;
+      }
+      fileHandle.close();
+    }
+  });
+}
+
 function setPackageInfoEventListener() {
   var packageEventCallback = {
     oninstalled: function(packageInfo) {
-      console.log("The package " + packageInfo.name + " is installed");
+      console.log("[GlobalWebServer] The package " + packageInfo.name + " is installed");
       addD2Ddata(packageInfo.id, packageInfo.appIds[0], packageInfo.name, packageInfo.iconPath);
       evtEmit.emit("updateapplist", "message", dataApps);
     },
     onupdated: function(packageInfo) {
-      console.log("The package " + packageInfo.name + " is updated");
+      console.log("[GlobalWebServer] The package " + packageInfo.name + " is updated");
     },
     onuninstalled: function(packageId) {
-      console.log("The package " + packageId + " is uninstalled");
+      console.log("[GlobalWebServer] The package " + packageId + " is uninstalled");
       removeD2Ddata(packageId);
       evtEmit.emit("updateapplist", "message", dataApps);
     }
@@ -131,6 +174,29 @@ function setPackageInfoEventListener() {
 
 function unsetPackageInfoEventListener() {
   tizen.package.unsetPackageInfoEventListener();
+}
+
+function getWebClipsList() {
+  var result = [];
+  var webclips = [];
+
+  dataApps.forEach(function (app) {
+    webclips = [];
+    if (app.webclip && app.webclip.manifest) {
+      webclips.push({
+        url: path.join('webclip', app.webclip.manifest.name),
+        isSelected: true
+      });  
+    }
+    result.push({
+      appID: app.d2dApp.appPkgID,
+      isInstalled: true,
+      isActive: false,
+      webClipsList: webclips
+    });
+  });
+
+  return result;
 }
 
 var HTTPserverStart = function() {
@@ -143,31 +209,77 @@ var HTTPserverStart = function() {
   var appProxy = require('./app_proxy');
   httpserver = http.createServer(app);
   httpserver.listen(g.port, function() {
-    console.log('Server is listening on port ' + g.port);
+    console.log('[GlobalWebServer] Server is listening on port ' + g.port);
   });
   evtEmit = new EventEmitter();
   app.use(express.json());
   app.use('/app', appProxy(app, g.port));
-  
-  //var optDir = require('path').join(__dirname, '../client');
-  //var appPath = __dirname.substring(__dirname.indexOf('/',10)+1);
-  //appsrwDir = require('path').join('/home/owner/apps_rw/', appPath);
-  //g.baseDir = require('path').join(appsrwDir, '../../../data/client');
-  //tizen.filesystem.createDirectory(g.baseDir, true);
-  //tizen.filesystem.copyDirectory(optDir,g.baseDir,true);
 
-  //app.use(express.static(g.baseDir));
+  //g.baseDir = '/opt/usr/globalapps';
+  console.log("[GlobalWebServer] __dirname: ", __dirname);
 
- // app.get(/^\/(|enter-name\.html|index\.html)$/, (req, res) => {
- //   res.redirect('client.html');
- // });
+  var tizenApp = tizen.application.getCurrentApplication();
+  console.log("[GlobalWebServer] ID, packageId: ", tizenApp.appInfo.id, tizenApp.appInfo.packageId);
+  serverAppId = tizenApp.appInfo.id.split('.')[0];
+  g.baseDir = __dirname.split(serverAppId)[0];
+  console.log("[GlobalWebServer] g.baseDir: ", g.baseDir);
 
- // Change th code
-  g.baseDir = require('path').join(__dirname, '../../../..');
-  app.use(express.static(g.baseDir));
-  app.get(/^\/(|enter-name\.html|index\.html)$/, (req, res) => {
-  res.redirect('QKatUa7aon' + '/res/wgt/client/client.html');
-  })
+  clientRouter.get('/webclip/*', function (req, res) {
+    let file = req.originalUrl.replace('/client/webclip/', '').replace(/\?.+$/, '');
+
+    let webclipName = '';
+    let appId;
+
+    let match = file.match(/^[^\/]+/);
+    if (match) {
+      webclipName = match[0];
+    }
+    console.log("[GlobalWebServer] webclip name: ", webclipName);
+
+    // find appId by webclip name
+    let app = dataApps.filter(function (app) {
+      return !!app.webclip && app.webclip.manifest.name === webclipName;
+    })[0];
+    if (app) {
+      appId = app.d2dApp.appPkgID;;
+    }
+
+    let options = {
+      root: path.join('/opt/usr/globalapps/', appId, TIZEN_WEB_APP_SHARED_RESOURCES, WEBCLIP_DIRECTORY)
+    };
+     
+    // remove weblip name from path
+    file = file.replace(webclipName + '/', '');
+    res.sendFile(file, options, function (err) {
+      if (err) {
+        console.log("[GlobalWebServer] err: ", err);
+        res.send("err", err);
+      } else {
+        console.log("[GlobalWebServer] res.sendFile() done: ", file);
+      }
+    });
+  });
+
+  clientRouter.get('/updateWebclip', function (req, res) {
+    console.log("[GlobalWebServer] get(/updateWebclip)");
+    var apps = getWebClipsList();
+    var result = {
+      type: "full",
+      data: {
+        apps: apps
+      }
+    }
+    res.send(result);
+  });
+
+  clientRouter.get('/*', function (req, res) {
+    let file = req.originalUrl.replace('/client/', '').replace(/\?.+$/, '');
+    let fullPath = require('path').join(g.baseDir, 'QKatUa7aon', '/res/wgt/client', file);
+    console.log("[GlobalWebServer] fullPath: ", fullPath);
+    res.sendFile(fullPath);
+  });
+
+  app.use('/client', clientRouter);
 
   app.get('/appList', (req, res) => {
     res.send(dataApps);
@@ -182,6 +294,10 @@ var HTTPserverStart = function() {
     evtEmit.on("updateapplist", (event, data) => {
       res.write("event: " + String(event) + "\n" + "data: " + JSON.stringify(data) + "\n\n");
     });
+  });
+
+  app.get('/', function (req, res) {
+    res.redirect("/client/client.html");
   });
 
   app.post('/url', (req, res) => {

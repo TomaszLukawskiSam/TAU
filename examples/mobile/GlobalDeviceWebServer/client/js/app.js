@@ -19,7 +19,7 @@ const moduleapp = {};
 			"isActive": true,
 			"webClipsList": [
 				{
-					url: "opt/usr/globalapps/OZBS6gG8JL/shared/res/webclip",
+					url: "OZBS6gG8JL/shared/res/webclip",
 					isSelected: true
 				}
 			]
@@ -39,9 +39,9 @@ const moduleapp = {};
 
 			fetch(requestURL)
 				.then((response) => response.json())
-				.then((data) => {
+				.then((response) => {
 					//addWSListener(data.wsPort);
-					resolve(data.apps);
+					resolve(response.data.apps);
 				})
 				.catch((e) => {
 					reject(e);
