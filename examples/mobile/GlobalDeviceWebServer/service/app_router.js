@@ -6,6 +6,7 @@ class AppRouter {
         appRouter.use(express.static(__dirname + '/../../../../' + path + '/res/wgt/client'));
 
         appRouter.get('/', (req, res) => {
+            console.log("[GlobalWebServer] appRouter.get(/) ", req.baseUrl);
             res.redirect('client.html');
         });
         return appRouter;

@@ -189,7 +189,8 @@ function getWebClipsList() {
       });  
     }
     result.push({
-      appID: app.d2dApp.appPkgID,
+      appID: app.d2dApp.appAppID,
+      pkgID: app.d2dApp.appPkgID,
       isInstalled: true,
       isActive: false,
       webClipsList: webclips
@@ -298,6 +299,13 @@ var HTTPserverStart = function() {
 
   app.get('/', function (req, res) {
     res.redirect("/client/client.html");
+  });
+
+  // receive data or cmd to app on device
+  app.post('/app', (req, res) => {
+    res.send({
+      result: "ok"
+    });
   });
 
   app.post('/url', (req, res) => {

@@ -7,10 +7,16 @@ const moduleapp = {};
 (function () {
 	"use strict";
 	var tau = window.tau,
+		HomeApp = function () {
+			this.version = "0.1";
+			this.appsList = [];
+		},
+		prototype = HomeApp.prototype,
 		storage = new Storage(),
 		actions = new Actions(),
 		appsList = [],
-		socket = null;
+		socket = null,
+		homeApp;
 
 	const defaultList = [
 		{
@@ -174,25 +180,32 @@ const moduleapp = {};
 			tau.log("nothing change");
 		}
 	}
-	async function validateAppsList() {
+	async function getManifests() {
 		const promisesList = [],
 			indexesList = [];
-		let	i,
-			j,
-			responses = [];
 
-		for (i = 0; i < appsList.length; i++) {
-			for (j = 0; j < appsList[i].webClipsList.length; j++) {
-				promisesList.push(fetch(appsList[i].webClipsList[j].url + "\\webclip.html"));
-				indexesList.push({appIndex: i, webClipIndex: j})
-			}
-		}
+		let	responses = [];
+
+		appsList.forEach(function (app, appIndex) {
+			app.webClipsList.forEach(function (webClip, webClipIndex) {
+				promisesList.push(
+					fetch(webClip.url + "\\manifest.json")
+				);
+				indexesList.push({appIndex: appIndex, webClipIndex: webClipIndex});
+			});
+		});
 
 		responses = await Promise.allSettled(promisesList);
 
-		for (i = 0; i < responses.length; i++) {
-			if (responses[i].status === "rejected" || !responses[i].value.ok) {
-				appsList[indexesList[i].appIndex].webClipsList.splice(indexesList[i].webClipIndex, 1);
+		for (let responseIndex = 0; responseIndex < responses.length; responseIndex++) {
+			const response = responses[responseIndex];
+
+			if (response.status === "rejected" || !response.value.ok) {
+				appsList[indexesList[responseIndex].appIndex].webClipsList.splice(indexesList[responseIndex].webClipIndex, 1);
+			} else {
+				const contentPromise = await response.value.json();
+
+				appsList[indexesList[responseIndex].appIndex].webClipsList[indexesList[responseIndex].webClipIndex].manifest = contentPromise;
 			}
 		}
 	}
@@ -250,6 +263,53 @@ const moduleapp = {};
 		return card;
 	}
 
+
+	homeApp = new HomeApp();
+
+	prototype.createControlCard = function (data) {
+		var controlCard = document.createElement("div"),
+			title = document.createElement("span"),
+			icon = document.createElement("div"),
+			img = document.createElement("img"),
+			a = document.createElement("a");
+
+		controlCard.classList.add("ui-content-area");
+		icon.classList.add("ui-icon");
+		title.classList.add("ui-title");
+		title.textContent = data.title;
+		img.src = data.icon;
+		a.href = data.href || "#next-control";
+		a.setAttribute("data-style", "flat");
+		a.setAttribute("data-inline", true);
+		a.setAttribute("data-icon", "next");
+		a.classList.add("ui-btn");
+
+		icon.appendChild(img);
+
+		controlCard.appendChild(icon);
+		controlCard.appendChild(title);
+		controlCard.appendChild(a);
+
+		return controlCard;
+	}
+
+	prototype.addControlCard = function (data) {
+		var controlCard = this.createControlCard(data),
+			appBarElement = document.querySelector(".ui-page-active header"),
+			appBar = tau.widget.Appbar(appBarElement);
+
+		controlCard.setAttribute("data-title", data.title);
+
+		appBar.addInstantContainer(controlCard);
+	}
+
+	prototype.removeControlCard = function (card) {
+		var appBarElement = document.querySelector(".ui-page-active header"),
+			appBar = tau.widget.Appbar(appBarElement);
+
+		appBar.removeInstantContainer(card);
+	}
+
 	function updateWebClipsUI() {
 		var webclipsContainer = document.getElementById("web-clips"),
 			// get Cards elements and convert NodeList to array
@@ -285,7 +345,7 @@ const moduleapp = {};
 				if (found.length === 0) {
 					if (webClip.isSelected) {
 						webclipsContainer.appendChild(
-							createWebClipCard(webClip,app.appID)
+							createWebClipCard(webClip, app.appID)
 						);
 					}
 				}
@@ -307,6 +367,26 @@ const moduleapp = {};
 			if (card) {
 				card.style.order = order;
 			}
+		});
+
+		// add/remove mini control cards
+		appsList.forEach(function (app) {
+			app.webClipsList.forEach((webClip) => {
+				if (webClip.manifest && webClip.manifest.cardType === "control") {
+					if (webClip.isSelected) {
+						if (!document.querySelector("[data-title='" + webClip.manifest.description + "']")) {
+							homeApp.addControlCard({
+								title: webClip.manifest.description,
+								href: "#open-control-card",
+								icon: "images/Icon.png"}
+							);
+						}
+					} else if (document.querySelector("[data-title='" + webClip.manifest.description + "']")) {
+						// remove mini controll card
+						homeApp.removeControlCard(document.querySelector("[data-title='" + webClip.manifest.description + "']"));
+					}
+				}
+			});
 		});
 
 		tau.engine.createWidgets(webclipsContainer);
@@ -343,20 +423,11 @@ const moduleapp = {};
 
 				label.setAttribute("for", "popup-checkbox-" + webClipName);
 				label.classList.add("ui-li-text");
-
-				fetch(`${webclip.url}/manifest.json`)
-					.then((out) => out.json())
-					.then((manifest) => {
-						label.innerHTML = manifest.description;
-					})
-					.catch((err) => {
-						console.error(err);
-					});
+				label.innerHTML = webclip.manifest && webclip.manifest.description || webClipName;
 
 				li.appendChild(input);
 				li.appendChild(label);
 				popupList.appendChild(li);
-
 			});
 		});
 
@@ -400,21 +471,19 @@ const moduleapp = {};
 		// check webclips on remote server
 		getAppsList.then((apps) => {
 			updateAppsListFull(apps);
-		})
-			.catch((e) => {
-				console.warn("Error getting app lits: " + e.message);
-				if (appsList.length === 0) {
-					updateAppsListFull(defaultList);
-				}
-			})
-			.finally(() => {
-				validateAppsList().then(() => {
-					storage.refreshStorage(Storage.elements.APPSLIST, appsList);
-					updateWebClipsUI();
-					updateWebClipListPopup();
-				});
+		}).catch((e) => {
+			console.warn("Error getting app lits: " + e.message);
+			if (appsList.length === 0) {
+				updateAppsListFull(defaultList);
+			}
+		}).finally(() => {
+			// check webclips access
+			getManifests().then(() => {
+				storage.refreshStorage(Storage.elements.APPSLIST, appsList);
+				updateWebClipsUI();
+				updateWebClipListPopup();
 			});
-
+		});
 	}
 
 	function onPageBeforeShow(event) {

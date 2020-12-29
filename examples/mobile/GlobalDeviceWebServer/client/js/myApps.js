@@ -54,7 +54,7 @@ const myappsmodule = {};
             objTable,
             objRow,
             i,
-            prop,
+            d2dApp,
             icon;
 
         emptyElement(imgResult);
@@ -68,29 +68,29 @@ const myappsmodule = {};
                 imgObj = document.createElement("img");
                 textObj = document.createElement("p");
                 formObj.style.textAlign = "center";
-                for (prop in dataArray[i]) {
-                    if (dataArray[i][prop].hasOwnProperty("appName")) {
-                        if(dataArray[i][prop].iconName) {
-                            imgObj.src = `./images/${dataArray[i][prop].iconName}`;
-                        } else {
-                            imgObj.src = `./images/icon.png`;
-                        }
-                        imgObj.className = "app-icon-img";
-                        imgObj.alt = dataArray[i][prop].appName;
-                        textObj.style.display = "block";
-                        textObj.style.margin = "0 auto";
-                        textObj.style.fontSize = "14px";
-                        textObj.innerHTML = dataArray[i][prop].appName;
+                d2dApp = dataArray[i]['d2dApp'];
+                if (d2dApp.hasOwnProperty("appName")) {
+                    if(d2dApp.iconName) {
+                        imgObj.src = `./images/${d2dApp.iconName}`;
+                    } else {
+                        imgObj.src = `./images/icon.png`;
                     }
-                    imgObj.addEventListener("click", actions.launchAppOnTV(
-                        dataArray[i][prop].appPkgID,
-                        dataArray[i][prop].appAppID,
-                        function (response) {
-                            openAppWindow(response);
-                        }));
-                    formObj.appendChild(imgObj);
-                    formObj.appendChild(textObj);
+                    imgObj.className = "app-icon-img";
+                    imgObj.alt = d2dApp.appName;
+                    textObj.style.display = "block";
+                    textObj.style.margin = "0 auto";
+                    textObj.style.fontSize = "14px";
+                    textObj.innerHTML = d2dApp.appName;
                 }
+                imgObj.addEventListener("click", actions.launchAppOnTV(
+                    d2dApp.appPkgID,
+                    d2dApp.appAppID,
+                    function (response) {
+                        openAppWindow(response);
+                    }));
+                formObj.appendChild(imgObj);
+                formObj.appendChild(textObj);
+
                 imgResult.appendChild(formObj);
             }
             formResult.appendChild(imgResult);
