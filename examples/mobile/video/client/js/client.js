@@ -23,14 +23,14 @@ function init() {
 
 function onMessage(evt) {
     var msg = JSON.parse(evt.data);
-    if (msg.id == d2dservice.SERVER) {
+    if (msg.id === d2dservice.SERVER) {
     } else {
-        if (msg.type == "channellist") {
+        if (msg.type === "channellist") {
             channelList = msg.data.channelList;
             for (var i = 0; i < channelList.length; i++) {
                 listupChannelList(channelList[i]);
             }
-        } else if (msg.type == "playmobile") {
+        } else if (msg.type === "playmobile") {
             currentChannel = msg.data.index;
             vid.src = channelList[msg.data.index];
             vid.currentTime = msg.data.time;

@@ -29,21 +29,18 @@ function init() {
 
 function onMessage(evt) {
     var msg = JSON.parse(evt.data);
-    if (msg.id == d2dservice.SERVER) {
+
+    console.log("video.onMessage", msg);
+    if (msg.id === d2dservice.SERVER) {
     } else {
-        if (msg.type == "channellist") {
+        if (msg.type === "channellist") {
             d2dservice.sendMessage("channellist", {channelList: channelList});
-        } else if (msg.type == "playtv") {
+        } else if (msg.type === "playtv") {
             currentChannel = msg.data.index;
             vid.src = channelList[msg.data.index];
             vid.currentTime = msg.data.time;
             vid.play();
-            /*
-            vid.oncanplaythrough = function() {
-                vid.play();
-            };
-            */
-        } else if (msg.type == "playmobile") {
+        } else if (msg.type === "playmobile") {
             d2dservice.sendMessage("playmobile", {index: currentChannel, time: vid.currentTime});
             vid.pause();
         }

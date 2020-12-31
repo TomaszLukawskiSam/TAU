@@ -5,7 +5,7 @@ var EventEmitter = require('events');
 var WebSocket = require('ws');
 var clientRouter = express.Router();
 
-var httpserver, evtEmit, appsrwDir, d2dService;
+var httpserver, evtEmit, d2dService;
 var apps, dataApps = [];
 var serverAppId = '';
 var relayServer = require('./relay-server.js');
@@ -28,6 +28,7 @@ class D2DServiceLocal {
       this.websocket = new WebSocket("ws://localhost:9000/" + pkgId);
 
       this.websocket.onmessage = function(evt) {
+        console.log("D2DServiceLocal.webscocket.onmessage: ", webapis);
         var msg = JSON.parse(evt.data);
         if (msg.id == SERVER) {
           if (msg.type == "new_client") {
@@ -59,8 +60,22 @@ class D2DServiceLocal {
   }
 
   sendMessage(what, data, whom = this.TO_ALL) {
-      this.doSend(what, data, whom);
+    console.log("D2DServiceLocal.sendMessage: ", what, data);
+    this.doSend(what, data, whom);
   }
+  // sendMessageToApp(pkgId, data) {
+  //   let websocket = new WebSocket("ws://localhost:9000/" + pkgId);
+  //   console.log("sendMessageToApp websocket: ", websocket);
+
+  //   websocket.addEventListener("open", function () {
+  //     console.log("sendMessageToApp on open: ", data);
+  //     websocket.send(JSON.stringify(data));
+  //     websocket.close();
+  //   });
+  //   websocket.addEventListener("error", function () {
+  //     console.log("ws:error", websocket.url);
+  //   });
+  // }
 }
 
 function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
@@ -208,13 +223,18 @@ var HTTPserverStart = function() {
 
   var app = express();
   var appProxy = require('./app_proxy');
+
   httpserver = http.createServer(app);
   httpserver.listen(g.port, function() {
     console.log('[GlobalWebServer] Server is listening on port ' + g.port);
   });
   evtEmit = new EventEmitter();
   app.use(express.json());
-  app.use('/app', appProxy(app, g.port));
+
+  d2dService = new D2DServiceLocal();
+  console.log("[GlobalWebServer] d2dService define: ", d2dService);
+
+  app.use('/app', appProxy(app, g.port, d2dService));
 
   //g.baseDir = '/opt/usr/globalapps';
   console.log("[GlobalWebServer] __dirname: ", __dirname);
@@ -313,7 +333,6 @@ var HTTPserverStart = function() {
   });
 
   new relayServer(httpserver);
-  d2dService = new D2DServiceLocal();
 };
 
 module.exports.onStart = function() {

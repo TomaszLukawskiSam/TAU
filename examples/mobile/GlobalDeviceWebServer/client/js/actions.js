@@ -33,6 +33,7 @@ class Actions {
      */
     sendDataToApp(appID, data, callback) {
         const xhr = new XMLHttpRequest();
+        // add tv app id
         data.appAppID = appID;
         data.appPkgID = appID.replace(/\..+$/, "");
 

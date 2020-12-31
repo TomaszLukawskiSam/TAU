@@ -9,6 +9,7 @@ var RelayServer = function(httpserver, options) {
     var wsServer = new WebSocketServer({ server : httpserver });
 
     wsServer.on('connection', function(ws, req) {
+        console.log("relay-service: connection", ws, req);
         // In case of local client, remoteAddress will be ::1
         // In case of remote client, remoteAddress will be ::ffff:ipaddress
         // e.g.) ::ffff:192.168.0.21
@@ -25,8 +26,10 @@ var RelayServer = function(httpserver, options) {
         if (ip === serviceWsClientIp || ip === '127.0.0.1') {
             console.log("connected from local");
             serviceWs[pkgId] = ws;
-            if (!wsClients[pkgId].length)
+            if (!wsClients[pkgId].length) {
                 console.log("connected : no client-clients");
+            }
+            console.log("relay-service: ws", ws);
             ws.on('message', function(msg) {
                 console.log("msg[" + msg + "]");
                 const res_msg = 'Success to send : ' + msg;

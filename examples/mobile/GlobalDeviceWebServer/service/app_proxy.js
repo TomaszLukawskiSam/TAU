@@ -31,7 +31,7 @@ function runApp(appId, port, callback) {
     tizen.application.getAppsContext(onRunningAppsContext);
 }
 
-module.exports = function(app, port) {
+module.exports = function(app, port, d2dService) {
     var appProxy = express.Router();
     
     appProxy.use('/app', express.json());
@@ -39,6 +39,7 @@ module.exports = function(app, port) {
         var action = req.body.action;
         path = req.body.appPkgID ? req.body.appPkgID : path;
         var appId = req.body.appAppID;
+        var pkgId = req.body.appPkgID;
         var name = appId.split(".")[1];
         var appRouter = appRouters.filter(function (router) {
             return router.path === path;
@@ -56,6 +57,11 @@ module.exports = function(app, port) {
 
         // run app
         runApp(appId, port, function() {
+            if (action) {
+                // send action to client
+                console.log('[GlobalWebServer] d2dService', d2dService);
+                d2dService.sendMessage(action, JSON.stringify(req.body));
+            }
             res.send({port:port});
         });
     });
