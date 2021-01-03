@@ -14,13 +14,14 @@
  * limitations under the License.
  */
  "use strict";
-import { UpdateWebClip } from './app.js';
+//import { UpdateWebClip } from './app.js';
 import Actions from './actions.js';
 
 const serverPort = 9000;
 const serverURL = window.location.protocol + '//' + window.location.hostname;
 const actions = new Actions();
 const NEW_WINDOW_TIMEOUT = 1000;
+const myappsmodule = {};
 
 (function() {
     var xhr ;
@@ -30,7 +31,6 @@ const NEW_WINDOW_TIMEOUT = 1000;
         }
         return elm;
     }
-
     /**
      * Open app in new window
      * @param {Object} response
@@ -54,7 +54,7 @@ const NEW_WINDOW_TIMEOUT = 1000;
             objTable,
             objRow,
             i,
-            prop,
+            d2dApp,
             icon;
 
         emptyElement(imgResult);
@@ -68,29 +68,29 @@ const NEW_WINDOW_TIMEOUT = 1000;
                 imgObj = document.createElement("img");
                 textObj = document.createElement("p");
                 formObj.style.textAlign = "center";
-                for (prop in dataArray[i]) {
-                    if (dataArray[i][prop].hasOwnProperty("appName")) {
-                        if(dataArray[i][prop].iconName) {
-                            imgObj.src = `./images/${dataArray[i][prop].iconName}`;
-                        } else {
-                            imgObj.src = `./images/icon.png`;
-                        }
-                        imgObj.className = "app-icon-img";
-                        imgObj.alt = dataArray[i][prop].appName;
-                        textObj.style.display = "block";
-                        textObj.style.margin = "0 auto";
-                        textObj.style.fontSize = "14px";
-                        textObj.innerHTML = dataArray[i][prop].appName;
+                d2dApp = dataArray[i]['d2dApp'];
+                if (d2dApp.hasOwnProperty("appName")) {
+                    if(d2dApp.iconName) {
+                        imgObj.src = `./images/${d2dApp.iconName}`;
+                    } else {
+                        imgObj.src = `./images/icon.png`;
                     }
-                    imgObj.addEventListener("click", actions.launchAppOnTV(
-                        dataArray[i][prop].appPkgID,
-                        dataArray[i][prop].appAppID,
-                        function (response) {
-                            openAppWindow(response);
-                        }));
-                    formObj.appendChild(imgObj);
-                    formObj.appendChild(textObj);
+                    imgObj.className = "app-icon-img";
+                    imgObj.alt = d2dApp.appName;
+                    textObj.style.display = "block";
+                    textObj.style.margin = "0 auto";
+                    textObj.style.fontSize = "14px";
+                    textObj.innerHTML = d2dApp.appName;
                 }
+                imgObj.addEventListener("click", actions.launchAppOnTV(
+                    d2dApp.appPkgID,
+                    d2dApp.appAppID,
+                    function (response) {
+                        openAppWindow(response);
+                    }));
+                formObj.appendChild(imgObj);
+                formObj.appendChild(textObj);
+
                 imgResult.appendChild(formObj);
             }
             formResult.appendChild(imgResult);
@@ -120,8 +120,8 @@ const NEW_WINDOW_TIMEOUT = 1000;
     function init() {
         var eventSource = new EventSource(serverURL + ':' + serverPort + '/updateAppList');
         eventSource.addEventListener('message', evt => {
-            //showListView(JSON.parse(evt.data));
-            UpdateWebClip(JSON.parse(evt.data)); //whktest
+            showListView(JSON.parse(evt.data));
+            //UpdateWebClip(JSON.parse(evt.data)); //whktest
         }, false);
         eventSource.addEventListener('open', evt => {
            console.log("Connected to...");
@@ -136,4 +136,10 @@ const NEW_WINDOW_TIMEOUT = 1000;
         showList();
     }
     window.onload = init;
+    myappsmodule.openAppWindow = openAppWindow;
 }());
+
+export function openAppWindow(response) {
+	myappsmodule.openAppWindow (response);
+};
+

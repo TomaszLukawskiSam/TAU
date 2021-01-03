@@ -1,0 +1,174 @@
+.app-remote-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 5px 0;
+    flex-direction: column;
+}
+
+.app-home-buttons {
+    display: flex;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 20px;
+}
+
+.ui-icon-home::after {
+    mask-image: url(../images/ic_home.png);
+    -webkit-mask-image: url(../images/ic_home.png);
+    mask-size: 24px !important;
+    -webkit-mask-size: 24px !important;
+}
+.ui-icon-enter::after {
+    mask-size: 26px 18px;
+    mask-image: url(../images/ic_source.png);
+    -webkit-mask-size: 26px 18px !important;
+    -webkit-mask-image: url(../images/ic_source.png);
+}
+.ui-icon-backward::after {
+    mask-size: 25px 23px !important;
+    -webkit-mask-size: 25px 23px !important;
+    mask-image: url(../images/ic_back.png);
+    -webkit-mask-image: url(../images/ic_back.png);
+}
+
+.app-volume-channel {
+    flex-direction: row;
+    width: calc(100% - 148px);
+    display: flex;
+    justify-content: space-between;
+}
+
+.app-volume-control {
+    display: flex;
+    flex-direction: column;
+    font-size: 16px;
+    background-image: linear-gradient(180deg,
+        transparent, transparent 25px, #ebebeb 25px,
+        #ebebeb 125px, transparent 100%);
+    width: 53px;
+    align-items: center;
+    height: 173px;
+    justify-content: space-between;
+}
+
+.app-btn-icon-volume-up {
+    background-image: url(../images/btn_plus.png);
+    background-size: 100%;
+    background-position-y: 2px;
+}
+.app-btn-icon-volume-up::after {
+    display: none;
+}
+.app-btn-icon-volume-down {
+    background-image: url(../images/btn_minus.png);
+    background-size: 100%;
+    background-position-y: 2px;
+}
+.app-btn-icon-volume-down::after {
+    display: none;
+}
+
+.app-channel-control {
+    display: flex;
+    flex-direction: column;
+    font-size: 16px;
+    background-image: linear-gradient(180deg,
+        transparent, transparent 25px, #ebebeb 25px,
+        #ebebeb 125px, transparent 100%);
+    width: 53px;
+    align-items: center;
+    height: 173px;
+    justify-content: space-between;
+}
+
+.app-btn-icon-channel-up {
+    background-image: url(../images/btn_up.png);
+    background-size: 100%;
+    background-position-y: 2px;
+}
+.app-btn-icon-channel-up::after {
+    display: none;
+}
+.app-btn-icon-channel-down {
+    background-image: url(../images/btn_down.png);
+    background-size: 100%;
+    background-position-y: 2px;
+}
+.app-btn-icon-channel-down::after {
+    display: none;
+}
+
+.app-4way-direction {
+    display: grid;
+    grid-gap: 5px;
+    border-radius: 28px;
+    margin: 5px;
+    background-color: #ebebeb;
+    width: 288px;
+    height: 210px;
+    justify-items: center;
+}
+
+.app-remote-control-icon {
+    background-color: var(--primary-color);
+    border-radius: 6px;
+    position: relative;
+}
+
+.app-remote-control-icon::after{
+    content: "";
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-color: var(--color-white);
+    mask-size: 100%;
+    mask-image: url(../images/tw_list_icon_connections.svg);
+    -webkit-mask-size: 100%;
+    -webkit-mask-image: url(../images/tw_list_icon_connections.svg);
+}
+
+.app-4way-btn-up {
+    grid-column: 2 / 2;
+    grid-row: 1;
+}
+
+.app-4way-btn-left {
+    grid-column: 1 / 1;
+    grid-row: 2;
+}
+
+.app-4way-btn-right {
+    grid-column: 3 / 3;
+    grid-row: 2;
+}
+
+.app-4way-btn-down {
+    grid-column: 2 / 2;
+    grid-row: 3;
+}
+
+.app-remote-control .ui-btn.ui-btn-flat.ui-btn-icon {
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
+}
+.ui-btn.ui-icon-right::after {
+    -webkit-transform: translate(-50%, -50%) rotateZ(-90deg);
+    -ms-transform: translate(-50%, -50%) rotate(-90deg);
+    transform: translate(-50%, -50%) rotateZ(-90deg);
+}
+.ui-btn.ui-icon-left::after {
+    -webkit-transform: translate(-50%, -50%) rotateZ(90deg);
+    -ms-transform: translate(-50%, -50%) rotate(90deg);
+    transform: translate(-50%, -50%) rotateZ(90deg);
+}
+.ui-btn.ui-btn-flat.ui-btn-icon::before {
+    width: 48px;
+    height: 48px;
+}
+
+.app-border {
+    box-shadow: 0 0 0 0.25px var(--content-area-line-color) inset;
+}

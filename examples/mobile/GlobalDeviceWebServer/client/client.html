@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no">
-	<title>Home Tv App</title>
+	<title>My Device App</title>
 	<link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
 	<link rel="stylesheet" href="css/style.css" />
 	<link rel="manifest" href="./manifest.webmanifest">
@@ -17,7 +17,7 @@
 	<div class="ui-page ui-page-active" id="main">
 		<header>
 			<div class="ui-appbar-title-container">
-				<span class="ui-appbar-title">HomeTV App</span>
+				<span class="ui-appbar-title">My Device App</span>
 			</div>
 			<div class="ui-appbar-left-icons-container">
 				<a href="#" class="ui-btn ui-btn-icon app-btn-icon-burger" data-style="flat"></a>
@@ -34,12 +34,19 @@
 					</option>
 				</select>
 			</div>
+			<div class="ui-appbar-container ui-content-area">
+				<div class="ui-icon">
+					<img src="images/icon.png"/>
+				</div>
+				<span class="ui-title">General Control</span>
+				<a href="control.html" class="ui-btn" data-style="flat" data-inline="true" data-icon="next"></a>
+			</div>
 		</header>
 		<div class="ui-content" id="page-main">
 			<div id="web-clips"></div>
 
 			<div class="ui-content-subheader">
-				D2D on TV
+				D2D on My Device
 			</div>
 			<div class="ui-content-area" id="d2dApps">
 				<div class="app-image-grid" id="d2dAppList">
@@ -47,7 +54,7 @@
 			</div>
 			<div class="ui-drawer" data-position="left" id="leftDrawer" data-drag-edge="0">
 				<div class="ui-drawer-header">
-					<div class="ui-drawer-title">Home TV App</div>
+					<div class="ui-drawer-title">My Device App</div>
 				</div>
 				<ul class="ui-listview ui-content-area">
 					<li class="ui-li-divider ui-li-has-icon">

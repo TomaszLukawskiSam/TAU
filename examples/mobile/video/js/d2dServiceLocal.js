@@ -25,8 +25,10 @@ class D2DServiceLocal {
         this.websocket = new WebSocket(this.wsUri);
         this.websocket.onmessage = function(evt) {
             var msg = JSON.parse(evt.data);
-            if (msg.id == this.SERVER && msg.type == "new_client")
+            console.log("[Video] D2DServiceLocal.webscocket.onmessage: ", msg);
+            if (msg.id === this.SERVER && msg.type === "new_client") {
                 this.clients.push(msg.data);
+            }
             onMessage(evt);
         };
     }
