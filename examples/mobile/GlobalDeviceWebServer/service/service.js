@@ -79,7 +79,8 @@ class D2DServiceLocal {
 }
 
 function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
-  var metaDataArray = tizen.application.getAppMetaData(appAppID);
+  var metaDataArray = tizen.application.getAppMetaData(appAppID),
+    app = null;
 
   metaDataArray = metaDataArray.filter(function (metaData) {
     return metaData.key === "d2dservice" && metaData.value === "enable";
@@ -94,7 +95,7 @@ function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
     //let iconCopyPath = path.join(appsrwDir, '../../../data/client/images', iconName);
     //tizen.filesystem.copyFile(iconPath, iconCopyPath, true);
 
-    dataApps.push({
+    app = {
       d2dApp: {
         appPkgID: appPkgID,
         appAppID: appAppID,
@@ -102,8 +103,12 @@ function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
         iconName: iconName
       },
       path: path.join(appPath)
-    });
+    }
+
+    dataApps.push(app);
   });
+
+  return app;
 }
 
 function removeD2Ddata(packageId) {
@@ -140,39 +145,44 @@ function getAppList() {
   return false;
 }
 
-function getWebclipsManifest() {
-  dataApps.forEach((app) => {
-    var fileHandle;
-    var filePath = path.join(app.path, WEBCLIP_DIRECTORY, WEBCLIP_MANIFEST);
-    var data;
+function getWebclipsManifestByApp(app) {
+  var fileHandle;
+  var filePath = path.join(app.path, WEBCLIP_DIRECTORY, WEBCLIP_MANIFEST);
+  var data;
 
+  try {
+    fileHandle = tizen.filesystem.openFile(filePath, "r");
+  } catch (err) {
+    console.log('[GlobalWebServer] tizen.filesystem.openFile (error): ', filePath, err);
+  }
+
+  if (fileHandle) {
     try {
-      fileHandle = tizen.filesystem.openFile(filePath, "r");
+      data = fileHandle.readString();
+      data = data.replace(/\n/g, "");
+      data = JSON.parse(data);
+      app.webclip = {};
+      app.webclip.manifest = data;
     } catch (err) {
-      console.log('[GlobalWebServer] tizen.filesystem.openFile (error): ', filePath, err);
+      console.log('[GlobalWebServer] fileHandle.readString (error): ', err);
+      app.webclip = null;
     }
+    fileHandle.close();
+  }
+}
 
-    if (fileHandle) {
-      try {
-        data = fileHandle.readString();
-        data = data.replace(/\n/g, "");
-        data = JSON.parse(data);
-        app.webclip = {};
-        app.webclip.manifest = data;
-      } catch (err) {
-        console.log('[GlobalWebServer] fileHandle.readString (error): ', err);
-        app.webclip = null;
-      }
-      fileHandle.close();
-    }
-  });
+function getWebclipsManifest() {
+  dataApps.forEach(
+    getWebclipsManifestByApp
+  );
 }
 
 function setPackageInfoEventListener() {
   var packageEventCallback = {
     oninstalled: function(packageInfo) {
       console.log("[GlobalWebServer] The package " + packageInfo.name + " is installed");
-      addD2Ddata(packageInfo.id, packageInfo.appIds[0], packageInfo.name, packageInfo.iconPath);
+      let app = addD2Ddata(packageInfo.id, packageInfo.appIds[0], packageInfo.name, packageInfo.iconPath);
+      getWebclipsManifestByApp(app);
       evtEmit.emit("updateapplist", "message", dataApps);
     },
     onupdated: function(packageInfo) {

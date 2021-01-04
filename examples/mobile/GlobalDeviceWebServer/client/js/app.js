@@ -492,10 +492,42 @@ const moduleapp = {};
 		}
 	}
 
+	/**
+	 * Map array of D2D apps to webclip list
+	 * @param {Array} dataApps 
+	 */
+    function d2dAppsToWebClipsList(dataApps) {
+        var result = [];
+        var webclips = [];
+
+        dataApps.forEach(function (app) {
+          webclips = [];
+          if (app.webclip && app.webclip.manifest) {
+            webclips.push({
+              url: 'webclip/' + app.webclip.manifest.name,
+              isSelected: true
+            });  
+          }
+          result.push({
+            appID: app.d2dApp.appAppID,
+            pkgID: app.d2dApp.appPkgID,
+            isInstalled: true,
+            isActive: false,
+            webClipsList: webclips
+          });
+        });
+        return result;
+    }
+
 	document.addEventListener("pagebeforeshow", onPageBeforeShow);
 	moduleapp.onWSMessage = onWSMessage;
+	moduleapp.d2dAppsToWebClipsList = d2dAppsToWebClipsList;
 }());
 
 export function UpdateWebClip(message) {
-	moduleapp.onWSMessage(message);
+	var data = {
+		type: "full",
+		data: moduleapp.d2dAppsToWebClipsList(message)
+	}
+	moduleapp.onWSMessage(data);
 };
