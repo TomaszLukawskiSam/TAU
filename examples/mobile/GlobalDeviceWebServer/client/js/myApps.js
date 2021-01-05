@@ -14,7 +14,7 @@
  * limitations under the License.
  */
  "use strict";
-//import { UpdateWebClip } from './app.js';
+import { UpdateWebClip } from './app.js';
 import Actions from './actions.js';
 
 const serverPort = 9000;
@@ -121,7 +121,7 @@ const myappsmodule = {};
         var eventSource = new EventSource(serverURL + ':' + serverPort + '/updateAppList');
         eventSource.addEventListener('message', evt => {
             showListView(JSON.parse(evt.data));
-            //UpdateWebClip(JSON.parse(evt.data)); //whktest
+            UpdateWebClip(JSON.parse(evt.data));
         }, false);
         eventSource.addEventListener('open', evt => {
            console.log("Connected to...");
