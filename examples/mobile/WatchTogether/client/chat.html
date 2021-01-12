@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat</title>
+    <meta content="width=device-width, user-scalable=no" name="viewport" />
+    <link href="./css/clientUI.css" rel="stylesheet" />
+    <link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/mobile/js/tau.js"></script>
+    <script src="js/d2dServiceClient.js"></script>
+    <script src="js/client.js"></script>
+</head>
+
+<body>
+    <div class="ui-page">
+        <div class="ui-content" style="border-radius: 0px;">
+            <div class="upLayer">
+                <div class="ui-content-subheader" style="font-size: 15px;">Select Service</div>
+                <div class="ui-card ui-card-service app-tvplus-service">
+                    <div class="ui-content" data-scroll="x">
+                        <div class="ui-container">
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="./images/list/Netflix.png" alt="CBSN">
+                                <div class="ui-title">NETFLIX</div>
+                            </button>
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="images/list/youtube.png" alt="Bloomberg">
+                                <div class="ui-title">YouTube</div>
+                            </button>
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="images/list/disneyplus.png" alt="FOX SOUL">
+                                <div class="ui-title">Disney+</div>
+                            </button>
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="images/list/hbogo.png" alt="FOX SOUL">
+                                <div class="ui-title">HBO</div>
+                            </button>
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="images/list/Tastemade.png" alt="Tastemade">
+                                <div class="ui-title">Tastemade</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ui-content-subheader" style="font-size: 15px;">Options</div>
+                <div class="ui-card ui-card-service app-tvplus-service">
+                    <div class="ui-content" data-scroll="x">
+                        <div class="ui-container">
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="images/list/chat.png" alt="FOX SOUL">
+                            </button>
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="./images/list/video.png" alt="CBSN">
+                            </button>
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="images/list/mic.png" alt="Bloomberg">
+                            </button>
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="images/list/share.png" alt="FOX SOUL">
+                            </button>
+                            <button class="ui-favorite" data-inline="true" data-style="flat">
+                                <img src="images/list/setting.jpeg" alt="Tastemade">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ui-content-subheader" style="font-size: 15px;">Video Controller</div>
+                <div class="ui-card ui-card-service app-tvplus-service">
+                    <div class="ui-content">
+                        <button data-inline="true" data-style="flat" onclick="play()">Play</button>
+                        <button data-inline="true" data-style="flat" onclick="pause()">Pause</button>
+                    </div>
+                </div>
+            </div>
+            <div class="downLayer">
+                <div class="ui-content-subheader" style="font-size: 15px;">Chatting</div>
+                <div class="view-container" id="messageBox">
+                </div>
+            </div>
+        </div>
+        <div class="ui-footer">
+            <div class="input-area">
+                <input class="footer-inputText" type="text" id="inputText" value="">
+                <button data-inline="true" style="width: 120px; font-size: 15px;" onclick="openEmoji()">Emoji</button>
+                <button data-inline="true" style="width: 120px; font-size: 15px;" onclick="uploadText()">Upload</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat</title>
+    <meta content="width=device-width, user-scalable=no" name="viewport" />
+    <link href="./css/style.css" rel="stylesheet" />
+    <link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/mobile/js/tau.js"></script>
+    <script src="js/d2dServiceLocal.js"></script>
+</head>
+
+<body>
+    <div class="ui-page">
+        <div class="ui-content"
+            style="border-radius: 0px; background-image: linear-gradient(to top, rgb(36, 59, 85), rgb(20, 30, 48));">
+            <div class="video-container">
+                <h3>
+                    Watch Video
+                </h3>
+                <div style="margin-top: 300px; margin-left: 53px;">
+                    <video muted controls id="videoControl" src="./videos/test.mp4"></video>
+                </div>
+                <div style="margin-left: 900px; margin-top: 60px;">
+                    <button data-inline="true"
+                        style="width: 140px; font-size: 25px; color: #bfc4cc; background-color: #152033;"
+                        onclick="play()">Play</button>
+                    <button data-inline="true"
+                        style="width: 140px; font-size: 25px; color: #bfc4cc; background-color: #152033;"
+                        onclick="pause()">Pause</button>
+                </div>
+            </div>
+            <div class="right-container">
+                <div class="face-container">
+                    <h3>
+                        Buddy
+                    </h3>
+                    <div id="video-grid">
+                        <video playsinline autoplay muted id="local-video"></video>
+                    </div>
+                </div>
+                <div class="chat-container">
+                    <h3>
+                        Chat
+                    </h3>
+                    <div class="view-container" id="messageBox">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/socket.io.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

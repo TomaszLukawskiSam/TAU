@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat</title>
+    <meta content="width=device-width, user-scalable=no" name="viewport" />
+    <link href="./css/clientUI.css" rel="stylesheet" />
+    <link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/mobile/js/tau.js"></script>
+    <script src="js/d2dServiceClient.js"></script>
+    <script src="js/client.js"></script>
+</head>
+
+<body>
+    <div class="ui-page" id="room">
+        <div class="ui-header" data-position="fixed">
+            <h1>
+                Create a Room
+            </h1>
+            <div class="ui-appbar-action-buttons-container">
+                <button data-inline="true" style="width: 38px; font-size: 13px;">X</button>
+            </div>
+        </div>
+        <div class="ui-content">
+            <ul class="ui-listview ui-content-area">
+                <li>
+                    <div class="ui-li-text">
+                        Room Name
+                    </div>
+                </li>
+                <li class="ui-li-has-text-input">
+                    <input class="room-name" type="text">
+                </li>
+                <li>
+                    <div class="ui-li-text">
+                        Privacy
+                    </div>
+                </li>
+                <li class="ui-li-has-radio">
+                    <input checked="checked" id="radio-1" name="radio-group" type="radio" />
+                    <div class="ui-li-text">
+                        <span class="ui-li-text-title" id="radio-text-1">
+                            Public
+                        </span>
+                    </div>
+                </li>
+                <li class="ui-li-has-radio">
+                    <input id="radio-2" name="radio-group" type="radio" />
+                    <div class="ui-li-text">
+                        <span class="ui-li-text-title" id="radio-text-2">
+                            Secret
+                        </span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="ui-footer">
+            <button data-style="contained" style="margin-bottom: 10px; font-size: 19px;" onclick="location.href='./chat.html'">Create a room</button>
+        </div>
+    </div>
+</body>
+
+</html>
