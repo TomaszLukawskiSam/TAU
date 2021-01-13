@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat</title>
+    <meta content="width=device-width, user-scalable=no" name="viewport" />
+    <link href="./css/clientUI.css" rel="stylesheet" />
+    <link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/mobile/js/tau.js"></script>
+    <script src="js/d2dServiceClient.js"></script>
+    <script src="js/client.js"></script>
+</head>
+
+<body>
+    <div class="ui-page">
+        <div class="ui-header" data-position="fixed" style="margin-bottom: 0;">
+            <h1>
+                Watch Together
+            </h1>
+            <div class="ui-appbar-action-buttons-container">
+                <button data-inline="true" style="width: 70px; font-size: 17px;"
+                    onclick="location.href='./login.html'">Log In</button>
+            </div>
+
+        </div>
+        <div class="ui-content" style="border-radius: 0;">
+            <div class="ui-content-subheader"><h3>Recently Video</h3></div>
+            <ul class="ui-listview ui-content-area">
+                <li class="ui-li-has-icon">
+                    <div class="ui-li-icon">
+                        <img src="images/list/video_01.png" />
+                    </div>
+                    <div class="ui-li-text">
+                        <span class="ui-li-text-title">
+                            S1:E4 Cleo
+                        </span>
+                        <span class="ui-li-text-sub">
+                            Wade
+                        </span>
+                    </div>
+                    <div class="ui-li-action">
+                        <button data-inline="true" data-style="flat">Host</button>
+                    </div>
+                </li>
+                <li class="ui-li-has-icon">
+                    <div class="ui-li-icon">
+                        <img src="images/list/video_02.png" />
+                    </div>
+                    <div class="ui-li-text">
+                        <span class="ui-li-text-title">
+                            S1:E5 Sara
+                        </span>
+                        <span class="ui-li-text-sub">
+                            Blakely
+                        </span>
+                    </div>
+                    <div class="ui-li-action">
+                        <button data-inline="true" data-style="flat">Host</button>
+                    </div>
+                </li>
+                <li class="ui-li-has-icon">
+                    <div class="ui-li-icon">
+                        <img src="images/list/video_03.png" />
+                    </div>
+                    <div class="ui-li-text">
+                        <span class="ui-li-text-title">
+                            S1:E6 Glennon
+                        </span>
+                        <span class="ui-li-text-sub">
+                            Doyle
+                        </span>
+                    </div>
+                    <div class="ui-li-action">
+                        <button data-inline="true" data-style="flat">Join</button>
+                    </div>
+                </li>
+            </ul>
+            <div class="ui-content-subheader"><h3>Popular Video</h3></div>
+            <ul class="ui-listview ui-content-area">
+                <li class="ui-li-has-icon">
+                    <div class="ui-li-icon">
+                        <img src="images/list/video_04.jpeg" />
+                    </div>
+                    <div class="ui-li-text">
+                        <span class="ui-li-text-title">
+                            Start-Up
+                        </span>
+                        <span class="ui-li-text-sub">
+                            NETFLIX
+                        </span>
+                    </div>
+                    <div class="ui-li-action">
+                        <button data-inline="true" data-style="flat" onclick="location.href='./room.html'">Create a Room</button>
+                    </div>
+                </li>
+                <li class="ui-li-has-icon">
+                    <div class="ui-li-icon">
+                        <img src="images/list/video_02.png" />
+                    </div>
+                    <div class="ui-li-text">
+                        <span class="ui-li-text-title">
+                            The Queen
+                        </span>
+                        <span class="ui-li-text-sub">
+                            NETFLIX
+                        </span>
+                    </div>
+                    <div class="ui-li-action">
+                        <button data-inline="true" data-style="flat" onclick="location.href='./room.html'">Create a Room</button>
+                    </div>
+                </li>
+                <li class="ui-li-has-icon">
+                    <div class="ui-li-icon">
+                        <img src="images/list/video_03.png" />
+                    </div>
+                    <div class="ui-li-text">
+                        <span class="ui-li-text-title">
+                            Holidate
+                        </span>
+                        <span class="ui-li-text-sub">
+                            NETFLIX
+                        </span>
+                    </div>
+                    <div class="ui-li-action">
+                        <button data-inline="true" data-style="flat" onclick="location.href='./room.html'">Create a Room</button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="ui-footer">
+            <button data-inline="true" style="width: 100%; font-size: 19px;"
+                onclick="location.href='./room.html'">Create a Room</button>
+            <button data-inline="true" style="width: 100%; font-size: 19px;">Join a Room</button>
+        </div>
+    </div>
+</body>
+
+</html>

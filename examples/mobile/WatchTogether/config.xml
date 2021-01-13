@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns:tizen="http://tizen.org/ns/widgets" xmlns="http://www.w3.org/ns/widgets" id="http://yourdomain/Chatting" version="1.0.0" viewmodes="maximized">
+    <access origin="*" subdomains="true"></access>
+    <tizen:application id="NAe4rftRic.Chatting" package="NAe4rftRic" required_version="6.0"/>
+    <content src="index.html"/>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+    <icon src="icon.png"/>
+    <tizen:metadata key="d2dservice" value="enable"/>
+    <tizen:metadata key="http://samsung.com/tv/metadata/camera.hardware.encoder.support" value="false"/>
+    <tizen:metadata key="http://tizen.org/metadata/offload.enable" value="true"/>
+    <name>Watch Together</name>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/mediacapture"/>
+    <tizen:profile name="mobile"/>
+</widget>

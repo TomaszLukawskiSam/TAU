@@ -1,0 +1,72 @@
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0;
+}
+
+h3 {
+    color: #bfc4cc;
+    padding-left: 10px;
+}
+
+.input-area {
+    display: flex;
+    padding: 5px;
+    border: solid 1px #ccc;
+    background-color: #f4f4f4;
+    font-size: 10px;
+}
+
+.footer-inputText {
+    background-color: transparent;
+    width: 100px;
+    padding: 3px;
+    border: 0;
+    font-size: 10px;
+}
+
+.view-container {
+    padding: 10px;
+    font-size: 16px;
+    overflow: scroll;
+}
+
+.video-container {
+    width: 64%;
+    height: 1280px;
+    padding: 17px;
+    float: left;
+    border-right: solid 1px #566576;
+}
+
+.right-container {
+    width: 34%;
+    height: 1280px;
+    float: right;
+}
+
+.face-container {
+    width: 100%;
+    height: 40%;
+    padding: 5px;
+}
+
+.chat-container {
+    width: 100%;
+    height: 59%;
+    padding: 5px;
+    border-top: solid 1px #566576;
+}
+
+#video-grid {
+    display: none;
+    grid-template-columns: repeat(auto-fill, 200px);
+    grid-auto-rows: 300px;
+}
+
+video {
+    width: 95%;
+    height: 100%;
+}

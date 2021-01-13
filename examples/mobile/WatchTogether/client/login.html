@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat</title>
+    <meta content="width=device-width, user-scalable=no" name="viewport" />
+    <link href="./css/clientUI.css" rel="stylesheet" />
+    <link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/mobile/js/tau.js"></script>
+    <script src="js/d2dServiceClient.js"></script>
+    <script src="js/client.js"></script>
+</head>
+
+<body>
+    <div class="ui-page">
+        <div class="ui-header" data-position="fixed" style="margin-bottom: 0; border-bottom: solid 1px #ccc;">
+			<h1>
+				Log In
+            </h1>
+            <div class="ui-appbar-action-buttons-container">
+                <button data-inline="true" style="width: 38px; font-size: 13px;">X</button>
+            </div>
+		</div>
+        <div class="ui-content" style="border-radius: 0;">
+            <div class="login-id">
+                <input type="text" id="userId" placeholder="Username or email" style="height: 100%; margin: auto 0;">
+            </div>
+            <div class="login-password">
+                <input type="password" placeholder="Password" style="height: 100%; margin: auto 0;">
+            </div>
+            <div class="login-forgot">
+                <p style="margin-top: 0; font-size: 15px;" onclick="alert('Link to the fine Password screen')">Forgot password?</p>
+            </div>
+            <div class="login-btn">
+                <button data-inline="true" style="width: 100%; font-size: 19px; border-radius: 0;" onclick="location.href='./client.html'">Log In</button>
+            </div>
+            <div class="login-btn">
+                <button data-inline="true" style="width: 100%; font-size: 19px; border-radius: 0;">Sign up</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

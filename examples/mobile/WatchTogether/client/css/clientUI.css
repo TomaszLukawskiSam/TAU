@@ -1,0 +1,81 @@
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.input-area {
+    display: flex;
+    padding: 5px;
+    border: solid 1px #ccc;
+    background-color: #f4f4f4;
+    font-size: 10px;
+}
+
+.footer-inputText {
+    background-color: transparent;
+    width: 100px;
+    padding: 3px;
+    border: 0;
+    font-size: 10px;
+}
+
+.view-container {
+    padding: 10px;
+    font-size: 16px;
+    overflow: scroll;
+}
+
+.upLayer {
+    width: auto;
+    height: 370px;
+    padding: 5px;
+    border: solid 1px #ccc;
+}
+
+.downLayer {
+    width: auto;
+    height: 365px;
+    padding: 5px;
+    border: solid 1px #ccc;
+}
+
+.main-view-list {
+    height: 240px;
+    font-size: 17px;
+    padding: 10px;
+    border: solid 1px rgb(235, 232, 232);
+    text-decoration: underline;
+}
+
+.login-id {
+    margin: auto;
+    border: solid 1px #ccc;
+    width: 80%;
+    height: 100px;
+    margin-top: 40px;
+    margin-bottom: 30px;
+}
+
+.login-password {
+    margin: auto;
+    border: solid 1px #ccc;
+    width: 80%;
+    height: 100px;
+    margin-bottom: 30px;
+}
+
+.login-forgot {
+    margin: auto;
+    width: 80%;
+    height: 80px;
+    margin-bottom: 30px;
+}
+
+.login-btn {
+    margin: auto;
+    width: 80%;
+    height: 80px;
+}
