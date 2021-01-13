@@ -18,13 +18,14 @@
                 Watch Together
             </h1>
             <div class="ui-appbar-action-buttons-container">
-                <button data-inline="true" style="width: 70px; font-size: 17px;"
-                    onclick="location.href='./login.html'">Log In</button>
+                <a class="ui-btn" data-inline="true" style="width: 70px; font-size: 17px;" href='login.html'>Log In</a>
             </div>
 
         </div>
         <div class="ui-content" style="border-radius: 0;">
-            <div class="ui-content-subheader"><h3>Recently Video</h3></div>
+            <div class="ui-content-subheader">
+                <h3>Recently Video</h3>
+            </div>
             <ul class="ui-listview ui-content-area">
                 <li class="ui-li-has-icon">
                     <div class="ui-li-icon">
@@ -39,23 +40,7 @@
                         </span>
                     </div>
                     <div class="ui-li-action">
-                        <button data-inline="true" data-style="flat">Host</button>
-                    </div>
-                </li>
-                <li class="ui-li-has-icon">
-                    <div class="ui-li-icon">
-                        <img src="images/list/video_02.png" />
-                    </div>
-                    <div class="ui-li-text">
-                        <span class="ui-li-text-title">
-                            S1:E5 Sara
-                        </span>
-                        <span class="ui-li-text-sub">
-                            Blakely
-                        </span>
-                    </div>
-                    <div class="ui-li-action">
-                        <button data-inline="true" data-style="flat">Host</button>
+                        <a class="ui-btn" data-inline="true" style="font-size: 17px;" href='room.html'>Host</a>
                     </div>
                 </li>
                 <li class="ui-li-has-icon">
@@ -71,11 +56,13 @@
                         </span>
                     </div>
                     <div class="ui-li-action">
-                        <button data-inline="true" data-style="flat">Join</button>
+                        <a class="ui-btn" data-inline="true" style="font-size: 17px;" href='room.html'>Join</a>
                     </div>
                 </li>
             </ul>
-            <div class="ui-content-subheader"><h3>Popular Video</h3></div>
+            <div class="ui-content-subheader">
+                <h3>Popular Video</h3>
+            </div>
             <ul class="ui-listview ui-content-area">
                 <li class="ui-li-has-icon">
                     <div class="ui-li-icon">
@@ -90,7 +77,7 @@
                         </span>
                     </div>
                     <div class="ui-li-action">
-                        <button data-inline="true" data-style="flat" onclick="location.href='./room.html'">Create a Room</button>
+                        <a class="ui-btn" data-inline="true" style="font-size: 17px;" href='room.html'>Create a Room</a>
                     </div>
                 </li>
                 <li class="ui-li-has-icon">
@@ -106,7 +93,7 @@
                         </span>
                     </div>
                     <div class="ui-li-action">
-                        <button data-inline="true" data-style="flat" onclick="location.href='./room.html'">Create a Room</button>
+                        <a class="ui-btn" data-inline="true" style="font-size: 17px;" href='room.html'>Create a Room</a>
                     </div>
                 </li>
                 <li class="ui-li-has-icon">
@@ -122,16 +109,17 @@
                         </span>
                     </div>
                     <div class="ui-li-action">
-                        <button data-inline="true" data-style="flat" onclick="location.href='./room.html'">Create a Room</button>
+                        <a class="ui-btn" data-inline="true" style="font-size: 17px;" href='room.html'>Create a Room</a>
                     </div>
                 </li>
             </ul>
         </div>
-        <div class="ui-footer">
-            <button data-inline="true" style="width: 100%; font-size: 19px;"
-                onclick="location.href='./room.html'">Create a Room</button>
-            <button data-inline="true" style="width: 100%; font-size: 19px;">Join a Room</button>
-        </div>
+        <footer class="ui-bottom-button">
+            <a class="ui-btn" data-style="contained" data-inline="true" style="width: 60%; font-size: 17px;"
+                href='room.html'>Create a Room</a>
+            <a class="ui-btn" data-style="contained" data-inline="true" style="width: 60%; font-size: 17px;"
+                href='room.html'>Join a Room</a>
+        </footer>
     </div>
 </body>
 

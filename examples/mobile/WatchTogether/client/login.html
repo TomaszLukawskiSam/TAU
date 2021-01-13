@@ -14,13 +14,13 @@
 <body>
     <div class="ui-page">
         <div class="ui-header" data-position="fixed" style="margin-bottom: 0; border-bottom: solid 1px #ccc;">
-			<h1>
-				Log In
+            <h1>
+                Log In
             </h1>
             <div class="ui-appbar-action-buttons-container">
-                <button data-inline="true" style="width: 38px; font-size: 13px;">X</button>
+                <a href="#" class="ui-btn" data-rel="back" data-inline="true" style="width: 38px; font-size: 13px;">X</a>
             </div>
-		</div>
+        </div>
         <div class="ui-content" style="border-radius: 0;">
             <div class="login-id">
                 <input type="text" id="userId" placeholder="Username or email" style="height: 100%; margin: auto 0;">
@@ -29,13 +29,14 @@
                 <input type="password" placeholder="Password" style="height: 100%; margin: auto 0;">
             </div>
             <div class="login-forgot">
-                <p style="margin-top: 0; font-size: 15px;" onclick="alert('Link to the fine Password screen')">Forgot password?</p>
+                <p style="margin-top: 0; font-size: 15px;" onclick="alert('Link to the fine Password screen')">Forgot
+                    password?</p>
             </div>
             <div class="login-btn">
-                <button data-inline="true" style="width: 100%; font-size: 19px; border-radius: 0;" onclick="location.href='./client.html'">Log In</button>
+                <a class="ui-btn" data-inline="true" style="width: 100%; font-size: 17px;" href='client.html'>Log In</a>
             </div>
             <div class="login-btn">
-                <button data-inline="true" style="width: 100%; font-size: 19px; border-radius: 0;">Sign up</button>
+                <a class="ui-btn" data-inline="true" style="width: 100%; font-size: 17px;" href='client.html'>Sign up</a>
             </div>
         </div>
     </div>
