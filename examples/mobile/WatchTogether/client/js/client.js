@@ -5,9 +5,6 @@ var user;
 
 function init() {
     console.log('Client Chatting App Init...');
-    var number = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
-    user = 'User' + number;
-    // user = 'Tom';
 }
 
 function openEmoji() {
@@ -50,10 +47,14 @@ function onMessage(evt) {
 }
 
 function login() {
-    // var userIdElement = document.getElementById("userId");
-    // console.log('id : ' + userIdElement.value);
-    // user = userIdElement.value;
-    window.location.href = "./chat.html";
+    var loginButton = document.getElementById("loginButton"),
+        userId = document.getElementById("userId"),
+        loggedUser = document.getElementById("loggedUser");
+
+    user = userId.value;
+    loginButton.classList.add('app-hidden');
+    loggedUser.innerHTML = user;
+    loggedUser.classList.remove('app-hidden');
 }
 
 function play() {
