@@ -27,7 +27,8 @@ var users = [{
 function getlistItemHTML(user) {
     return `<li class="ui-li-has-checkbox">
         <label style="display: inherit; width: 100%">
-            <input class="checkboxes" name="checkbox-share-${user.id}" type="checkbox" ${user.shared ? "checked" : ""}/>
+            <input class="checkboxes user-share" data-user-id="${user.id}"
+             type="checkbox" ${user.shared ? "checked" : ""}/>
             <div class="ui-li-text">
                 <span class="ui-li-text-title">${user.name}</span>
             </div>
@@ -45,7 +46,10 @@ function updatePopup() {
 }
 
 function onChatPageBeforeShow() {
+    var shareButton = document.getElementById('user-share-button');
+
     updatePopup();
+    shareButton.addEventListener('click', onUserShareButtonClick);
 }
 
 function onPageBeforeShow(event) {
@@ -81,25 +85,34 @@ function uploadText() {
     }
 }
 
+function addUser(data) {
+    let newUser = data.user;
+
+    if (!users.some(user => user.id === newUser.id)) {
+        users.push(newUser);
+        updatePopup();
+    } else {
+        console.warn(`User (id:${user.id}) already exists`);
+    }
+}
+
+function removeUser(data) {
+    let removeUserId = data.userId;
+    if (users.some(user => user.id === removeUserId)) {
+        users = users.filter(user => user.id !== removeUserId);
+        updatePopup();
+    } else {
+        console.warn(`User (id:${user.id}) not exists`);
+    }
+}
+
 function onMessage(evt) {
     var msg = JSON.parse(evt.data);
     if (msg.id == d2dservice.SERVER) {
         if (msg.type === "adduser") {
-            let newUser = msg.data.user;
-            if (!users.some(user => user.id === newUser.id)) {
-                users.push(newUser);
-                updatePopup();
-            } else {
-                console.warn(`User (id:${user.id}) already exists`);
-            }
+            addUser(msg.data);
         } else if (msg.type === "removeuser") {
-            let removeUserId = msg.data.userId;
-            if (users.some(user => user.id === removeUserId)) {
-                users = users.filter(user => user.id !== removeUserId);
-                updatePopup();
-            } else {
-                console.warn(`User (id:${user.id}) not exists`);
-            }
+            removeUser(msg.data);
         }
     } else {
         alert('msg.type : ' + msg.type);
@@ -136,6 +149,7 @@ function updatePopupList(popupElement, data) {
     }
 }
 
+
 function login() {
     var loginButton = document.getElementById("loginButton"),
         userId = document.getElementById("userId"),
@@ -154,6 +168,38 @@ function play() {
 function pause() {
     d2dservice.sendMessage("pauseVideo");
 }
+
+function updateUsersFromPopup() {
+    // update users
+    let popup = document.getElementById("share-users-popup"),
+        checkboxes = popup.querySelectorAll("input[type='checkbox'].user-share");
+
+    // set shared user for selected checkbox
+    checkboxes.forEach(checkbox => {
+        let user = users.filter(user => user.id === parseInt(checkbox.getAttribute("data-user-id"), 10))[0];
+        if (user) {
+            user.shared = checkbox.checked;
+        }
+    });
+}
+
+function onUserShareButtonClick() {
+    updateUsersFromPopup();
+
+    // data to send
+    let data = users.map(user => {
+        return {
+            id: user.id,
+            shared: user.shared
+        }
+    });
+    // denug
+    console.log("send", "userShared", data);
+
+    // send to TV
+    d2dservice.sendMessage("userShared", data);
+}
+
 
 window.onload = function () {
     init();
