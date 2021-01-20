@@ -71,7 +71,8 @@ const myappsmodule = {};
                 d2dApp = dataArray[i]['d2dApp'];
                 if (d2dApp.hasOwnProperty("appName")) {
                     if(d2dApp.iconName) {
-                        imgObj.src = `./images/${d2dApp.iconName}`;
+                        icon = d2dApp.iconPath.replace('/opt/usr/globalapps/','');
+                        imgObj.src = `../../../${icon}`;
                     } else {
                         imgObj.src = `./images/icon.png`;
                     }
