@@ -1,0 +1,21 @@
+.domain-select {
+    margin-left: 45px !important;
+}
+.ui-li-has-radio label {
+    display: inherit;
+    width: 100%;
+}
+.domain-select .ui-dropdownmenu-placeholder::after {
+    content: "";
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    right: 0;
+    background-color:black;
+    top: 35%;
+    -webkit-mask-image: url(../images/tw_spinner_mtrl.svg);
+    mask-image: url(../images/tw_spinner_mtrl.svg);
+}
+.domain-select .ui-dropdownmenu-active .ui-dropdownmenu-placeholder::after {
+    display: none;
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta content="width=device-width, user-scalable=no" name="viewport" />
+	<title>
+		DNS: login
+	</title>
+	<link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+	<script src="js/main.js"></script>
+	<script src="lib/tau/mobile/js/tau.js"></script>
+	<link href="css/style.css" rel="stylesheet" />
+</head>
+
+<body>
+	<div class="ui-page ui-page-active" id="login-page">
+		<header>
+			<div class="ui-appbar-title-container">
+				<span class="ui-appbar-title">Login</span>
+			</div>
+		</header>
+		<div class="ui-content">
+			<form id="login-form" action="#" method="get">
+				<ul class="ui-listview ui-content-area">
+					<li class="ui-li-has-icon">
+						<div class="ui-li-icon">
+							<img src="images/Profile.png"/>
+						</div>
+						<div class="ui-li-text">
+							<input class="input-hint" placeholder="Username" id="username" name="username" type="text"/>
+						</div>
+					</li>
+					<li class="ui-li-static ui-li-has-dropdownmenu domain-select">
+						<select data-native-menu="false" id="domain" name="domain" data-inline="true">
+							<option value="naver.com" selected>
+								naver.com
+							</option>
+							<option value="gmail.com">
+								gmail.com
+							</option>
+							<option value="samsung.com">
+								samsung.com
+							</option>
+						</select>
+					</li>
+				</ul>
+				<button class="ui-btn-contained-colored" data-style="contained" id="submit-button">
+					Login
+				</button>
+				<input id="username-domain" type="hidden" name="username-domain">
+			</form>
+		</div>
+	</div>
+</body>
+
+</html>

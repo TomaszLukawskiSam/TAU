@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta content="width=device-width, user-scalable=no" name="viewport" />
+	<title>
+		DNS: login
+	</title>
+	<link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+	<script src="js/main.js"></script>
+	<script src="lib/tau/mobile/js/tau.js"></script>
+	<link href="css/style.css" rel="stylesheet" />
+</head>
+
+<body>
+	<div class="ui-page ui-page-active" id="device-list-page">
+		<header>
+			<div class="ui-appbar-title-container">
+				<span class="ui-appbar-title">List of devices</span>
+			</div>
+		</header>
+		<div class="ui-content">
+			<form id="device-select-form" action="#" method="get">
+				<ul class="ui-listview ui-content-area" id="device-list"></ul>
+				<button class="ui-btn-contained-colored" data-style="contained" id="submit-selected-device">
+					Select device
+				</button>
+				<input type="hidden" id="selected-device" name="selected-device">
+			</form>
+		</div>
+	</div>
+</body>
+
+</html>
