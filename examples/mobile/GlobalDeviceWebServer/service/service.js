@@ -9,9 +9,9 @@ var httpserver, evtEmit, d2dService;
 var apps, dataApps = [];
 var serverAppId = '';
 var relayServer = require('./relay-server.js');
+var globalAppPath = '/opt/usr/globalapps';
 const TIZEN_WEB_APP_SHARED_RESOURCES = 'shared/res/';
 const WEBCLIP_DIRECTORY = 'webclip';
-const GLOBAL_APP_PATH = '/opt/usr/globalapps';
 const WEBCLIP_MANIFEST = 'manifest.json';
 
 class D2DServiceLocal {
@@ -86,11 +86,7 @@ function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
     return metaData.key === "d2dservice" && metaData.value === "enable";
   });
   metaDataArray.forEach(function () {
-    let appPath = path.join(GLOBAL_APP_PATH, appPkgID, TIZEN_WEB_APP_SHARED_RESOURCES);
-    let iconName = "";
-    if (iconPath) {
-      iconName =  iconPath.replace(appPath, "");
-    }
+    let appPath = path.join(globalAppPath, appPkgID, TIZEN_WEB_APP_SHARED_RESOURCES);
 
     //let iconCopyPath = path.join(appsrwDir, '../../../data/client/images', iconName);
     //tizen.filesystem.copyFile(iconPath, iconCopyPath, true);
@@ -100,7 +96,7 @@ function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
         appPkgID: appPkgID,
         appAppID: appAppID,
         appName: appName,
-        iconName: iconName
+        iconPath: iconPath
       },
       path: path.join(appPath)
     }
@@ -249,6 +245,11 @@ var HTTPserverStart = function() {
   //g.baseDir = '/opt/usr/globalapps';
   console.log("[GlobalWebServer] __dirname: ", __dirname);
 
+  if (webapis.cachedProperty !== undefined) {
+    globalAppPath = '/opt/usr/apps'
+    console.log("[GlobalWebServer] TV Profile");
+  }
+
   var tizenApp = tizen.application.getCurrentApplication();
   console.log("[GlobalWebServer] ID, packageId: ", tizenApp.appInfo.id, tizenApp.appInfo.packageId);
   serverAppId = tizenApp.appInfo.id.split('.')[0];
@@ -276,7 +277,7 @@ var HTTPserverStart = function() {
     }
 
     let options = {
-      root: path.join('/opt/usr/globalapps/', appId, TIZEN_WEB_APP_SHARED_RESOURCES, WEBCLIP_DIRECTORY)
+      root: path.join(globalAppPath, appId, TIZEN_WEB_APP_SHARED_RESOURCES, WEBCLIP_DIRECTORY)
     };
      
     // remove weblip name from path
