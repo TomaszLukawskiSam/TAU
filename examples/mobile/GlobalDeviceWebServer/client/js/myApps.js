@@ -46,7 +46,7 @@ const myappsmodule = {};
     };
 
     function showListView(dataArray) {
-        var formResult = document.getElementById("d2dApps"), 
+        var formResult = document.getElementById("d2dApps"),
             imgResult = document.getElementById("d2dAppList"),
             formObj,
             imgObj,
@@ -58,7 +58,7 @@ const myappsmodule = {};
             icon;
 
         emptyElement(imgResult);
-        
+
         objTable = document.createElement("div");
         objTable.className = "result-table";
 
@@ -70,9 +70,9 @@ const myappsmodule = {};
                 formObj.style.textAlign = "center";
                 d2dApp = dataArray[i]['d2dApp'];
                 if (d2dApp.hasOwnProperty("appName")) {
-                    if(d2dApp.iconName) {
+                    if(d2dApp.iconPath) {
                         icon = d2dApp.iconPath.replace('/opt/usr/globalapps/','');
-                        imgObj.src = `../../../${icon}`;
+                        imgObj.src = `/d2dicon/${icon}`;
                     } else {
                         imgObj.src = `./images/icon.png`;
                     }
