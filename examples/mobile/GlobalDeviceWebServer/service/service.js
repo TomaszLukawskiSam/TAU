@@ -10,6 +10,7 @@ var apps, dataApps = [];
 var serverAppId = '';
 var relayServer = require('./relay-server.js');
 var globalAppPath = '/opt/usr/globalapps';
+var urlParam;
 const TIZEN_WEB_APP_SHARED_RESOURCES = 'shared/res/';
 const WEBCLIP_DIRECTORY = 'webclip';
 const WEBCLIP_MANIFEST = 'manifest.json';
@@ -322,7 +323,13 @@ var HTTPserverStart = function() {
   });
 
   app.get('/', function (req, res) {
-    res.redirect("/client/client.html");
+    urlParam = req.originalUrl;
+    // In case of invited url,the device home url has the "roomid" as to http://xxx.xxx.xxx.xxx:9000/?roomid=aaa
+    if ( urlParam.indexOf('/?roomid') != -1) {
+      res.redirect("/client/invited.html");	
+    } else {
+      res.redirect("/client/client.html");
+    }
   });
 
   // receive data or cmd to app on device

@@ -9,11 +9,26 @@
     padding: 20px;
 }
 
+.app-image-big-grid {
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(1, 100px [col-start]);
+    grid-template-rows: auto;
+    gap: 10px;
+    justify-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
 .app-icon-img {
     width: 100px;
     height: 100px;
 }
 
+.app-icon-big-img {
+    width: 150px;
+    height: 150px;
+}
 .app-btn-icon-burger {
     margin-left: 20px;
     margin-right: 12px;
