@@ -63,19 +63,7 @@ class D2DServiceLocal {
     console.log("D2DServiceLocal.sendMessage: ", what, data);
     this.doSend(what, data, whom);
   }
-  // sendMessageToApp(pkgId, data) {
-  //   let websocket = new WebSocket("ws://localhost:9000/" + pkgId);
-  //   console.log("sendMessageToApp websocket: ", websocket);
 
-  //   websocket.addEventListener("open", function () {
-  //     console.log("sendMessageToApp on open: ", data);
-  //     websocket.send(JSON.stringify(data));
-  //     websocket.close();
-  //   });
-  //   websocket.addEventListener("error", function () {
-  //     console.log("ws:error", websocket.url);
-  //   });
-  // }
 }
 
 function addD2Ddata(appPkgID, appAppID, appName, iconPath) {
@@ -207,7 +195,7 @@ function getWebClipsList() {
       webclips.push({
         url: path.join('webclip', app.webclip.manifest.name),
         isSelected: true
-      });  
+      });
     }
     result.push({
       appID: app.d2dApp.appAppID,
@@ -279,7 +267,7 @@ var HTTPserverStart = function() {
     let options = {
       root: path.join(globalAppPath, appId, TIZEN_WEB_APP_SHARED_RESOURCES, WEBCLIP_DIRECTORY)
     };
-     
+
     // remove weblip name from path
     file = file.replace(webclipName + '/', '');
     res.sendFile(file, options, function (err) {
@@ -312,6 +300,11 @@ var HTTPserverStart = function() {
   });
 
   app.use('/client', clientRouter);
+
+  app.get('/d2dicon/*', (req, res) => {
+    let fullPath = req.originalUrl.replace("d2dicon", globalAppPath);
+    res.sendFile(fullPath);
+  });
 
   app.get('/appList', (req, res) => {
     res.send(dataApps);
