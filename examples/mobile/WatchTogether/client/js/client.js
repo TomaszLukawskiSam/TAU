@@ -1,7 +1,7 @@
 var d2dservice = new D2DServiceClient();
 var textData;
 var textArea;
-var user;
+var user = null;
 var users = [{
         id: 1,
         name: "Tom",
@@ -55,6 +55,19 @@ function onChatPageBeforeShow() {
 function onPageBeforeShow(event) {
     if (event.target.id === 'chat-page') {
         onChatPageBeforeShow();
+    }
+}
+
+function toogleButtons(enabled) {
+    var playButton = document.querySelector(".play-button"),
+        pauseButton = document.querySelector(".pause-button");
+
+    if (enabled) {
+        tau.widget.Button(playButton).enable();
+        tau.widget.Button(pauseButton).enable();
+    } else {
+        tau.widget.Button(playButton).disable();
+        tau.widget.Button(pauseButton).disable();
     }
 }
 
@@ -156,6 +169,7 @@ function login() {
         loggedUser = document.getElementById("loggedUser");
 
     user = userId.value;
+
     loginButton.classList.add('app-hidden');
     loggedUser.innerHTML = user;
     loggedUser.classList.remove('app-hidden');
