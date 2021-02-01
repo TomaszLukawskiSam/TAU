@@ -1,5 +1,4 @@
 /* global tau */
-(function () {
 	var users = [],
 		deviceList = [{
 			id: 1,
@@ -48,13 +47,24 @@
 		}
 	}
 
+	function showfield(name) {
+		if (name ==="other")
+			document.getElementById('user-input').innerHTML='<div style="margin-top:20px;"><input class="ui-text-input" id="user-domain" type ="text" name="other" /><span style="width:200px" class="ui-text-input-textline"></span></div>';
+		else 
+			document.getElementById('user-input').innerHTML ='';
+	}
+
 	function onLoginSubmitClick() {
 		var hidden = document.getElementById("username-domain"),
 			username = document.getElementById("username"),
 			domain = document.getElementById("domain"),
-			form = document.getElementById("login-form");
+			form = document.getElementById("login-form"),
+			userdomain = document.getElementById("user-domain");
 
-		hidden.value = username.value + "@" + domain.value;
+			if (userdomain)
+				hidden.value = username.value + userdomain.value;
+			else
+				hidden.value = username.value + "@" + domain.value;
 
 		// store user data
 		users.push({id: ++lastId, username: hidden.value});
@@ -174,5 +184,5 @@
 
 	// entry point
 	document.addEventListener("DOMContentLoaded", init);
-})();
+
 

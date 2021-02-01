@@ -7,8 +7,8 @@
 		DNS: login
 	</title>
 	<link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
-	<script src="js/main.js"></script>
-	<script src="lib/tau/mobile/js/tau.js"></script>
+	<script src="./js/main.js"></script>
+	<script src="./lib/tau/mobile/js/tau.js"></script>
 	<link href="css/style.css" rel="stylesheet" />
 </head>
 
@@ -31,7 +31,7 @@
 						</div>
 					</li>
 					<li class="ui-li-static ui-li-has-dropdownmenu domain-select">
-						<select data-native-menu="false" id="domain" name="domain" data-inline="true">
+						<select data-native-menu="false" id="domain" name="domain" data-inline="true" onchange="showfield(this.options[this.selectedIndex].value)">
 							<option value="naver.com" selected>
 								naver.com
 							</option>
@@ -41,7 +41,11 @@
 							<option value="samsung.com">
 								samsung.com
 							</option>
+							<option value="other">
+								other
+							</option>
 						</select>
+						<div id="user-input"></div>
 					</li>
 				</ul>
 				<button class="ui-btn-contained-colored" data-style="contained" id="submit-button">
@@ -49,6 +53,30 @@
 				</button>
 				<input id="username-domain" type="hidden" name="username-domain">
 			</form>
+			<ul class="ui-listview ui-content-area" style="margin-top: 100px;">
+				<li>
+					<div class="ui-li-text">
+						<span class="ui-li-text-sub">
+							Notice
+						</span>
+						<span class="ui-li-text-sub" style="margin-top: 10px;">
+							Please login Samsung account on TV that you want to connect to.
+						</span>
+					</div>
+				</li>
+			</ul>
+			<div class="ui-popup" id="no-device">
+				<div class="ui-popup-header">
+					No connected TV
+				</div>
+				<div class="ui-popup-content" style="margin-top: 10px;">
+					There is no TV connected to your account.
+					Please login Samsung account on TV that you want to connect to.
+				</div>
+				<div class="ui-popup-footer">
+					<a href="#" class="ui-btn" data-style="flat" data-rel="back">OK</a>
+				</div>
+			</div>
 		</div>
 	</div>
 </body>
