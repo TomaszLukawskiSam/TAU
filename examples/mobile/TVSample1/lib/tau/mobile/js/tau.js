@@ -3398,7 +3398,6 @@ ns.version = '1.2.7';
 					element = document.getElementById(element);
 				}
 
-				
 				// If type is not defined all widgets should be removed
 				// this is for backward compatibility
 				widgetInstance = getBinding(element, type);
@@ -3456,7 +3455,6 @@ ns.version = '1.2.7';
 					element = document.getElementById(element);
 				}
 
-				
 				if (!childOnly) {
 					// If type is not defined all widgets should be removed
 					// this is for backward compatibility
@@ -8100,13 +8098,29 @@ ns.version = '1.2.7';
 				 */
 				IMAGE_PATH_REGEXP = /url\((\.\/)?images/gm,
 				/**
+				 * Regular expression for extracting url from css content
+				 * @property {RegExp} CSS_URL_REGEXP
+				 * @static
+				 * @private
+				 * @member ns.util.load
+				 */
+				CSS_URL_REGEXP = /url\((.+)\)/gm,
+				/**
 				 * Regular expression for extracting path to the css
 				 * @property {RegExp} CSS_FILE_REGEXP
 				 * @static
 				 * @private
 				 * @member ns.util.load
 				 */
-				CSS_FILE_REGEXP = /[^/]+\.css$/;
+				CSS_FILE_REGEXP = /[^/]+\.css$/,
+				/**
+				 * Regular expression for extracting base path of css file
+				 * @property {RegExp} BASE_PATH_REGEXP
+				 * @static
+				 * @private
+				 * @member ns.util.load
+				 */
+				BASE_PATH_REGEXP = /[^\/]+$/;
 
 			/**
 			 * Load file
@@ -8223,12 +8237,36 @@ ns.version = '1.2.7';
 			 * @method cssSyncSuccess
 			 * @param {string} cssPath
 			 * @param {?Function} successCB
-			 * @param {?Function} xhrObj
+			 * @param {Object} xhrObj
 			 * @member ns.util.load
 			 * @static
 			 * @private
 			 */
 			function cssSyncSuccess(cssPath, successCB, xhrObj) {
+				var css = document.createElement("style"),
+					pathRelatedToBaseApp = cssPath.replace(BASE_PATH_REGEXP, "");
+
+				css.type = "text/css";
+				css.textContent = xhrObj.responseText.replace(
+					CSS_URL_REGEXP,
+					"url(" + pathRelatedToBaseApp + "$1)"
+				);
+				if (typeof successCB === "function") {
+					successCB(css);
+				}
+			}
+
+			/**
+			 * Callback function on tau theme css load success
+			 * @method cssThemeSyncSuccess
+			 * @param {string} cssPath
+			 * @param {?Function} successCB
+			 * @param {Object} xhrObj
+			 * @member ns.util.load
+			 * @static
+			 * @private
+			 */
+			function cssThemeSyncSuccess(cssPath, successCB, xhrObj) {
 				var css = document.createElement("style");
 
 				css.type = "text/css";
@@ -8249,11 +8287,24 @@ ns.version = '1.2.7';
 			 * @param {?Function} successCB
 			 * @param {?Function} errorCB
 			 * @static
-			 * @private
 			 * @member ns.util.load
 			 */
 			function cssSync(cssPath, successCB, errorCB) {
 				loadFileSync(cssPath, cssSyncSuccess.bind(null, cssPath, successCB), errorCB);
+			}
+
+			/**
+			 * Add tau theme css to document
+			 * (synchronous loading)
+			 * @method cssThemeSync
+			 * @param {string} cssPath
+			 * @param {?Function} successCB
+			 * @param {?Function} errorCB
+			 * @static
+			 * @member ns.util.load
+			 */
+			function cssThemeSync(cssPath, successCB, errorCB) {
+				loadFileSync(cssPath, cssThemeSyncSuccess.bind(null, cssPath, successCB), errorCB);
 			}
 
 			/**
@@ -8348,7 +8399,7 @@ ns.version = '1.2.7';
 
 				if (embed) {
 					// Load and replace old styles or append new styles
-					cssSync(path, function (styleElement) {
+					cssThemeSync(path, function (styleElement) {
 						addNodeAsTheme(styleElement, themeName, previousElement);
 					}, function (xhrObj, xhrStatus) {
 						ns.warn("There was a problem when loading '" + themeName + "', status: " + xhrStatus);
@@ -8371,6 +8422,7 @@ ns.version = '1.2.7';
 			load.addElementToHead = addElementToHead;
 			load.makeLink = makeLink;
 			load.themeCSS = themeCSS;
+			load.cssSync = cssSync;
 			load.JSON = loadJSON;
 
 			ns.util.load = load;
@@ -14212,6 +14264,7 @@ function pathToRegexp (path, keys, options) {
 				 * @property {Object} options
 				 * @property {boolean|string|null} [options.header=false] Sets content of header.
 				 * @property {boolean|string|null} [options.footer=false] Sets content of footer.
+				 * @property {boolean} [options.pullDownRefresh=false] enable / disable pull down refresh
 				 * @property {boolean} [options.autoBuildWidgets=false] Automatically build widgets inside page.
 				 * @property {boolean} [options.goToTopButton=false] Shows go to top button at the bottom of the page.
 				 * @property {string} [options.content=null] Sets content of popup.
@@ -14223,6 +14276,7 @@ function pathToRegexp (path, keys, options) {
 				options.header = null;
 				options.footer = null;
 				options.content = null;
+				options.pullDownRefresh = false;
 				options.goToTopButton = ns.getConfig("goToTopButton");
 				options.enablePageScroll = ns.getConfig("enablePageScroll");
 				options.autoBuildWidgets = ns.getConfig("autoBuildOnPageChange");
@@ -14536,6 +14590,35 @@ function pathToRegexp (path, keys, options) {
 					null;
 			};
 
+			function createPullDownRefresh() {
+				var pullDown = document.createElement("div");
+
+				pullDown.classList.add("ui-pull-down-refresh");
+				return pullDown;
+			}
+
+			/**
+			 * Method set Pull Down Refresh indicator on page
+			 * @method _setPullDownRefresh
+			 * @param {HTMLElement} element
+			 * @param {boolean} enabled
+			 * @protected
+			 * @member ns.widget.core.Page
+			 */
+			prototype._setPullDownRefresh = function (element, enabled) {
+				var self = this,
+					pullDownRefresh = self._ui.pullDownRefresh;
+
+				if (enabled && !pullDownRefresh) {
+					pullDownRefresh = createPullDownRefresh();
+					element.appendChild(pullDownRefresh);
+					self._ui.pullDownRefresh = pullDownRefresh;
+				} else if (!enabled && pullDownRefresh) {
+					element.removeChild(pullDownRefresh);
+					self._ui.pullDownRefresh = null;
+				}
+			};
+
 			prototype._buildGoToTopButton = function (element) {
 				var self = this,
 					ui = self._ui;
@@ -14694,6 +14777,7 @@ function pathToRegexp (path, keys, options) {
 				self._buildContent(element);
 				self._buildGoToTopButton(element);
 				self._setTitle(element);
+				self._setPullDownRefresh(element, self.options.pullDownRefresh);
 				self._setAria();
 
 				//it means that we are in wearable profile and we want to make a scrollview on page element (not content)
@@ -14783,7 +14867,9 @@ function pathToRegexp (path, keys, options) {
 						var scroller = self.getScroller(),
 							scrollview = ns.engine.getBinding(scroller);
 
-						scrollview.enableScrolling();
+						if (scrollview) {
+							scrollview.enableScrolling();
+						}
 					}, false);
 
 					header.addEventListener("appbarexpanded", function () {
@@ -24667,6 +24753,7 @@ function pathToRegexp (path, keys, options) {
 					element.classList.add(classes.uiSectionChanger);
 
 					self.scroller.style.position = "absolute";
+					self.scroller.classList.add("ui-section-changer-container");
 					self.orientation = options.orientation === "horizontal" ? Orientation.HORIZONTAL : Orientation.VERTICAL;
 
 					return element;
@@ -27159,7 +27246,8 @@ function pathToRegexp (path, keys, options) {
 					toggle: "",
 					min: 0,
 					max: 10,
-					step: 1
+					step: 1,
+					labels: false
 				},
 				unsupportedOptions = ["orientation", "expand", "warning", "warningLevel", "toggle"],
 				Slider = function () {
@@ -27183,7 +27271,11 @@ function pathToRegexp (path, keys, options) {
 					SLIDER_ACTIVE: "ui-slider-active",
 					TRACK: "ui-slider-handler-track",
 					SPACE_BEFORE: "ui-slider-before-space",
-					SPACE_AFTER: "ui-slider-after-space"
+					SPACE_AFTER: "ui-slider-after-space",
+					SLIDER_HAS_LABELS: "ui-slider-has-labels",
+					LABEL: "ui-slider-label",
+					LABEL_MIN: "ui-slider-label-min",
+					LABEL_MAX: "ui-slider-label-max"
 				},
 				prototype = new BaseWidget();
 
@@ -27293,6 +27385,29 @@ function pathToRegexp (path, keys, options) {
 			}
 
 			/**
+			 * Method is called when "labels" option has change
+			 * @method _setLabels
+			 * @member ns.widget.core.Slider
+			 * @param {HTMLElement} element element parameter is required by BaseWidget
+			 * @param {string} value
+			 * @protected
+			 */
+			prototype._setLabels = function (element, value) {
+				var self = this;
+
+				if (value) {
+					if (!self._ui.labelMin.innerText) {
+						self._ui.labelMin.innerText = self.options.min;
+					}
+					if (!self._ui.labelMax.innerText) {
+						self._ui.labelMax.innerText = self.options.max;
+					}
+				}
+				self._ui.containerElement.classList.toggle(classes.SLIDER_HAS_LABELS, value);
+				self.options.labels = value;
+			}
+
+			/**
 			 * Build structure of Slider component
 			 * @method _build
 			 * @param {HTMLElement} element
@@ -27309,7 +27424,9 @@ function pathToRegexp (path, keys, options) {
 					handlerElement = document.createElement("div"),
 					handlerTrack = document.createElement("div"),
 					beforeSpace = document.createElement("div"),
-					afterSpace = document.createElement("div");
+					afterSpace = document.createElement("div"),
+					labelMin = document.createElement("div"),
+					labelMax = document.createElement("div");
 
 				containerElement.classList.add(classes.SLIDER);
 
@@ -27322,12 +27439,19 @@ function pathToRegexp (path, keys, options) {
 				beforeSpace.classList.add(classes.SPACE_BEFORE);
 				afterSpace.classList.add(classes.SPACE_AFTER);
 
+				labelMin.classList.add(classes.LABEL);
+				labelMax.classList.add(classes.LABEL);
+				labelMin.classList.add(classes.LABEL_MIN);
+				labelMax.classList.add(classes.LABEL_MAX);
+
 				handlerTrack.appendChild(beforeSpace);
 				handlerTrack.appendChild(handlerElement);
 				handlerTrack.appendChild(afterSpace);
 
 				containerElement.appendChild(handlerTrack);
 				containerElement.appendChild(barElement);
+				containerElement.appendChild(labelMin);
+				containerElement.appendChild(labelMax);
 
 				element.parentNode.appendChild(containerElement);
 				ui.barElement = barElement;
@@ -27336,6 +27460,8 @@ function pathToRegexp (path, keys, options) {
 				ui.containerElement = containerElement;
 				ui.beforeSpace = beforeSpace;
 				ui.afterSpace = afterSpace;
+				ui.labelMin = labelMin;
+				ui.labelMax = labelMax;
 
 				element.parentNode.replaceChild(containerElement, element);
 				containerElement.appendChild(element);
@@ -27412,6 +27538,7 @@ function pathToRegexp (path, keys, options) {
 					ui = self._ui;
 
 				self._setType(self.element, self.options.type);
+				self._setLabels(self.element, self.options.labels);
 
 				self._containerElementWidth = ui.containerElement.offsetWidth;
 
@@ -28141,7 +28268,7 @@ function pathToRegexp (path, keys, options) {
 				},
 
 				changeValue: function (progress, oldValue, newValue) {
-					var duration = 1850,
+					var duration = progress.options.duration,
 						valueElement = progress._ui.progressBarValueElement,
 						oldPercentValue = (oldValue * 100) / (progress.options.max - progress.options.min),
 						newPercentValue = (newValue * 100) / (progress.options.max - progress.options.min),
@@ -28428,6 +28555,7 @@ function pathToRegexp (path, keys, options) {
 				defaults = {
 					type: progressType.PROGRESS_BAR,
 					size: circleSize.MEDIUM,
+					duration: 1850,
 					value: 100,
 					min: 0,
 					max: 100
@@ -28580,10 +28708,12 @@ function pathToRegexp (path, keys, options) {
 					element = self.element,
 					page = selectors.getClosestByClass(element, Page.classes.uiPage);
 
-				self._ui.page = page;
+				if (page) {
+					self._ui.page = page;
 
-				self._callbacks.onPageBeforeShow = pageBeforeShow.bind(null, self);
-				page.addEventListener(Page.events.BEFORE_SHOW, self._callbacks.onPageBeforeShow, false);
+					self._callbacks.onPageBeforeShow = pageBeforeShow.bind(null, self);
+					page && page.addEventListener(Page.events.BEFORE_SHOW, self._callbacks.onPageBeforeShow, false);
+				}
 			};
 
 			prototype._unbindEvents = function () {
@@ -28748,18 +28878,29 @@ function pathToRegexp (path, keys, options) {
 					urlObject;
 
 				if (!content.parentNode || content.ownerDocument !== document) {
-					content = ns.util.importEvaluateAndAppendElement(content, element, options);
-					// make urls relative to base dir
+					// load styles.css
+					links = content.querySelectorAll(selectors.LINKS);
+					links.forEach(function (link) {
+						if (link.href.indexOf(ns.util.path.parseLocation(options.url).domain) === 0) {
+							urlObject = ns.util.path.parseLocation(options.url);
+							relativeFile = link.href.replace(urlObject.domain, "").replace(urlObject.directory, "");
+							ns.util.load.cssSync(link.href, function (styleElement) {
+								ns.util.load.addElementToHead(styleElement, true);
+							}, function (xhrObj, xhrStatus) {
+								ns.warn("There was a problem when loading, status: " + xhrStatus);
+							});
+						}
+						link.parentElement.removeChild(link);
+					});
+
+					// evaluate scripts
+					content = ns.util.importEvaluateAndAppendElement(content, element);
+
+					// make images urls relative to base dir
 					if (options && options.url) {
 						urlObject = ns.util.path.parseLocation(options.url);
 						relativePath = options.url.replace(URL_FILE_REGEXP, "");
-						links = content.querySelectorAll(selectors.LINKS);
-						links.forEach(function (link) {
-							if (link.href.indexOf(ns.util.path.parseLocation(options.url).domain) === 0) {
-								relativeFile = link.href.replace(urlObject.domain, "").replace(urlObject.directory, "");
-								link.href = relativePath + relativeFile;
-							}
-						});
+
 						images = content.querySelectorAll(selectors.IMAGES);
 						images.forEach(function (source) {
 							if (source.src.indexOf(ns.util.path.parseLocation(options.url).domain) === 0) {
@@ -28775,20 +28916,14 @@ function pathToRegexp (path, keys, options) {
 			prototype.changeContent = function (content, options) {
 				var self = this;
 
-				content = self._include(content, options);
-				self.element.parentElement.replaceChild(content, self.element);
-				ns.engine.createWidgets(content);
-				eventUtils.trigger(content, "cardcontentchange");
-			};
+				if (self.element.parentElement) {
+					content = self._include(content, options);
+					ns.engine.createWidgets(content);
+					eventUtils.trigger(content, "cardcontentchange");
+				} else {
+					eventUtils.trigger(content, "cardcontentabort");
+				}
 
-			/**
-			 * Destroy Card component
-			 * @method _destroy
-			 * @member ns.widget.core.Card
-			 * @protected
-			 */
-			prototype._destroy = function () {
-				this._unbindEvents();
 			};
 
 			// definition
@@ -28854,12 +28989,14 @@ function pathToRegexp (path, keys, options) {
 						actionButtonsContainer: null,
 						page: null,
 						selectAll: null,
-						bottomBar: null
+						bottomBar: null,
+						instantContainers: []
 					};
 					self._expandedHeight = nominalHeights.EXPANDED;
 					self._appbarState = states.COLLAPSED;
 					self._dragStartingHeight = 0;
 					self._currentHeight = 0;
+					self._instantContainersHeight = 0;
 					self._scrolledToTop = true;
 					self._lockExpanding = false;
 					self._calculateExtendedHight();
@@ -28871,6 +29008,7 @@ function pathToRegexp (path, keys, options) {
 					title: classPrefix + "-title",
 					leftIconsContainer: classPrefix + "-left-icons-container",
 					actionButtonsContainer: classPrefix + "-action-buttons-container",
+					instantContainer: classPrefix + "-container",
 					titleContainer: classPrefix + "-title-container",
 					hasMultilineTitle: classPrefix + "-has-multiline",
 					hasSubtitle: classPrefix + "-has-subtitle",
@@ -28913,7 +29051,7 @@ function pathToRegexp (path, keys, options) {
 			Appbar.prototype = prototype;
 			Appbar.defaults = defaults;
 			Appbar.classes = classes;
-			Appbar.selector = ".ui-appbar,.ui-header,header,[data-role='header']";
+			Appbar.selector = ".ui-appbar,.ui-page > .ui-header,.ui-page > header,[data-role='header']";
 
 			prototype._init = function (element) {
 				var self = this;
@@ -28939,21 +29077,115 @@ function pathToRegexp (path, keys, options) {
 				var self = this;
 
 				self._createContainers(element);
+				self._findInstantContainers(element);
 				self._readTitleType(element);
 				self._setTitleType(element, self.options.titleType);
 				return element;
 			};
 
+			prototype._calculateInstantContainers = function (element) {
+				var self = this,
+					instantContainersHeight = 0;
+
+				// calculate instant containers height
+				element.style.height = "auto";
+				self._ui.instantContainers.forEach(function (container) {
+					instantContainersHeight += container.offsetHeight;
+				});
+
+				return instantContainersHeight;
+			};
+
+			prototype._updateAppbarDimensions = function (element) {
+				var self = this,
+					instantContainersHeight = self._instantContainersHeight,
+					controlsContainer = self._ui.controlsContainer;
+
+				// increase height of appbar and change bottom possition of control container
+				if (instantContainersHeight > 0) {
+					self._calculateExtendedHight();
+					self._expandedHeight += instantContainersHeight;
+					self._currentHeight += instantContainersHeight;
+					if (controlsContainer) {
+						controlsContainer.style.bottom = instantContainersHeight + "px";
+					}
+					self._instantContainersHeight = instantContainersHeight
+				}
+
+				// set initial height of collapsed appbar
+				element.style.height = nominalHeights.COLLAPSED + self._instantContainersHeight + "px";
+			};
+
+			/**
+			 * Method set new height of appbar if instant container exists
+			 * @param {HTMLElement} element
+			 * @method _findInstantContainers
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype._findInstantContainers = function (element) {
+				var self = this;
+
+				self._ui.instantContainers = [].slice.call(element.querySelectorAll("." + classes.instantContainer));
+
+				self._instantContainersHeight = self._calculateInstantContainers(element);
+				self._updateAppbarDimensions(element);
+			};
+
+			/**
+			 * Add Html element as instant container
+			 * @param {HTMLElement} container
+			 * @method addInstantContainer
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype.addInstantContainer = function (container) {
+				var self = this;
+
+				if (container && container instanceof HTMLElement) {
+					container.classList.add(classes.instantContainer);
+					self.element.appendChild(container);
+					self.refresh();
+				} else {
+					ns.warn("AppBar: method addInstantContainer needs argument");
+				}
+			}
+
+			/**
+			 * Remove instant container
+			 * @param {HTMLElement} container
+			 * @method removeInstantContainer
+			 * @member ns.widget.core.Appbar
+			 * @protected
+			 */
+			prototype.removeInstantContainer = function (container) {
+				var self = this;
+
+				if (container && container instanceof HTMLElement) {
+					if (container.parentElement) {
+						container.parentElement.removeChild(container);
+						self.refresh();
+					}
+				} else {
+					ns.warn("AppBar: method removeInstantContainer needs argument");
+				}
+			}
+
 			/**
 			 * Refresh the widget
 			 * @method _refresh
 			 * @member ns.widget.core.Appbar
+			 * @param {HTMLElement} element
 			 * @protected
 			 */
 			prototype._refresh = function (element) {
 				var self = this;
 
-				self._setLineType(element);
+				element = element || self.element;
+				self._findInstantContainers(element);
+				self._ui.instantContainers.forEach(function (container) {
+					ns.engine.createWidgets(container);
+				});
 			};
 
 			/**
@@ -28972,7 +29204,7 @@ function pathToRegexp (path, keys, options) {
 
 				if (screenHeight >= 580 && screenHeight < 960 && screenWidth > screenHeight) { // lanscape
 					self._expandedHeight = screenHeight * 0.3 - bottomMarginHeight;
-				} else if (screenHeight >= 580 && screenHeight < 960 && screenWidth < screenHeight) { // portrait
+				} else if (screenHeight >= 580 && screenHeight < 960 && screenWidth <= screenHeight) { // portrait
 					self._expandedHeight = screenHeight * 0.3967 - bottomMarginHeight;
 				} else if (screenHeight >= 960) {
 					self._expandedHeight = screenHeight * 0.25 - bottomMarginHeight;
@@ -29220,7 +29452,7 @@ function pathToRegexp (path, keys, options) {
 				var self = this,
 					element = self.element;
 
-				element.style.height = "";
+				element.style.height = self._expandedHeight + "px";
 				element.classList.add(classes.expanded);
 				self._appbarState = states.EXPANDED;
 				self._setTitlesOpacity(1);
@@ -29253,8 +29485,9 @@ function pathToRegexp (path, keys, options) {
 				var self = this,
 					element = self.element;
 
-				element.style.height = "";
-				self._currentHeight = 0;
+				self._currentHeight = self._instantContainersHeight;
+				element.style.height = nominalHeights.COLLAPSED + self._instantContainersHeight + "px";
+
 				element.classList.remove(classes.expanded);
 				self._appbarState = states.COLLAPSED;
 				self._setTitlesOpacity(0);
@@ -29346,9 +29579,9 @@ function pathToRegexp (path, keys, options) {
 				var self = this;
 
 				if (window.screen.height <= SCREEN_HEIGHT_LIMIT_FOR_EXPANDING) {
-					self.option("expandingEnabled", false);
+					self._lockExpanding = true;
 				} else {
-					self.option("expandingEnabled", true);
+					self._lockExpanding = false;
 				}
 			}
 
@@ -30898,17 +31131,20 @@ function pathToRegexp (path, keys, options) {
 			 */
 			prototype._onScroll = function () {
 				var self = this,
-					content = self._ui.content;
+					ui = self._ui,
+					content = ui.content,
+					header = ui.header,
+					footer = ui.footer;
 
 				if (content.scrollTop === 0) {
-					self._ui.header.classList.remove("topDivider");
-					self._ui.footer.classList.add("bottomDivider");
+					header && header.classList.remove("topDivider");
+					footer && footer.classList.add("bottomDivider");
 				} else if (content.scrollHeight - content.clientHeight === content.scrollTop) {
-					self._ui.header.classList.add("topDivider");
-					self._ui.footer.classList.remove("bottomDivider");
+					header && header.classList.add("topDivider");
+					footer && footer.classList.remove("bottomDivider");
 				} else {
-					self._ui.header.classList.add("topDivider");
-					self._ui.footer.classList.add("bottomDivider");
+					header && header.classList.add("topDivider");
+					footer && footer.classList.add("bottomDivider");
 				}
 			}
 
@@ -39782,8 +40018,11 @@ function pathToRegexp (path, keys, options) {
 			prototype._onClick = function (event) {
 				var self = this,
 					ui = self._ui,
+					element = self.element,
 					options = self.options,
 					selectTab = event.currentTarget.querySelector("A"),
+					selectedRect,
+					elementRect,
 					index,
 					i,
 					tabLength;
@@ -39794,6 +40033,14 @@ function pathToRegexp (path, keys, options) {
 						break;
 					}
 					index = 0;
+				}
+
+				if (!self._type.static) {
+					// scroll selected tab to center of widget
+					selectedRect = selectTab.getBoundingClientRect();
+					elementRect = element.getBoundingClientRect();
+					self.element.scrollLeft = self.element.scrollLeft + selectedRect.left + selectedRect.width / 2 -
+						elementRect.width / 2;
 				}
 
 				if (options.autoChange) {
@@ -39983,11 +40230,26 @@ function pathToRegexp (path, keys, options) {
 				self._ui.links = [].slice.call(element.querySelectorAll("li > a"));
 				self._ui.links.forEach(function (link) {
 					var wrap = document.createElement("span"),
+						linkElements = [],
+						linkChild,
 						content = link.textContent.trim();
 
+					// detach and cache previous elements from link
+					while (link.children.length > 0) {
+						linkChild = link.children[0];
+						linkElements.push(linkChild);
+						link.removeChild(linkChild);
+					}
+
+					// wrap text content for marquee widget
 					wrap.textContent = content;
 					link.textContent = "";
 					link.appendChild(wrap);
+
+					// recovering previous cached elements of link
+					linkElements.forEach(function (linkChild) {
+						link.appendChild(linkChild);
+					});
 
 					ns.widget.Marquee(wrap, {
 						iteration: 1,
@@ -41327,9 +41589,12 @@ function pathToRegexp (path, keys, options) {
 					 * @member ns.widget.core.MasterOnOffSwitch
 					 */
 					self.options = {
-						target: null
+						target: null,
+						progress: false
 					},
-					self._ui = {};
+					self._ui = {
+						progress: null
+					};
 					self._onChangeMasterOnOff = null;
 				},
 				BaseWidget = ns.widget.BaseWidget,
@@ -41389,6 +41654,7 @@ function pathToRegexp (path, keys, options) {
 				onOff.type = "checkbox";
 				label.classList.add("ui-on-off-label");
 
+
 				labelText.innerHTML = "Off";
 				label.appendChild(labelText);
 				label.appendChild(onOff);
@@ -41407,6 +41673,36 @@ function pathToRegexp (path, keys, options) {
 			};
 
 			/**
+			 * Enable / disable progress in Master On-Off Switch
+			 * @param {HTMLElement} element widget base element
+			 * @param {boolean} value
+			 * @protected
+			 * @member ns.widget.core.MasterOnOffSwitch
+			 * @instance
+			 */
+			prototype._setProgress = function (element, value) {
+				var self = this,
+					ui = self._ui,
+					progress = ui.progress;
+
+				if (value && !progress) {
+					progress = document.createElement("div");
+					progress.classList.add("ui-progress");
+					progress.setAttribute("data-size", "small");
+					progress.setAttribute("data-type", "indeterminatecircle");
+					ui.progress = progress;
+
+					ui.labelOnOff.appendChild(progress);
+					ns.widget.Progress(progress);
+				} else if (!value && progress) {
+					ns.widget.Progress(progress).destroy();
+					progress.parentElement.removeChild(progress);
+					ui.progress = null;
+				}
+				self.options.progress = value;
+			};
+
+			/**
 			 * Initiate widget
 			 * @method _init
 			 * @param {HTMLElement} element
@@ -41420,6 +41716,7 @@ function pathToRegexp (path, keys, options) {
 				self._ui.input = element.querySelector("input.ui-on-off-switch");
 				// set initial look
 				onChangeMasterOnOff(self);
+				self._setProgress(element, self.options.progress);
 			};
 
 			function onChangeMasterOnOff(self) {
@@ -43409,10 +43706,13 @@ function pathToRegexp (path, keys, options) {
 					optionHeight = ui.elOptionContainer.offsetHeight,
 					listItemWidthOffsets = [].slice.call(ui.elOptionContainer.children).map(mapItemWidth),
 					optionContainerStyle = window.getComputedStyle(ui.elOptionContainer),
+					wrapperStyle = window.getComputedStyle(ui.elOptionWrapper),
 					biggestListItemWidth = Math.max.apply(Math, listItemWidthOffsets) +
 						parseInt(optionContainerStyle.borderLeftWidth, 10) +
 						parseInt(optionContainerStyle.borderRightWidth, 10),
-					wrapperMinWidth = parseInt(window.getComputedStyle(ui.elOptionWrapper).minWidth, 10),
+					wrapperPaddingLeftRight = parseInt(wrapperStyle.paddingLeft, 10) +
+						parseInt(wrapperStyle.paddingRight, 10),
+					wrapperMinWidth = parseInt(wrapperStyle.minWidth, 10),
 					options = self.options,
 					scrollTop = ui.elOptionWrapper.parentNode.querySelector(".ui-scrollview-clip").scrollTop,
 					height,
@@ -43431,13 +43731,20 @@ function pathToRegexp (path, keys, options) {
 				width = Math.max(biggestListItemWidth, wrapperMinWidth);
 				height = optionHeight;
 
+				if (width + wrapperPaddingLeftRight > window.screen.width) {
+					width = window.screen.width - wrapperPaddingLeftRight;
+				}
+
 				// This part decides the location and direction of option list.
-				offsetLeft = self._horizontalPosition === "right" ? widgetParentRect.right - width : widgetParentRect.left;
+				offsetLeft = self._horizontalPosition === "right" ? widgetParentRect.right - width - wrapperPaddingLeftRight :
+					widgetParentRect.left;
 				// if drop down menu goes out screen eg. more menu
 				// left position has to be corrected
-				if (offsetLeft + width > window.screen.width) {
-					offsetLeft -= offsetLeft + width - window.screen.width;
+
+				if (offsetLeft + width + wrapperPaddingLeftRight > window.screen.width) {
+					offsetLeft -= offsetLeft + width + wrapperPaddingLeftRight - window.screen.width;
 				}
+
 				optionStyle = "left: " + offsetLeft + "px; ";
 
 				if (options.inline === true) {
@@ -49900,7 +50207,8 @@ function pathToRegexp (path, keys, options) {
 				 */
 
 				self.options.dragEdge = 0.05;
-				self.options.width = 0.75 * window.screen.width;
+				self.options.width = (window.screen.width >= 960) ? 360 : // for TV HD+
+					0.75 * window.screen.width; // mobile
 				self.options.height = window.screen.height;
 			};
 
@@ -53058,6 +53366,9 @@ function pathToRegexp (path, keys, options) {
 			utilsEvents = ns.event,
 			gesture = utilsEvents.gesture,
 			utilSelectors = ns.util.selectors,
+			max = Math.max,
+			min = Math.min,
+			round = Math.round,
 
 			Animation = ns.util.Animate,
 
@@ -53067,6 +53378,7 @@ function pathToRegexp (path, keys, options) {
 			DRAG_STEP_TO_VALUE = 60,
 			NUMBER_OF_CAROUSEL_ITEMS = 13,
 			EVENT_DRAG_END_TIMEOUT = 500,
+			VIBRATION_DURATION = 10,
 
 			/**
 			 * Alias for class Spin
@@ -53102,6 +53414,7 @@ function pathToRegexp (path, keys, options) {
 				 * // eg. "Monday,Tuesday,Wednesday"
 				 * @property {string} [options.digits=0] value filling with zeros, eg. 002 for digits=3;
 				 * @property {string} [options.dragTarget="document"] set target element for drag gesture
+				 * @property {string} [options.vibration=0] set vibration duration, set 0 to disable vibration
 				 * @member ns.widget.core.Spin
 				 */
 				self.options = {
@@ -53123,6 +53436,7 @@ function pathToRegexp (path, keys, options) {
 					digits: 0, // 0 - doesn't complete by zeros
 					value: 0,
 					dragTarget: "document", // "document" | "self",
+					vibration: VIBRATION_DURATION,
 					enabled: false
 				};
 				self._ui = {
@@ -53132,7 +53446,7 @@ function pathToRegexp (path, keys, options) {
 				};
 				self._carouselItems = [];
 				self._numberOfCarouselItems = NUMBER_OF_CAROUSEL_ITEMS;
-				self.length = self.options.max - self.options.min + self.options.step;
+				self.length = (self.options.max - self.options.min) / self.options.step + 1; // number of steps
 				self._prevValue = null; // self property has to be "null" on start
 				self._overflowYBeforeDrag = null;
 				self._lastCurrentIndex = null;
@@ -53167,9 +53481,11 @@ function pathToRegexp (path, keys, options) {
 				itemToAppend,
 				diff,
 				restDiff,
+				firstItem,
+				lastItem,
 				i;
 
-			count = Math.round(count);
+			count = round(count);
 			// remove all items
 			for (i = 0; i < self._numberOfCarouselItems; i++) {
 				if (self._carouselItems[i].element.firstElementChild) {
@@ -53179,14 +53495,23 @@ function pathToRegexp (path, keys, options) {
 
 			// for case of count of items is less then carousel items
 			diff = self._numberOfCarouselItems - self.length;
-			if (diff < 0) {
+			if (diff <= 0) {
 				diff = 0;
+				firstItem = 0;
+				lastItem = self._numberOfCarouselItems - 1;
+			} else {
+				// indicate first and last carousel item to fill
+				firstItem = Math.floor(diff / 2);
+				restDiff = diff - firstItem;
+				lastItem = self._numberOfCarouselItems - restDiff - 1;
+				// difference between last and first item has to be odd value
+				if ((lastItem - firstItem + 1) % 2 === 0) {
+					lastItem++;
+				}
 			}
 
 			// append new items
-			i = Math.floor(diff / 2);
-			restDiff = diff - i;
-			for (; i < self._numberOfCarouselItems - restDiff; i++) {
+			for (i = firstItem; i <= lastItem; i++) {
 				itemToAppend = self._itemByCount(count + i - self._carouselCenterIndex);
 				if (itemToAppend) {
 					self._carouselItems[self._carouselItemByCount(count + i - self._carouselCenterIndex)]
@@ -53199,14 +53524,20 @@ function pathToRegexp (path, keys, options) {
 			var self = this,
 				direction = delta > 0 ? 1 : -1,
 				borderItem,
-				newItemToPlace;
+				newItemToPlace,
+				halfOfFreeCarouselItems = round((self._numberOfCarouselItems - self._ui.items.length) / 2);
+
+			if (halfOfFreeCarouselItems < 0) {
+				halfOfFreeCarouselItems = 0;
+			}
 
 			delta = Math.abs(delta);
 			if (delta === 1) { // move one item
 				borderItem = self._carouselItems[
-					self._carouselItemByCount(count + direction * self._carouselCenterIndex)
+					self._carouselItemByCount(count + direction * (self._carouselCenterIndex - halfOfFreeCarouselItems))
 				];
-				newItemToPlace = self._itemByCount(count + direction * self._carouselCenterIndex);
+
+				newItemToPlace = self._itemByCount(count + direction * (self._carouselCenterIndex - halfOfFreeCarouselItems));
 
 				if (borderItem.element.firstElementChild) {
 					borderItem.element.removeChild(borderItem.element.firstElementChild);
@@ -53230,11 +53561,13 @@ function pathToRegexp (path, keys, options) {
 				currentIndex = self._carouselItemByCount(count);
 
 			// change carousel items content on change current index
-			if (self._lastCurrentIndex !== Math.round(value)) {
+			if (self._lastCurrentIndex !== round(value)) {
 				if (self._lastCurrentIndex !== null) {
-					self._rollItems(Math.round(value) - self._lastCurrentIndex, Math.round(value));
+					if (self._ui.items.length !== self._numberOfCarouselItems) {
+						self._rollItems(round(value) - self._lastCurrentIndex, round(value));
+					}
 				}
-				self._lastCurrentIndex = Math.round(value);
+				self._lastCurrentIndex = round(value);
 			}
 
 			diff = index - currentIndex;
@@ -53337,8 +53670,8 @@ function pathToRegexp (path, keys, options) {
 				self.options.value = self._getValueByCount(self._count);
 
 				ns.event.trigger(self.element, "spinchange", {
-					value: parseInt(self.options.value, 10),
-					dValue: parseInt(self.options.value, 10) - parseInt(self._prevValue, 10)
+					value: parseFloat(self.options.value),
+					dValue: parseFloat(self.options.value) - parseFloat(self._prevValue)
 				});
 			});
 
@@ -53448,17 +53781,17 @@ function pathToRegexp (path, keys, options) {
 				options = self.options;
 
 			// convert options
-			options.min = (options.min !== undefined) ? parseInt(options.min, 10) : 0;
-			options.max = (options.max !== undefined) ? parseInt(options.max, 10) : 0;
-			options.value = (options.value !== undefined) ? parseInt(options.value, 10) : 0;
-			options.step = (options.step !== undefined) ? parseInt(options.step, 10) : 1;
+			options.min = (options.min !== undefined) ? parseFloat(options.min) : 0;
+			options.max = (options.max !== undefined) ? parseFloat(options.max) : 0;
+			options.value = (options.value !== undefined) ? parseFloat(options.value) : 0;
+			options.step = (options.step !== undefined) ? parseFloat(options.step, 10) : 1;
 			options.duration = (options.duration !== undefined) ? parseInt(options.duration, 10) : 0;
 			options.labels = (Array.isArray(options.labels)) ? options.labels : options.labels.split(",");
 
-			self.length = options.max - options.min + options.step;
+			self.length = (options.max - options.min) / options.step + 1;
 			self._count = self._valueToCount(options.value);
 
-			self.dragTarget = (options.dragTarget === "document") ? document : self.element;
+			self.dragTarget = (options.dragTarget === "self") ? self.element : document;
 
 			self._refresh();
 		};
@@ -53515,7 +53848,9 @@ function pathToRegexp (path, keys, options) {
 		};
 
 		prototype._setValue = function (value) {
-			var self = this;
+			var self = this,
+				countDiff,
+				options = self.options;
 
 			value = window.parseFloat(value, 10);
 			// @todo: for spin with labels the textContent should contains label by value;
@@ -53524,14 +53859,25 @@ function pathToRegexp (path, keys, options) {
 			if (isNaN(value)) {
 				ns.warn("Spin: value is not a number");
 			} else {
-				if ((value < self.options.min || value > self.options.max) && self.options.loop === "disabled") {
-					value = Math.min(Math.max(value, self.options.min), self.options.max);
+				if ((value < options.min || value > options.max) && options.loop === "disabled") {
+					value = min(max(value, options.min), options.max);
 				}
-				if (value !== self.options.value) {
+				if (value !== options.value) {
 					self._previousCount = self._count;
 					self._count = self._valueToCount(value);
 
-					self.options.value = value;
+					if (options.loop === "enabled" && options.shortPath === "enabled") {
+						countDiff = self._count - self._previousCount;
+						if (Math.abs(countDiff) > (self.length / 2)) {
+							if (countDiff < 0) {
+								self._count += self.length;
+							} else if (countDiff > 0) {
+								self._count -= self.length;
+							}
+						}
+					}
+
+					options.value = value;
 					// set data-value on element
 					self.element.dataset.value = value;
 
@@ -53592,7 +53938,7 @@ function pathToRegexp (path, keys, options) {
 				value = self._getValueByCount(self._count);
 
 			if (self.options.loop !== "enabled") {
-				self._objectValue.value = Math.min(Math.max(value, options.min), options.max);
+				self._objectValue.value = min(max(value, options.min), options.max);
 			}
 			return value;
 		};
@@ -53600,15 +53946,22 @@ function pathToRegexp (path, keys, options) {
 		prototype._setMax = function (element, max) {
 			var options = this.options;
 
-			options.max = (max !== undefined) ? parseInt(max, 10) : 0;
-			this.length = options.max - options.min + options.step;
+			options.max = (max !== undefined) ? parseFloat(max) : 0;
+			this.length = (options.max - options.min) / options.step + 1;
 		};
 
 		prototype._setMin = function (element, min) {
 			var options = this.options;
 
-			options.min = (min !== undefined) ? parseInt(min, 10) : 0;
-			this.length = options.max - options.min + options.step;
+			options.min = (min !== undefined) ? parseFloat(min) : 0;
+			this.length = (options.max - options.min) / options.step + 1;
+		};
+
+		prototype._setStep = function (element, step) {
+			var options = this.options;
+
+			options.step = (step !== undefined) ? parseFloat(step) : 0;
+			this.length = (options.max - options.min) / options.step + 1;
 		};
 
 		prototype._setLabels = function (element, value) {
@@ -53668,18 +54021,28 @@ function pathToRegexp (path, keys, options) {
 		};
 
 		prototype._drag = function (e) {
-			var self = this;
+			var self = this,
+				options = self.options,
+				previousCount;
 
 			// if element is detached from DOM then event listener should be removed
 			if (document.getElementById(self.element.id) === null) {
 				utilsEvents.off(self.dragTarget, "drag dragend dragstart", self);
 			} else {
-				if (self.options.enabled) {
+				if (options.enabled) {
+					previousCount = round(self._count);
 					self._objectValue.value = self._startDragCount - e.detail.deltaY / DRAG_STEP_TO_VALUE;
-					if (self.options.loop !== "enabled") {
-						self._objectValue.value = Math.min(Math.max(self._objectValue.value, 0), self.length - 1);
+					if (options.loop !== "enabled") {
+						self._objectValue.value = min(max(self._objectValue.value, 0), self.length - 1);
 					}
 					showAnimationTick(self);
+
+					// trigger device vibration
+					if (options.vibration > 0 &&
+						previousCount !== round(self._count) &&
+						typeof window.navigator.vibrate === "function") {
+						window.navigator.vibrate(options.vibration);
+					}
 				}
 			}
 			// set timeout in case of drag outside screen
@@ -53718,20 +54081,20 @@ function pathToRegexp (path, keys, options) {
 				e.detail.velocityY > 0.7 &&
 				e.detail.distance) {
 
-				momentum = self.options.momentumLevel * Math.round(e.detail.distance / 20);
+				momentum = self.options.momentumLevel * round(e.detail.distance / 20);
 				if (e.detail.direction === "up") {
 					momentum = -momentum;
 				}
-				self._count = Math.round(self._objectValue.value) - momentum || 0;
+				self._count = round(self._objectValue.value) - momentum || 0;
 				if (self.options.loop !== "enabled") {
-					self._count = Math.min(Math.max(self._count, 0), self.length - 1);
+					self._count = min(max(self._count, 0), self.length - 1);
 				}
 				duration = self.options.momentumDuration;
 				chain[0].timing = Spin.timing.easeOut;
 			} else {
-				self._count = Math.round(self._objectValue.value) || 0;
+				self._count = round(self._objectValue.value) || 0;
 				if (self.options.loop !== "enabled") {
-					self._count = Math.min(Math.max(self._count, 0), self.length - 1);
+					self._count = min(max(self._count, 0), self.length - 1);
 				}
 				duration = Math.abs(self._count - self._objectValue.value) * duration;
 			}
@@ -53790,14 +54153,15 @@ function pathToRegexp (path, keys, options) {
 		prototype._itemIndexByValue = function (value) {
 			var options = this.options;
 
-			return Math.round((value - options.min) / options.step);
+			return round((value - options.min) / options.step);
 		};
 
 		prototype._itemByCount = function (count) {
 			var self = this,
-				value = self._getValueByCount(count);
+				value = self._getValueByCount(count),
+				itemIndex = self._itemIndexByValue(value);
 
-			return self._ui.items[self._itemIndexByValue(value)];
+			return (itemIndex >= 0) ? self._ui.items[itemIndex] : null;
 		};
 
 		prototype._click = function (e) {
@@ -58006,9 +58370,12 @@ function pathToRegexp (path, keys, options) {
 			 */
 			prototype._initHeight = function () {
 				var self = this,
-					page = ns.widget.Page(self._ui.page);
+					page;
 
-				self.element.style.height = page.getContentHeight() + "px";
+				if (!self.element.style.height) {
+					page = ns.widget.Page(self._ui.page);
+					self.element.style.height = page.getContentHeight() + "px";
+				}
 			};
 
 			/**
@@ -58271,6 +58638,7 @@ function pathToRegexp (path, keys, options) {
 				MATRIX_REGEXP = /matrix\((.*), (.*), (.*), (.*), (.*), (.*)\)/,
 				DATA_ROLE = "data-role",
 				RESIZE_TIMEOUT = 300,
+				BORDER_SIZE = 16,
 				direction = {
 					PREV: 0,
 					NEXT: 1
@@ -58374,6 +58742,7 @@ function pathToRegexp (path, keys, options) {
 						scrollableParent: null,
 						content: null
 					};
+					self._borderSize = BORDER_SIZE;
 					self._refreshSizesCallback = refreshSizes.bind(null, this);
 				},
 				prototype = new BaseWidget();
@@ -58734,6 +59103,7 @@ function pathToRegexp (path, keys, options) {
 					if (self._compareOverlapItem(listItems[i])) {
 						self._direction ? element.insertBefore(ui.holder, listItems[i].element.nextSibling) : element.insertBefore(ui.holder, listItems[i].element);
 						self._refreshItemsInfo();
+						self._setItemMargin();
 					}
 				}
 			};
@@ -58756,6 +59126,7 @@ function pathToRegexp (path, keys, options) {
 				helper.style.left = 0;
 				element.insertBefore(helperElement, holder);
 				element.removeChild(holder);
+				self._setItemMargin();
 				self._ui.helper = {};
 			};
 
@@ -58943,6 +59314,41 @@ function pathToRegexp (path, keys, options) {
 			};
 
 			/**
+			 * Set the margins of each item
+			 * @method _setItemMargin
+			 * @protected
+			 * @member ns.widget.mobile.GridView
+			 */
+			prototype._setItemMargin = function () {
+				var self = this,
+					options = self.options,
+					// list elements represents current order of list item in DOM tree
+					listElements = [].slice.call(self.element.getElementsByTagName("li")),
+					i,
+					length = listElements.length,
+					cols = options.cols,
+					elementStyle = null,
+					borderSize = self._borderSize;
+
+				// set margin
+				for (i = 0; i < length; i++) {
+					elementStyle = listElements[i].style;
+					// all without last in raw should have right border
+					if (i % cols < cols - 1) {
+						elementStyle.marginRight = borderSize + "px";
+					} else {
+						elementStyle.marginRight = "0";
+					}
+					// first row doesn't have top margin
+					if (i > cols - 1) {
+						elementStyle.marginTop = borderSize + "px";
+					} else {
+						elementStyle.marginTop = "0";
+					}
+				}
+			};
+
+			/**
 			 * Set the width of each item
 			 * @method _setItemSize
 			 * @protected
@@ -58959,7 +59365,7 @@ function pathToRegexp (path, keys, options) {
 					cols,
 					i,
 					width,
-					borderSize = 16,
+					borderSize = self._borderSize,
 					elementStyle = null,
 					content;
 
@@ -58984,35 +59390,29 @@ function pathToRegexp (path, keys, options) {
 				if (cols === 0) {
 					cols = options.minCols;
 				}
+				options.cols = cols;
 
 				self._itemSize = (parentWidth - (cols - 1) * borderSize) / cols;
 				self._itemHeight = self._itemSize;
-				self._borderSize = borderSize;
 
 				width = self._itemSize + "px";
 
+				self._setItemMargin();
+
+				// set size
 				for (i = 0; i < length; i++) {
 					elementStyle = listElements[i].style;
-					// all without last in raw should have right border
-					if (i % cols < cols - 1) {
-						elementStyle.marginRight = borderSize + "px";
-					}
-					// first row doesn't have top margin
-					if (i > cols - 1) {
-						elementStyle.marginTop = borderSize + "px";
-					} else {
-						elementStyle.marginTop = "0px";
-					}
 					elementStyle.width = width;
 					// item height is the same like width
 					elementStyle.height = width;
+				}
+				// check label
+				for (i = 0; i < length; i++) {
 					// check label
 					if (listElements[i].querySelector("*:not(img)")) {
 						listElements[i].classList.add(classes.ITEM_HAS_LABEL);
 					}
 				}
-
-				options.cols = cols;
 			};
 
 			/**
@@ -59063,7 +59463,10 @@ function pathToRegexp (path, keys, options) {
 			 */
 			prototype._setReorder = function (element, reorder) {
 				var self = this,
-					options = self.options;
+					options = self.options,
+					page = self._getParentPage(element),
+					appbarElement,
+					appbar;
 
 				utilsEvents.disableGesture(element);
 
@@ -59087,6 +59490,15 @@ function pathToRegexp (path, keys, options) {
 							liItem.appendChild(handler);
 						}
 					});
+
+					// lock AppBar if exists
+					if (page) {
+						appbarElement = page.querySelector(ns.widget.core.Appbar.selector);
+						if (appbarElement) {
+							appbar = ns.widget.Appbar(appbarElement);
+							appbar.lockExpanding(true);
+						}
+					}
 				} else {
 					utilsEvents.enableGesture(
 						element,
@@ -59095,6 +59507,15 @@ function pathToRegexp (path, keys, options) {
 					utilsEvents.off(element, "drag dragstart dragend dragcancel dragprepare", self, true);
 					utilsEvents.on(element, "pinchin pinchout", self);
 					element.classList.remove("ui-gridview-reorder");
+
+					// unlock AppBar if exists
+					if (page) {
+						appbarElement = page.querySelector(ns.widget.core.Appbar.selector);
+						if (appbarElement) {
+							appbar = ns.widget.Appbar(appbarElement);
+							appbar.lockExpanding(false);
+						}
+					}
 				}
 
 				options.reorder = reorder;

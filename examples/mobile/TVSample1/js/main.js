@@ -58,6 +58,10 @@ function getRoomId() {
 
 function init() {
     console.log('[WT] Main JS!');
+
+    var playButton = document.getElementById("playButton"),
+        pauseButton = document.getElementById("pauseButton");
+
     container = document.getElementById("messageBox");
     videoGrid = document.getElementById('video-grid');
     localVideo = document.getElementById('local-video');
@@ -67,6 +71,9 @@ function init() {
     const logMessage = (message) => {
         console.log(message);
     };
+
+    playButton.addEventListener("vclick", play);
+    pauseButton.addEventListener("vclick", pause);
 
     const showMessage = (message) => {
         // var jsonStr = JSON.stringify(message);
@@ -101,7 +108,7 @@ function init() {
         //             faceContainer.style.height = faceAreaHeight + 'px';
         //         }
         //     }
-        // } 
+        // }
         else {
             var divElement = document.createElement("div");
             divElement.style.padding = "5px 0";

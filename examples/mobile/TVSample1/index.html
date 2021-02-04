@@ -5,8 +5,8 @@
     <title>Chat</title>
     <meta content="width=device-width, user-scalable=no" name="viewport" />
     <link href="./css/style.css" rel="stylesheet" />
-    <link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
-    <script data-build-remove="false" src="lib/tau/mobile/js/tau.js"></script>
+    <link href="lib/tau/mobile/theme/changeable/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/tv/js/tau.js"></script>
 </head>
 
 <body>
@@ -21,19 +21,22 @@
                     <video muted controls id="videoControl" src="./videos/test.mp4"></video>
                 </div>
                 <div style="margin-left: 70%; margin-top: 5%;">
-                    <button data-inline="true"
-                        style="width: 140px; font-size: 25px; color: #bfc4cc; background-color: #152033;"
-                        onclick="play()">Play</button>
-                    <button data-inline="true"
+                    <button data-inline="true" id="playButton"
+                        style="width: 140px; font-size: 25px; color: #bfc4cc; background-color: #152033;">Play</button>
+                    <button data-inline="true" id="pauseButton"
                         style="width: 140px; font-size: 25px; color: #bfc4cc; background-color: #152033;"
                         onclick="pause()">Pause</button>
                 </div>
             </div>
             <div class="right-container">
                 <div style="margin-top: 20px;">
-                    <button data-inline="true"
-                        style="margin-left: 60px; width: 240px; font-size: 25px; background-color: #bfc4cc; color: #152033;"
-                        onclick="effecton()">Funny Effect On</button>
+                    <label style="background-color: #bfc4cc; border-radius: 20px; padding: 10px;
+                    display: inline-flex;">Funny Effect &nbsp;
+                        <select class="ui-on-off-switch" id="switch-1">
+                            <option value="off"></option>
+                            <option value="on" selected></option>
+                        </select>
+                    </label>
                 </div>
                 <div class="face-container" id="faceContainer" style="height: 300px;">
                     <h3>
