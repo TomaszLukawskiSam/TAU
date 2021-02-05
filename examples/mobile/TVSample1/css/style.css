@@ -1,0 +1,150 @@
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0;
+}
+
+h3 {
+    color: #bfc4cc;
+    padding-left: 10px;
+}
+
+.input-area {
+    display: flex;
+    padding: 5px;
+    border: solid 1px #ccc;
+    background-color: #f4f4f4;
+    font-size: 10px;
+}
+
+.footer-inputText {
+    background-color: transparent;
+    width: 100px;
+    padding: 3px;
+    border: 0;
+    font-size: 20px;
+}
+
+.view-container {
+    padding: 10px;
+    font-size: 16px;
+    overflow: scroll;
+}
+
+.video-container {
+    width: 64%;
+    height: 1280px;
+    padding: 17px;
+    float: left;
+    border-right: solid 1px #566576;
+}
+
+.right-container {
+    width: 34%;
+    height: 1280px;
+    float: right;
+}
+
+.face-container {
+    width: 100%;
+    padding: 5px;
+    border-bottom: solid 1px #566576;
+}
+
+.chat-container {
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+}
+
+#video-grid {
+    display: none;
+    grid-template-columns: repeat(auto-fill, 320px);
+    grid-auto-rows: 215px;
+}
+
+video {
+    width: 95%;
+    height: 98%;
+}
+
+.contents {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#content-text {
+    font-weight: bold;
+    font-size: 3em;
+}
+
+.default-page {
+    width: 100%;
+    height: 100%;
+    color: rgb(36, 59, 85);
+    background: linear-gradient(180deg, #2c5a82 0%, #386d9d 15%, #253d58 50%, #203863 100%);
+    visibility: hidden;
+}
+
+.default-page h1 {
+    text-align: center;
+    font-size: 100px;
+    padding: 100px;
+    margin: 0;
+    color: #bdd7ee;
+}
+
+.default-page .screens {
+    display: flex;
+    justify-content: space-around;
+    width: 70%;
+    margin: auto;
+}
+
+.default-page .screens .screen {
+    width: 40%;
+    position: relative;
+}
+
+.default-page .screens .screen img {
+    border-radius: 20px;
+    width: 100%;
+}
+
+.default-page .screens .screen .mirror {
+    border-radius: 20px;
+    height: 100%;
+    transform: scaleY(-1);
+    transform-origin: 100px;
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    background-size: 100%;
+    filter: brightness(0.5) opacity(0.5);
+    -webkit-mask-image: linear-gradient(0deg, black, transparent 30%);
+}
+.mirror-screen-1 {
+    background-image: url(../images/screen-1.jpeg);
+}
+.mirror-screen-2 {
+    background-image: url(../images/screen-2.jpeg);
+}
+
+.default-page .intro {
+    margin: 140px auto 0;
+    font-size: 50px;
+    width: 60%;
+    color: #fefefe;
+}
+
+.ui-page {
+    visibility: visible;
+}
+
+.ui-on-off-switch-focus {
+    outline: 2px solid var(--primary-color);
+}

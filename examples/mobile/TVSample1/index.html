@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat</title>
+    <meta content="width=device-width, user-scalable=no" name="viewport" />
+    <link href="./css/style.css" rel="stylesheet" />
+    <link href="lib/tau/mobile/theme/changeable/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/tv/js/tau.js"></script>
+</head>
+
+<body>
+    <div class="ui-page" id="haveRoomPage">
+        <div class="ui-content"
+            style="border-radius: 0px; background-image: linear-gradient(to top, rgb(36, 59, 85), rgb(20, 30, 48));">
+            <div class="video-container">
+                <h3>
+                    Watch Video
+                </h3>
+                <div style="margin-top: 20%; margin-left: 5%;">
+                    <video muted controls id="videoControl" src="./videos/test.mp4"></video>
+                </div>
+                <div style="margin-left: 70%; margin-top: 5%;">
+                    <button data-inline="true" id="playButton"
+                        style="width: 140px; font-size: 25px; color: #bfc4cc; background-color: #152033;">Play</button>
+                    <button data-inline="true" id="pauseButton"
+                        style="width: 140px; font-size: 25px; color: #bfc4cc; background-color: #152033;"
+                        onclick="pause()">Pause</button>
+                </div>
+            </div>
+            <div class="right-container">
+                <div style="margin-top: 20px;">
+                    <label style="background-color: #bfc4cc; border-radius: 20px; padding: 10px;
+                    display: inline-flex;">Funny Effect &nbsp;
+                        <select class="ui-on-off-switch" id="switch-1">
+                            <option value="off"></option>
+                            <option value="on" selected></option>
+                        </select>
+                    </label>
+                </div>
+                <div class="face-container" id="faceContainer" style="height: 300px;">
+                    <h3>
+                        Buddy
+                    </h3>
+                    <div id="video-grid">
+                        <video playsinline autoplay muted id="local-video"></video>
+                    </div>
+                </div>
+                <div class="chat-container">
+                    <h3>
+                        Chat
+                    </h3>
+                    <div class="view-container" id="messageBox">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/socket.io.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
