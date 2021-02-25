@@ -6,13 +6,91 @@ body {
     padding: 0;
 }
 
-.default-page {
+h3 {
+    color: #bfc4cc;
+    padding-left: 10px;
+}
+
+.input-area {
+    display: flex;
+    padding: 5px;
+    border: solid 1px #ccc;
+    background-color: #f4f4f4;
+    font-size: 10px;
+}
+
+.footer-inputText {
+    background-color: transparent;
+    width: 100px;
+    padding: 3px;
+    border: 0;
+    font-size: 10px;
+}
+
+.view-container {
+    padding: 10px;
+    font-size: 16px;
+    overflow: scroll;
+}
+
+.video-container {
+    width: 63%;
+    height: 1280px;
+    padding: 17px;
+    float: left;
+    border-right: solid 6px aliceblue;
+}
+
+.right-container {
+    width: 34%;
+    height: 1280px;
+    float: right;
+}
+
+.face-container {
+    width: 100%;
+    padding: 5px;
+    /* border-top: solid 1px #566576;
+    border-bottom: solid 1px #566576; */
+}
+
+.chat-container {
     width: 100%;
     height: 100%;
-    color: rgb(36, 59, 85);
-    /*implement code*/
-    /* visibility: hidden; */
-    background: linear-gradient(180deg, #2c5a82 0%, #386d9d 15%, #253d58 50%, #203863 100%);
+    padding: 5px;
+}
+
+#video-grid {
+    display: none;
+    grid-template-columns: repeat(auto-fill, 315px);
+    grid-auto-rows: 215px;
+}
+
+video {
+    width: 95%;
+    height: 98%;
+}
+
+.contents {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#content-text {
+    font-weight: bold;
+    font-size: 3em;
+}
+
+.default-page {
+    width:1920px; height:1080px;
+    background: #f09433; 
+  background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
+  background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
+  background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
+    visibility: visible;
 }
 
 .default-page h1 {
@@ -63,73 +141,35 @@ body {
     margin: 140px auto 0;
     font-size: 50px;
     width: 60%;
-    color: #fefefe;
+    color: aliceblue;
 }
 
-
-
-/* old css */
-h3 {
-    color: #bfc4cc;
-    padding-left: 10px;
+.ui-page {
+    visibility: hidden;
 }
 
-.input-area {
-    display: flex;
-    padding: 5px;
-    border: solid 1px #ccc;
-    background-color: #f4f4f4;
-    font-size: 10px;
+.ui-on-off-switch-focus {
+    outline: 2px solid var(--primary-color);
+} 
+
+
+.instagram{ width:1920px; height:1080px;
+    background: #f09433; 
+  background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
+  background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
+  background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
+    }
+
+.buttonColor {
+    background: #f09433; 
+  background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
+  background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
+  background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
 }
 
-.footer-inputText {
-    background-color: transparent;
-    width: 100px;
-    padding: 3px;
-    border: 0;
-    font-size: 10px;
-}
-
-.view-container {
-    padding: 10px;
-    font-size: 16px;
-    overflow: scroll;
-}
-
-.video-container {
-    width: 64%;
-    height: 1280px;
-    padding: 17px;
-    float: left;
-    border-right: solid 1px #566576;
-}
-
-.right-container {
-    width: 34%;
-    height: 1280px;
-    float: right;
-}
-
-.face-container {
-    width: 100%;
-    height: 40%;
-    padding: 5px;
-}
-
-.chat-container {
-    width: 100%;
-    height: 59%;
-    padding: 5px;
-    border-top: solid 1px #566576;
-}
-
-#video-grid {
-    display: none;
-    grid-template-columns: repeat(auto-fill, 200px);
-    grid-auto-rows: 300px;
-}
-
-video {
-    width: 95%;
-    height: 100%;
+.selectVideo {
+    width: 1005px; 
+    height: 587px;
 }

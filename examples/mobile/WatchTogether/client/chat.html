@@ -15,63 +15,57 @@
     <div class="ui-page" id="chat-page">
         <div class="ui-content" style="border-radius: 0px;">
             <div class="upLayer">
-                <div class="ui-content-subheader" style="font-size: 15px;">Select Service</div>
-                <div class="ui-card ui-card-service app-tvplus-service">
-                    <div class="ui-content" data-scroll="x">
-                        <div class="ui-container">
-                            <button class="ui-favorite" data-inline="true" data-style="flat">
-                                <img src="./images/list/Netflix.png">
-                                <div class="ui-title">NETFLIX</div>
-                            </button>
-                            <button class="ui-favorite" data-inline="true" data-style="flat">
-                                <img src="images/list/youtube.png">
-                                <div class="ui-title">YouTube</div>
-                            </button>
-                            <button class="ui-favorite" data-inline="true" data-style="flat">
-                                <img src="images/list/disneyplus.png">
-                                <div class="ui-title">Disney+</div>
-                            </button>
-                            <button class="ui-favorite" data-inline="true" data-style="flat">
-                                <img src="images/list/hbogo.png">
-                                <div class="ui-title">HBO</div>
-                            </button>
-                            <button class="ui-favorite" data-inline="true" data-style="flat">
-                                <img src="images/list/Tastemade.png">
-                                <div class="ui-title">Tastemade</div>
-                            </button>
+                <div class="ui-content-subheader" style="font-size: 15px;">Room Info</div>
+                <ul class="ui-listview ui-content-area">
+                    <li class="ui-li-has-icon" style="margin-left: 5px;">
+                        <div class="ui-li-icon" style="width: 80px; height: 100px;">
+                            <img src="images/list/video_04.jpg" style="width: 80px; height: 80px; margin: 10px 0;" />
                         </div>
-                    </div>
-                </div>
-                <div class="ui-content-subheader" style="font-size: 15px;">Options</div>
+                        <div class="ui-li-text" style="margin-left: 10px; margin-top: 10px;">
+                            <span class="ui-li-text-title">
+                                RoomName : Demo
+                            </span>
+                            <span class="ui-li-text-sub">
+                                Video : Matrix
+                            </span>
+                            <span class="ui-li-text-sub">
+                                Host : Cookie
+                            </span>
+                        </div>
+                    </li>
+                </ul>
+                <div class="ui-content-subheader" style="font-size: 15px;">Settings</div>
                 <div class="ui-card ui-card-service app-tvplus-service">
                     <div class="ui-content" data-scroll="x">
                         <div class="ui-container">
-                            <button class="ui-favorite" data-inline="true" data-style="flat">
-                                <img src="images/list/chat.png">
-                            </button>
-                            <button class="ui-favorite" data-inline="true" data-style="flat">
-                                <img src="./images/list/video.png">
-                            </button>
-                            <button class="ui-favorite" data-inline="true" data-style="flat">
-                                <img src="images/list/mic.png">
-                            </button>
-                            <a class="ui-btn ui-favorite" data-inline="true" data-style="flat"
-                                href="#share-users-popup" data-rel="popup" data-position-to="window">
-                                <img src="images/list/share.png">
+                            <a class="ui-btn" data-inline="true" data-style="flat" href="#preparing">
+                                <img style="width: 45px" src="images/list/chat.png">
                             </a>
-                            <button class="ui-favorite" data-inline="true" data-style="flat">
-                                <img src="images/list/setting.jpeg">
-                            </button>
+                            <a class="ui-btn" data-inline="true" data-style="flat" href="#preparing">
+                                <img style="width: 45px" src="./images/list/video.png">
+                            </a>
+                            <a class="ui-btn" data-inline="true" data-style="flat" href="#preparing">
+                                <img style="width: 45px" src="images/list/mic.png">
+                            </a>
+                            <a class="ui-btn" data-inline="true" data-style="flat" href="#broadcast-popup">
+                                <img style="width: 45px" src="images/list/share.png">
+                            </a>
+                            <a class="ui-btn" data-inline="true" data-style="flat" href="#share-users-popup"
+                                data-rel="popup" data-position-to="window">
+                                <img style="width: 45px" src="images/list/member.png" onclick="connectUser()">
+                            </a>
                         </div>
                     </div>
                 </div>
-                <div class="ui-content-subheader" style="font-size: 15px;">Video Controller</div>
-                <div class="ui-card ui-card-service app-tvplus-service">
-                    <div class="ui-content">
-                        <button data-inline="true" class="ui-btn-contained-colored play-button" disabled
-                            style="width: 70px; font-size: 17px;" onclick="play()">Play</button>
-                        <button data-inline="true" class="ui-btn-contained-colored pause-button" disabled
-                            style="width: 70px; font-size: 17px;" onclick="pause()">Pause</button>
+                <div class="host-control">
+                    <div class="ui-content-subheader" style="font-size: 15px;">Video Controller</div>
+                    <div class="ui-card ui-card-service app-tvplus-service">
+                        <div class="ui-content">
+                            <button data-inline="true" class="ui-btn-contained-colored"
+                                style="width: 70px; font-size: 17px;" onclick="play()">Play</button>
+                            <button data-inline="true" class="ui-btn-contained-colored"
+                                style="width: 70px; font-size: 17px;" onclick="pause()">Pause</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -84,14 +78,12 @@
         <div class="ui-footer">
             <div class="input-area">
                 <input class="footer-inputText" type="text" id="inputText" value="">
-                <button data-inline="true" style="width: 120px; font-size: 15px;" onclick="openEmoji()">Emoji</button>
-                <button data-inline="true" style="width: 120px; font-size: 15px;" onclick="uploadText()">Upload</button>
+                <button data-inline="true" style="width: 120px; font-size: 15px;" onclick="uploadText()">Text</button>
             </div>
         </div>
-
         <div class="ui-popup" id="share-users-popup">
             <div class="ui-popup-header">
-                Share the video
+                Share the Buddy
             </div>
             <div class="ui-popup-content">
                 <ul class="ui-listview ui-content-area" id="popup-users-list">
@@ -101,7 +93,45 @@
                 <a href="#" class="ui-btn" data-style="flat" data-rel="back" id="user-share-button">Share</a>
             </div>
         </div>
-        <script src="chat.js"></script>
+        <div class="ui-popup" id="preparing">
+            <div class="ui-popup-header">
+                Preparing..
+            </div>
+            <div class="ui-popup-content">
+                Will be soon
+            </div>
+            <div class="ui-popup-footer">
+                <a href="#" class="ui-btn" data-style="flat" data-rel="back">OK</a>
+            </div>
+        </div>
+        <div class="ui-popup" id="broadcast-popup">
+            <div class="ui-popup-header">
+                Share to Buddy
+            </div>
+            <div class="ui-popup-content">
+                If you want to share the buddy face,</br>
+                please select "Curator"
+                <div class="ui-popup-body-text">
+                    <ul class="ui-listview ui-content-area">
+                        <li class="ui-li-has-radio">
+                            <input type="radio" id="radio-1" name="radio-group" checked="checked" value="true" />
+                            <div class="ui-li-text">
+                                Curator
+                            </div>
+                        </li>
+                        <li class="ui-li-has-radio">
+                            <input type="radio" id="radio-2" name="radio-group" value="false" />
+                            <div class="ui-li-text">
+                                Watcher
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="ui-popup-footer">
+                <a href="#" class="ui-btn" data-style="flat" data-rel="back" id="user-brodcast-button">OK</a>
+            </div>
+        </div>
     </div>
 </body>
 

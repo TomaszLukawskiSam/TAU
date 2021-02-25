@@ -50,36 +50,20 @@ body {
     text-decoration: underline;
 }
 
-.login-id {
-    margin: auto;
-    border: solid 1px #ccc;
-    width: 80%;
-    height: 100px;
-    margin-top: 40px;
-    margin-bottom: 30px;
-}
-
-.login-password {
-    margin: auto;
-    border: solid 1px #ccc;
-    width: 80%;
-    height: 100px;
-    margin-bottom: 30px;
-}
-
 .login-forgot {
     margin: auto;
     width: 80%;
-    height: 80px;
-    margin-bottom: 30px;
+    height: 20px;
+    margin-bottom: 5px;
 }
 
 .login-btn {
     margin: auto;
     width: 80%;
-    height: 80px;
+    height: 60px;
 }
 
 .app-hidden {
     display: none !important;
 }
+

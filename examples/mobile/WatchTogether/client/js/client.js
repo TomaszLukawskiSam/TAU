@@ -1,41 +1,23 @@
 var d2dservice = new D2DServiceClient();
 var textData;
 var textArea;
-var user = null;
-var users = [{
-        id: 1,
-        name: "Tom",
-        shared: false
-    }, {
-        id: 2,
-        name: "Ann",
-        shared: false
-    }, {
-        id: 3,
-        name: "Dave",
-        shared: true
-    }, {
-        id: 4,
-        name: "Ella",
-        shared: false
-    }, {
-        id: 5,
-        name: "Julia",
-        shared: false
-    }];
+// require need to get user name.
+var user = 'cookie';
+var wt_mode;
+var roomid = 0;
+var users = [];
 
 function getlistItemHTML(user) {
     return `<li class="ui-li-has-checkbox">
         <label style="display: inherit; width: 100%">
-            <input class="checkboxes user-share" data-user-id="${user.id}"
-             type="checkbox" ${user.shared ? "checked" : ""}/>
+        <input class="checkboxes user-share" data-user-id="${user.id}"
+        type="checkbox" ${user.shared ? "checked" : ""}/>
             <div class="ui-li-text">
                 <span class="ui-li-text-title">${user.name}</span>
             </div>
         </label>
     </li>`;
 }
-
 function updatePopup() {
     var popupElement = document.getElementById('share-users-popup');
 
@@ -45,34 +27,56 @@ function updatePopup() {
     tau.widget.Popup(popupElement).refresh();
 }
 
-function onChatPageBeforeShow() {
-    var shareButton = document.getElementById('user-share-button');
+function onBroadCastButtonClick() {
+    var broadcast = document.getElementsByName('radio-group'),
+        broadcast_value;
 
+    for (var i = 0; i < broadcast.length; i++) {
+        if (broadcast[i].checked) {
+            broadcast_value = broadcast[i].value;
+        }
+    }
+
+    var divElement = document.createElement("div");
+    textArea = document.getElementById("messageBox");
+    divElement.style.padding = "5px 0";
+    divElement.appendChild(document.createTextNode("Invited Link : http://mydevice.ga/?roomId=" + roomid.value + "&broadcaster=" + broadcast_value));
+    textArea.appendChild(divElement);
+    connectUser();
+}
+
+function onChatPageBeforeShow() {
+    var shareButton = document.getElementById('user-share-button'),
+        broadcastButton = document.getElementById('user-brodcast-button');
     updatePopup();
     shareButton.addEventListener('click', onUserShareButtonClick);
+    broadcastButton.addEventListener('click', onBroadCastButtonClick);
 }
 
 function onPageBeforeShow(event) {
     if (event.target.id === 'chat-page') {
+        if (wt_mode === 'host') {
+            hostControlButtons(true);
+        } else {
+            hostControlButtons(false);
+        }
         onChatPageBeforeShow();
     }
 }
 
-function toogleButtons(enabled) {
-    var playButton = document.querySelector(".play-button"),
-        pauseButton = document.querySelector(".pause-button");
+function hostControlButtons(enabled) {
+    var hostControl = document.querySelector(".host-control");
 
     if (enabled) {
-        tau.widget.Button(playButton).enable();
-        tau.widget.Button(pauseButton).enable();
+        hostControl.style.visibility = 'visible';
     } else {
-        tau.widget.Button(playButton).disable();
-        tau.widget.Button(pauseButton).disable();
+        hostControl.style.visibility = 'hidden';
     }
 }
 
 function init() {
     console.log('Client Chatting App Init...');
+    wt_mode = 'host';
     document.addEventListener('pagebeforeshow', onPageBeforeShow, true);
 }
 
@@ -98,49 +102,29 @@ function uploadText() {
     }
 }
 
-function addUser(data) {
-    let newUser = data.user;
-
-    if (!users.some(user => user.id === newUser.id)) {
-        users.push(newUser);
-        updatePopup();
-    } else {
-        console.warn(`User (id:${user.id}) already exists`);
-    }
-}
-
-function removeUser(data) {
-    let removeUserId = data.userId;
-    if (users.some(user => user.id === removeUserId)) {
-        users = users.filter(user => user.id !== removeUserId);
-        updatePopup();
-    } else {
-        console.warn(`User (id:${user.id}) not exists`);
-    }
+function requestUserData() {
+    d2dservice.sendMessage("requestUserData");
 }
 
 function onMessage(evt) {
     var msg = JSON.parse(evt.data);
     if (msg.id == d2dservice.SERVER) {
-        if (msg.type === "adduser") {
-            addUser(msg.data);
-        } else if (msg.type === "removeuser") {
-            removeUser(msg.data);
-        }
     } else {
-        alert('msg.type : ' + msg.type);
         if (msg.type === "sendClientMessage") {
             var divElement = document.createElement("div");
             textArea = document.getElementById("messageBox");
             divElement.style.padding = "5px 0";
             divElement.appendChild(document.createTextNode(msg.data.index));
             textArea.appendChild(divElement);
-        } else {
-            console.log('Not matched Message...');
+        } else if (msg.type === "connectUser") {
+            users = [];
+            msg.data.forEach(user => users.push(user));
+            updatePopup();
+        } else if (msg.type === "accountUserData") {
+            user = msg.data;
         }
     }
 }
-
 function updatePopupList(popupElement, data) {
     let listview = popupElement.querySelector(".ui-listview");
 
@@ -162,6 +146,9 @@ function updatePopupList(popupElement, data) {
     }
 }
 
+function connectUser() {
+    d2dservice.sendMessage("joinedlist");
+}
 
 function login() {
     var loginButton = document.getElementById("loginButton"),
@@ -169,10 +156,20 @@ function login() {
         loggedUser = document.getElementById("loggedUser");
 
     user = userId.value;
-
     loginButton.classList.add('app-hidden');
     loggedUser.innerHTML = user;
     loggedUser.classList.remove('app-hidden');
+    d2dservice.sendMessage("loginUserData", user);
+    wt_mode = 'host';
+}
+
+function guestLogin() {
+    var userId = document.getElementById("userId");
+
+    user = userId.value;
+    d2dservice.sendMessage("loginUserData", user);
+    d2dservice.sendMessage("switchLoginToChat");
+    wt_mode = 'guest';
 }
 
 function play() {
@@ -200,20 +197,20 @@ function updateUsersFromPopup() {
 function onUserShareButtonClick() {
     updateUsersFromPopup();
 
-    // data to send
     let data = users.map(user => {
         return {
             id: user.id,
             shared: user.shared
         }
     });
-    // denug
-    console.log("send", "userShared", data);
 
-    // send to TV
     d2dservice.sendMessage("userShared", data);
 }
 
+function switchRoomToChat() {
+    roomid = document.getElementById("roomid");
+    d2dservice.sendMessage("switchRoomToChat", roomid.value);
+}
 
 window.onload = function () {
     init();
