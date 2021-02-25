@@ -6,6 +6,8 @@ var user = 'cookie';
 var wt_mode;
 var roomid = 0;
 var users = [];
+var selectedMovie = '';
+
 
 function getlistItemHTML(user) {
     return `<li class="ui-li-has-checkbox">
@@ -47,20 +49,55 @@ function onBroadCastButtonClick() {
 
 function onChatPageBeforeShow() {
     var shareButton = document.getElementById('user-share-button'),
-        broadcastButton = document.getElementById('user-brodcast-button');
+        broadcastButton = document.getElementById('user-brodcast-button'),
+        roomName = document.getElementById('room-name'),
+        videoName = document.getElementById('video-name');
+
     updatePopup();
+    roomName.textContent = roomid.value;
+    videoName.textContent = selectedMovie;
     shareButton.addEventListener('click', onUserShareButtonClick);
     broadcastButton.addEventListener('click', onBroadCastButtonClick);
 }
 
+function onCreateRoomClick(event) {
+    var target = event.target,
+        movieItem,
+        movieNameEl;
+
+    if (target.classList.contains("create-room-button")) {
+        movieItem = tau.util.selectors.getClosestBySelector(target, ".movie-item");
+        if (movieItem) {
+            movieNameEl = movieItem.querySelector(".movie-name");
+            selectedMovie = movieNameEl ? movieNameEl.textContent.trim() : "no-name";
+        }
+    }
+}
+
+function onClientPageShow(event) {
+    var movieList = event.target.querySelector(".movie-list");
+
+    movieList.addEventListener("vclick", onCreateRoomClick, true);
+}
+
 function onPageBeforeShow(event) {
-    if (event.target.id === 'chat-page') {
+    var pageId = event.target.id;
+
+    if (pageId === 'chat-page') {
         if (wt_mode === 'host') {
             hostControlButtons(true);
         } else {
             hostControlButtons(false);
         }
         onChatPageBeforeShow();
+    }
+}
+
+function onPageShow(event) {
+    var pageId = event.target.id;
+
+    if (pageId === 'client-page') {
+        onClientPageShow(event);
     }
 }
 
@@ -78,6 +115,7 @@ function init() {
     console.log('Client Chatting App Init...');
     wt_mode = 'host';
     document.addEventListener('pagebeforeshow', onPageBeforeShow, true);
+    document.addEventListener('pageshow', onPageShow, true);
 }
 
 function openEmoji() {
@@ -212,7 +250,7 @@ function switchRoomToChat() {
     d2dservice.sendMessage("switchRoomToChat", roomid.value);
 }
 
-window.onload = function () {
+document.addEventListener("DOMContentLoaded", function () {
     init();
 
     document.addEventListener('tizenhwkey', function (e) {
@@ -222,4 +260,4 @@ window.onload = function () {
             } catch (ignore) { }
         }
     });
-};
+})
