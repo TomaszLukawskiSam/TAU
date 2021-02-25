@@ -18,21 +18,21 @@
                 Create a Room
             </h1>
             <div class="ui-appbar-action-buttons-container">
-                <a href="#" class="ui-btn" data-rel="back" data-inline="true" style="width: 38px; font-size: 13px;">X</a>
+                <button data-inline="true" style="width: 38px; font-size: 13px;">X</button>
             </div>
         </div>
         <div class="ui-content">
             <ul class="ui-listview ui-content-area">
                 <li>
-                    <div class="ui-li-text">
+                    <div class="ui-li-text" style="color:darkblue;">
                         Room Name
                     </div>
                 </li>
                 <li class="ui-li-has-text-input">
-                    <input class="room-name" type="text">
+                    <input class="room-name" type="text" id="roomid">
                 </li>
                 <li>
-                    <div class="ui-li-text">
+                    <div class="ui-li-text" style="color:darkblue;">
                         Privacy
                     </div>
                 </li>
@@ -55,7 +55,8 @@
             </ul>
         </div>
         <footer class="ui-bottom-button">
-            <a class="ui-btn" data-style="contained" style="width: 60%; font-size: 17px;" href='chat.html'>Create a Room</a>
+            <a class="ui-btn ui-btn-contained-colored" data-style="contained" style="width: 60%; font-size: 17px;"
+                onclick="switchRoomToChat()" href='chat.html'>Create a Room</a>
         </footer>
     </div>
 </body>

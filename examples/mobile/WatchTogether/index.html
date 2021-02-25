@@ -5,9 +5,87 @@
     <title>Chat</title>
     <meta content="width=device-width, user-scalable=no" name="viewport" />
     <link href="./css/style.css" rel="stylesheet" />
+    <link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/tv/js/tau.js"></script>
+    <script src="js/d2dServiceLocal.js"></script>
 </head>
 
 <body>
+    <div class="ui-page" id="haveRoomPage">
+        <div class="ui-content instagram" style="border-radius: 0px;">
+            <div class="video-container">
+                <div>
+                    <div class="ui-content-area"
+                        style="width: 273px; height: 100px; margin-top: 60px; margin-left: 50px; font-size: 38px; float: left;">
+                        <div class="ui-content-area buttonColor"
+                            style="width: 245px; height: 80px; margin-top: 10px; padding-top: 20px; color: aliceblue; text-align: center;">
+                            Watch Video
+                        </div>
+                    </div>
+                    <div class="ui-content-area"
+                        style="width: 273px; height: 100px; margin-top: 60px; margin-left: 565px; font-size: 38px; float: left;">
+                        <div class="ui-content-area buttonColor"
+                            style="width: 245px; height: 80px; margin-top: 10px; padding-top: 20px; color: aliceblue; text-align: center;">
+                            Effect
+                            <select style="margin-top: 6px; margin-left: 20px" class="ui-on-off-switch" id="switch-1">
+                                <option value="off" selected></option>
+                                <option value="on"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-content-area" style="width: 1110px; height: 810px;">
+                    <div style="margin: 50px;">
+                        <video class="selectVideo" muted controls id="videoControl" src="videos/matrix.mp4"></video>
+                    </div>
+                    <div style="margin-right: 55px; float: right;">
+                        <button class="buttonColor" data-inline="true"
+                            style="width: 160px; font-size: 33px; color: aliceblue;" onclick="play()">Play</button>
+                        <button class="buttonColor" data-inline="true"
+                            style="width: 160px; font-size: 33px; color: aliceblue;" onclick="pause()">Pause</button>
+                    </div>
+                </div>
+            </div>
+            <div class="right-container">
+                <div class="face-container" id="faceContainer" style="height: 350px; display: block;">
+                    <div style="width: 100%; display: inline-flex;">
+                        <div class="ui-content-area"
+                            style="width: 300px; height: 58px; margin-top: 20px; font-size: 30px; float: left; display: inline-flex;">
+                            <div class="ui-content-area buttonColor"
+                                style="width: 265px; height: 38px; margin-top: 10px; color: aliceblue; text-align: center;">
+                                Buddy
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div id="video-grid">
+                            <video playsinline autoplay muted id="local-video"></video>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-container">
+                    <div style="width: 100%; display: inline-flex;">
+                        <div class="ui-content-area"
+                            style="width: 300px; height: 58px; margin-top: 20px; font-size: 30px; float: left; display: inline-flex;">
+                            <div class="ui-content-area buttonColor"
+                                style="width: 265px; height: 38px; margin-top: 10px; color: aliceblue; text-align: center;">
+                                Chat
+                            </div>
+                        </div>
+                    </div>
+                    <div class="view-container" id="messageBox">
+                    </div>
+                </div>
+            </div>
+            <div class="input-area"
+                style="position: absolute; width: 615px; height: 50px; border-radius: 20px; margin-top: 1000px; margin-left: 1271px;">
+                <input class="footer-inputText" type="text" id="inputText" value="">
+                <button class="buttonColor" data-inline="true"
+                    style="width: 120px; font-size: 20px; color: aliceblue;">Upload</button>
+            </div>
+        </div>
+    </div>
     <div class="default-page" id="defaultPage">
         <h1>Welcome Watch Together</h1>
         <div class="screens">
@@ -24,7 +102,14 @@
             <div>Watch your favorite movie with the people you like.</div>
             <div>Talking together while enjoy watching the movie.</div>
         </div>
+        <div>
+            <button class="buttonColor" data-inline="true"
+                style="float: right; width: 160px; height: 65px; font-size: 33px; color: aliceblue; margin-top: 70px; margin-right: 70px; border-radius: 20px;"
+                onclick="defaultToChat()">Next</button>
+        </div>
     </div>
+    <script src="js/socket.io.js"></script>
+    <script src="js/main.js"></script>
 </body>
 
 </html>

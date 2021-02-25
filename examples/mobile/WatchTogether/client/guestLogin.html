@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat</title>
+    <meta content="width=device-width, user-scalable=no" name="viewport" />
+    <link href="./css/clientUI.css" rel="stylesheet" />
+    <link href="lib/tau/mobile/theme/default/tau.css" rel="stylesheet" />
+    <script data-build-remove="false" src="lib/tau/mobile/js/tau.js"></script>
+    <script src="js/d2dServiceClient.js"></script>
+    <script src="js/client.js"></script>
+</head>
+
+<body>
+    <div class="ui-page">
+        <div class="ui-header" data-position="fixed">
+            <h1>
+                Log In
+            </h1>
+            <div class="ui-appbar-action-buttons-container">
+                <button data-inline="true" style="width: 38px; font-size: 13px;">X</button>
+            </div>
+        </div>
+        <div class="ui-content">
+            <ul class="ui-listview ui-content-area">
+                <li>
+                    <div class="ui-li-text" style="padding-bottom: 0px; color: darkblue;">
+                        ID
+                    </div>
+                </li>
+                <li class="ui-li-has-text-input" style="padding-top: 0px;">
+                    <input type="text" id="userId">
+                </li>
+                <li>
+                    <div class="ui-li-text" style="padding-bottom: 0px; color:darkblue;">
+                        Password
+                    </div>
+                </li>
+                <li class="ui-li-has-text-input login-id" style="padding-top: 0px;">
+                    <input type="password">
+                </li>
+            </ul>
+            <div class="login-forgot">
+                <p style="margin-top: 0; font-size: 15px;" onclick="alert('Link to the fine Password screen')">Forgot
+                    password?</p>
+            </div>
+            <footer class="ui-bottom-button">
+                <div class="login-btn">
+                    <a class="ui-btn ui-btn-contained-colored" data-inline="true" style="width: 100%; font-size: 17px;"
+                        onclick="guestLogin()" href='chat.html'>Log In</a>
+                </div>
+                <div class="login-btn">
+                    <a class="ui-btn ui-btn-contained-colored" data-inline="true" style="width: 100%; font-size: 17px;"
+                        href='client.html'>Sign up</a>
+                </div>
+            </footer>
+
+        </div>
+    </div>
+</body>
+
+</html>
