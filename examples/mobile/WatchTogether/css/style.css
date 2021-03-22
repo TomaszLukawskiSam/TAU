@@ -39,6 +39,39 @@ h3 {
     padding: 17px;
     float: left;
     border-right: solid 6px aliceblue;
+    display: flex;
+    flex-direction: column;
+}
+
+.video-container .video-container-top {
+    display: flex;
+}
+
+.video-container .video-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-right: 55px;
+    flex: 1;
+    min-height: 83px;
+    max-height: 83px;
+}
+
+.video-container-center {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.video-controls {
+    padding: 10px 0;
+}
+.video-controls .ui-btn {
+    margin: 10px 0;
+}
+.video-controls .ui-btn ~ .ui-btn {
+    margin-left: 50px;
 }
 
 .right-container {
@@ -71,6 +104,17 @@ video {
     height: 98%;
 }
 
+.selectVideo {
+    height: auto;
+    display: flex;
+    width: auto;
+    max-width: 100%;
+    padding: 50px 50px 0 50px;
+    box-sizing: border-box;
+    margin: 0 0 auto 0;
+    max-height: calc(100% - 133px);
+}
+
 .contents {
     display: table-cell;
     vertical-align: middle;
@@ -83,14 +127,17 @@ video {
     font-size: 3em;
 }
 
-.default-page {
-    width:1920px; height:1080px;
-    background: #f09433; 
-  background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
-  background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
-  background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
-    visibility: visible;
+.ui-page-container .ui-page.default-page {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    background: #f09433;
+    background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+    background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
 }
 
 .default-page h1 {
@@ -144,32 +191,152 @@ video {
     color: aliceblue;
 }
 
-.ui-page {
-    visibility: hidden;
-}
-
 .ui-on-off-switch-focus {
     outline: 2px solid var(--primary-color);
-} 
-
-
-.instagram{ width:1920px; height:1080px;
-    background: #f09433; 
-  background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
-  background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
-  background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
-    }
-
-.buttonColor {
-    background: #f09433; 
-  background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
-  background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
-  background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
 }
 
-.selectVideo {
-    width: 1005px; 
-    height: 587px;
+
+.instagram {
+    width: 100%;
+    height: 100%;
+    background: #f09433;
+    background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+    background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
+}
+
+.instagram .video-container {
+    height: 100%;
+    box-sizing: border-box;
+    width: 65%;
+}
+.instagram .right-container {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+.instagram .footer-inputText {
+    flex: 1;
+}
+.instagram .input-area button {
+    font-size: 20px;
+    color: aliceblue;
+    padding: 10px 20px;
+}
+.right-container .input-area {
+    margin: 40px;
+    border-radius: 20px;
+}
+
+.buttonColor {
+    background: #f09433;
+    background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+    background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
+}
+
+
+
+.welcome-page-buttons {
+    display: flex;
+    justify-content: flex-end;
+    align-content: center;
+    flex: 1;
+    max-height: 150px;
+    min-height: 100px;
+}
+
+.welcome-page-buttons .ui-btn.ui-btn-contained {
+    height: 65px;
+    font-size: 33px;
+    color: aliceblue;
+    margin: auto 60px;
+    border-radius: 20px;
+    width: 160px;
+    border-style: groove;
+}
+
+/* medium PC screen */
+@media all and (max-height: 1079px) {
+    .default-page .intro {
+        margin: 70px auto 0;
+        font-size: 30px;
+        width: 80%;
+        text-align: center;
+    }
+    .default-page h1 {
+        font-size: 60px;
+        padding: 50px;
+    }
+}
+
+/* HD TV*/
+@media all and (min-height: 1080px) {
+    .ui-on-off-switch-container {
+        transform: scale(1.5);
+    }
+}
+
+/* Note 20 Ultra*/
+@media all and (min-width: 3088px) and (max-height: 1440px) and (orientation: landscape){
+    .default-page h1 {
+        font-size: 150px;
+        padding: 50px 0 0 0;
+    }
+    .default-page .intro {
+        margin: 50px auto 0;
+        font-size: 70px;
+    }
+    .welcome-page-buttons {
+        max-height: 200px;
+        min-height: 150px;
+    }
+    .welcome-page-buttons .ui-btn.ui-btn-contained {
+        width: auto;
+        height: auto;
+        font-size: 60px;
+        margin: auto 80px;
+        border-radius: 30px;
+        padding: 20px 60px;
+    }
+    .instagram .input-area .ui-btn.ui-btn-contained {
+        font-size: 40px;
+        color: aliceblue;
+        padding: 10px 30px;
+    }
+}
+
+/* S9 */
+@media all and (min-width: 2960px) and (max-height: 1440px) and (orientation: landscape) and (max-width: 3087px) {
+    .default-page h1 {
+        font-size: 170px;
+        padding: 100px;
+    }
+    .default-page .intro {
+        margin: 110px auto 0;
+        font-size: 70px;
+    }
+    .welcome-page-buttons {
+        max-height: 300px;
+        min-height: 250px;
+    }
+    .welcome-page-buttons .ui-btn.ui-btn-contained {
+        width: auto;
+        height: auto;
+        font-size: 60px;
+        margin: auto 140px;
+        border-radius: 30px;
+        padding: 20px 60px;
+    }
+    .default-page .screens {
+        width: 80%;
+    }
+    .instagram .input-area .ui-btn.ui-btn-contained {
+        font-size: 40px;
+        color: aliceblue;
+        padding: 10px 30px;
+    }
 }

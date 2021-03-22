@@ -415,10 +415,12 @@ function pause() {
     videoElement.pause();
 }
 
+/*
 function defaultToChat() {
     defaultPage.style.visibility = 'hidden';
     roomPage.style.visibility = 'visible';
 }
+*/
 
 window.onload = function () {
     getRoomId();

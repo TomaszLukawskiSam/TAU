@@ -11,21 +11,40 @@
 </head>
 
 <body>
+    <div class="default-page ui-page ui-page-active" id="defaultPage">
+        <h1>Welcome Watch Together</h1>
+        <div class="screens">
+            <div class="screen">
+                <img src="./images/screen-1.jpeg">
+                <div class="mirror mirror-screen-1"></div>
+            </div>
+            <div class="screen">
+                <img src="./images/screen-2.jpeg">
+                <div class="mirror mirror-screen-2"></div>
+            </div>
+        </div>
+        <div class="intro">
+            <div>Watch your favorite movie with the people you like.</div>
+            <div>Talking together while enjoy watching the movie.</div>
+        </div>
+        <div class="welcome-page-buttons">
+            <a class="ui-btn buttonColor" data-inline="true" href="#haveRoomPage">Next</a>
+        </div>
+    </div>
+
     <div class="ui-page" id="haveRoomPage">
-        <div class="ui-content instagram" style="border-radius: 0px;">
+        <div class="ui-content instagram" style="border-radius: 0px;" data-scroll="none">
             <div class="video-container">
-                <div>
-                    <div class="ui-content-area"
-                        style="width: 273px; height: 100px; margin-top: 60px; margin-left: 50px; font-size: 38px; float: left;">
+                <div class="video-container-top">
+                    <div class="ui-content-area" style="font-size: 38px; width: auto; padding: 10px;">
                         <div class="ui-content-area buttonColor"
-                            style="width: 245px; height: 80px; margin-top: 10px; padding-top: 20px; color: aliceblue; text-align: center;">
+                            style="width: 245px; height: 80px; margin: 0; padding-top: 20px; color: aliceblue; text-align: center;">
                             Watch Video
                         </div>
                     </div>
-                    <div class="ui-content-area"
-                        style="width: 273px; height: 100px; margin-top: 60px; margin-left: 565px; font-size: 38px; float: left;">
+                    <div class="ui-content-area" style="font-size: 38px; width: auto; padding: 10px;">
                         <div class="ui-content-area buttonColor"
-                            style="width: 245px; height: 80px; margin-top: 10px; padding-top: 20px; color: aliceblue; text-align: center;">
+                            style="width: 245px; height: 80px; margin: 0; padding-top: 20px; color: aliceblue; text-align: center;">
                             Effect
                             <select style="margin-top: 6px; margin-left: 20px" class="ui-on-off-switch" id="switch-1">
                                 <option value="off" selected></option>
@@ -35,11 +54,9 @@
                     </div>
                 </div>
 
-                <div class="ui-content-area" style="width: 1110px; height: 810px;">
-                    <div style="margin: 50px;">
-                        <video class="selectVideo" muted controls id="videoControl" src="videos/matrix.mp4"></video>
-                    </div>
-                    <div style="margin-right: 55px; float: right;">
+                <div class="ui-content-area video-container-center" style="width: 100%; height: auto; flex: 1">
+                    <video class="selectVideo" muted controls id="videoControl" src="videos/matrix.mp4"></video>
+                    <div class="video-controls">
                         <button class="buttonColor" data-inline="true"
                             style="width: 160px; font-size: 33px; color: aliceblue;" onclick="play()">Play</button>
                         <button class="buttonColor" data-inline="true"
@@ -77,37 +94,14 @@
                     <div class="view-container" id="messageBox">
                     </div>
                 </div>
-            </div>
-            <div class="input-area"
-                style="position: absolute; width: 615px; height: 50px; border-radius: 20px; margin-top: 1000px; margin-left: 1271px;">
-                <input class="footer-inputText" type="text" id="inputText" value="">
-                <button class="buttonColor" data-inline="true"
-                    style="width: 120px; font-size: 20px; color: aliceblue;">Upload</button>
+                <div class="input-area">
+                    <input class="footer-inputText" type="text" id="inputText" value="">
+                    <button class="buttonColor" data-inline="true">Upload</button>
+                </div>
             </div>
         </div>
     </div>
-    <div class="default-page" id="defaultPage">
-        <h1>Welcome Watch Together</h1>
-        <div class="screens">
-            <div class="screen">
-                <img src="./images/screen-1.jpeg">
-                <div class="mirror mirror-screen-1"></div>
-            </div>
-            <div class="screen">
-                <img src="./images/screen-2.jpeg">
-                <div class="mirror mirror-screen-2"></div>
-            </div>
-        </div>
-        <div class="intro">
-            <div>Watch your favorite movie with the people you like.</div>
-            <div>Talking together while enjoy watching the movie.</div>
-        </div>
-        <div>
-            <button class="buttonColor" data-inline="true"
-                style="float: right; width: 160px; height: 65px; font-size: 33px; color: aliceblue; margin-top: 70px; margin-right: 70px; border-radius: 20px;"
-                onclick="defaultToChat()">Next</button>
-        </div>
-    </div>
+
     <script src="js/socket.io.js"></script>
     <script src="js/main.js"></script>
 </body>
